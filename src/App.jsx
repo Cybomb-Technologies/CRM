@@ -21,6 +21,7 @@ import SettingsPage from '@/pages/SettingsPage';
 import CalendarPage from '@/pages/CalendarPage';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { DataProvider } from '@/contexts/DataContext';
+import SignupPage from './pages/SignUp';
 
 function App() {
   const { user } = useAuth();
@@ -34,6 +35,8 @@ function App() {
       <DataProvider>
         <Routes>
           <Route path="/login" element={!user ? <LoginPage /> : <Navigate to="/" />} />
+          <Route path="/signup" element={<SignupPage />} />
+
           <Route path="/" element={user ? <DashboardLayout /> : <Navigate to="/login" />}>
             <Route index element={<DashboardPage />} />
             <Route path="leads" element={<LeadsPage />} />
@@ -50,6 +53,7 @@ function App() {
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
+
           </Route>
         </Routes>
       </DataProvider>

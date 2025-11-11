@@ -15,41 +15,110 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = localStorage.getItem('crm_token');
     const storedUser = localStorage.getItem('crm_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    
+    if (token && storedUser) {
+      try {
+        setUser(JSON.parse(storedUser));
+        // Optionally verify token with backend here
+      } catch (error) {
+        console.error('Error parsing stored user:', error);
+        localStorage.removeItem('crm_token');
+        localStorage.removeItem('crm_user');
+      }
     }
     setLoading(false);
   }, []);
 
-  const login = (email, password) => {
-    const mockUser = {
-      id: '1',
-      name: 'John Doe',
-      email: email,
-      role: 'Admin',
-      team: 'Sales',
-      avatar: null,
-      permissions: {
-        leads: { create: true, read: true, update: true, delete: true },
-        accounts: { create: true, read: true, update: true, delete: true },
-        contacts: { create: true, read: true, update: true, delete: true },
-        deals: { create: true, read: true, update: true, delete: true },
-        activities: { create: true, read: true, update: true, delete: true },
-        tickets: { create: true, read: true, update: true, delete: true },
-        products: { create: true, read: true, update: true, delete: true },
-        quotes: { create: true, read: true, update: true, delete: true },
-        reports: { create: true, read: true, update: true, delete: true },
-        workflows: { create: true, read: true, update: true, delete: true },
-        settings: { create: true, read: true, update: true, delete: true }
+  const login = async (email, password) => {
+    try {
+      console.log('🔐 Making login API call to backend...');
+      
+      const response = await fetch('http://localhost:5000/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
+    
+      console.log('📡 Response status:', response.status);
+      
+      const data = await response.json();
+      console.log('📡 Login API response:', data);
+      
+      if (!response.ok) {
+        throw new Error(data.message || 'Login failed');
       }
-    };
-    localStorage.setItem('crm_user', JSON.stringify(mockUser));
-    setUser(mockUser);
-    return mockUser;
+    
+      // Backend returns: { message, token, user }
+      localStorage.setItem('crm_token', data.token);
+      localStorage.setItem('crm_user', JSON.stringify(data.user));
+      setUser(data.user);
+      
+      return {
+        success: true,
+        user: data.user,
+        token: data.token
+      };
+      
+    } catch (error) {
+      console.error('🚨 Login error:', error);
+      return {
+        success: false,
+        error: error.message
+      };
+    }
   };
 
+  // In your AuthContext.jsx - make sure you have this register function
+const register = async (name, email, password) => {
+  try {
+    console.log('📝 Making registration API call to backend...');
+    
+    const response = await fetch('http://localhost:5000/api/auth/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ name, email, password }),
+    });
+
+    const data = await response.json();
+    console.log('📡 Registration API response:', data);
+
+    if (!response.ok) {
+      throw new Error(data.message || 'Registration failed');
+    }
+
+    if (data.success) {
+      // Auto-login after successful registration
+      localStorage.setItem('crm_token', data.token);
+      localStorage.setItem('crm_user', JSON.stringify(data.user));
+      setUser(data.user);
+      
+      return {
+        success: true,
+        user: data.user,
+        token: data.token
+      };
+    } else {
+      return {
+        success: false,
+        error: data.message || 'Registration failed'
+      };
+    }
+  } catch (error) {
+    console.error('🚨 Registration error:', error);
+    return {
+      success: false,
+      error: error.message || 'Network error occurred'
+    };
+  }
+};
   const logout = () => {
+    localStorage.removeItem('crm_token');
     localStorage.removeItem('crm_user');
     setUser(null);
   };
@@ -57,6 +126,7 @@ export const AuthProvider = ({ children }) => {
   const value = {
     user,
     login,
+    register,
     logout,
     loading
   };
