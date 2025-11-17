@@ -40,6 +40,7 @@ import {
   File,
   Download,
   Zap,
+  CheckCircle,
 } from "lucide-react";
 
 // Utility: classNames
@@ -71,7 +72,8 @@ const modulesPanelData = {
       header: "Activities",
       key: "activities",
       items: [
-        { name: "Tasks", path: "/tasks", icon: Calendar },
+        { name: "All Activities", path: "/activities", icon: Calendar },
+        { name: "Tasks", path: "/tasks", icon: CheckCircle }, // Use appropriate icon
         { name: "Meetings", path: "/meetings", icon: Calendar },
         { name: "Calls", path: "/calls", icon: Phone },
       ],
@@ -103,24 +105,48 @@ const reportsPanelData = {
         { name: "Analytics", path: "/reports/analytics", icon: Activity },
         { name: "Favorites", path: "/reports/favorites", icon: Star },
         { name: "Recently Viewed", path: "/reports/recent", icon: Grid },
-        { name: "Scheduled Reports", path: "/reports/scheduled", icon: Calendar },
-        { name: "Recently Deleted", path: "/reports/deleted", icon: TrashStub() },
+        {
+          name: "Scheduled Reports",
+          path: "/reports/scheduled",
+          icon: Calendar,
+        },
+        {
+          name: "Recently Deleted",
+          path: "/reports/deleted",
+          icon: TrashStub(),
+        },
       ],
     },
     {
       header: "By Module",
       key: "by-module",
       items: [
-        { name: "Account and Contact Reports", path: "/reports/accounts", icon: Building2 },
+        {
+          name: "Account and Contact Reports",
+          path: "/reports/accounts",
+          icon: Building2,
+        },
         { name: "Deal Reports", path: "/reports/deals", icon: Target },
         { name: "Lead Reports", path: "/reports/leads", icon: Users },
         { name: "Campaign Reports", path: "/reports/campaigns", icon: Target },
-        { name: "Case and Solution Reports", path: "/reports/cases", icon: FileText },
+        {
+          name: "Case and Solution Reports",
+          path: "/reports/cases",
+          icon: FileText,
+        },
         { name: "Product Reports", path: "/reports/products", icon: Package },
         { name: "Vendor Reports", path: "/reports/vendors", icon: Building2 },
         { name: "Quote Reports", path: "/reports/quotes", icon: FileText },
-        { name: "Sales Order Reports", path: "/reports/sales-orders", icon: FileText },
-        { name: "Purchase Order Reports", path: "/reports/purchase-orders", icon: FileText },
+        {
+          name: "Sales Order Reports",
+          path: "/reports/sales-orders",
+          icon: FileText,
+        },
+        {
+          name: "Purchase Order Reports",
+          path: "/reports/purchase-orders",
+          icon: FileText,
+        },
         { name: "Invoice Reports", path: "/reports/invoices", icon: FileText },
       ],
     },
@@ -151,9 +177,21 @@ const dashboardsPanelData = {
         { name: "Org Overview", path: "/dashboards/org", icon: Activity },
         { name: "Lead Analytics", path: "/dashboards/leads", icon: Users },
         { name: "Deal Insights", path: "/dashboards/deals", icon: Target },
-        { name: "Marketing Metrics", path: "/dashboards/marketing", icon: FileText },
-        { name: "Sales Trend", path: "/dashboards/sales-trend", icon: TrendingUp },
-        { name: "Activity Stats", path: "/dashboards/activity", icon: Calendar },
+        {
+          name: "Marketing Metrics",
+          path: "/dashboards/marketing",
+          icon: FileText,
+        },
+        {
+          name: "Sales Trend",
+          path: "/dashboards/sales-trend",
+          icon: TrendingUp,
+        },
+        {
+          name: "Activity Stats",
+          path: "/dashboards/activity",
+          icon: Calendar,
+        },
       ],
     },
   ],
@@ -167,7 +205,11 @@ const requestsPanelData = {
       items: [
         { name: "Approvals", path: "/requests/approvals", icon: ClipboardList },
         { name: "Submitted Requests", path: "/requests/submitted", icon: File },
-        { name: "Pending Requests", path: "/requests/pending", icon: ClockStub() },
+        {
+          name: "Pending Requests",
+          path: "/requests/pending",
+          icon: ClockStub(),
+        },
       ],
     },
   ],
@@ -232,10 +274,24 @@ const ziaPanelData = {
 /* ---------- small icon helpers (inline fallback icons) ---------- */
 function TrashStub() {
   // simple JS object to be used like an icon component in lists (lucide is preferred)
-  return (props) => <svg {...props} viewBox="0 0 24 24" className="w-4 h-4"><path fill="currentColor" d="M9 3h6l1 2h5v2H3V5h5l1-2zM6 9h12v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z"/></svg>;
+  return (props) => (
+    <svg {...props} viewBox="0 0 24 24" className="w-4 h-4">
+      <path
+        fill="currentColor"
+        d="M9 3h6l1 2h5v2H3V5h5l1-2zM6 9h12v11a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V9z"
+      />
+    </svg>
+  );
 }
 function ClockStub() {
-  return (props) => <svg {...props} viewBox="0 0 24 24" className="w-4 h-4"><path fill="currentColor" d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm1 11H7v-2h4V7h2v6z"/></svg>;
+  return (props) => (
+    <svg {...props} viewBox="0 0 24 24" className="w-4 h-4">
+      <path
+        fill="currentColor"
+        d="M12 2a10 10 0 1 0 .001 20.001A10 10 0 0 0 12 2zm1 11H7v-2h4V7h2v6z"
+      />
+    </svg>
+  );
 }
 
 /* ---------- Sidebar Component ---------- */
@@ -367,7 +423,10 @@ export default function Sidebar({ open, setOpen }) {
         <div className="flex-1 overflow-y-auto p-4">
           {panelData.groups.map((group, gi) => (
             <div key={gi} className="mb-5">
-              <GroupHeader header={group.header} keyName={group.key || `g${gi}`} />
+              <GroupHeader
+                header={group.header}
+                keyName={group.key || `g${gi}`}
+              />
 
               <AnimatePresence initial={false}>
                 {/* only show items if no header (always show) or expanded */}
@@ -381,11 +440,12 @@ export default function Sidebar({ open, setOpen }) {
                     {group.items.map((item, idx) => {
                       const Icon = item.icon;
                       // some items might provide a raw component (like stub)
-                      const renderedIcon = typeof Icon === "function" ? (
-                        <Icon className="w-4 h-4 mr-3" />
-                      ) : (
-                        <Icon className="w-4 h-4 mr-3" />
-                      );
+                      const renderedIcon =
+                        typeof Icon === "function" ? (
+                          <Icon className="w-4 h-4 mr-3" />
+                        ) : (
+                          <Icon className="w-4 h-4 mr-3" />
+                        );
 
                       return (
                         <NavLink
@@ -470,7 +530,9 @@ export default function Sidebar({ open, setOpen }) {
                     }}
                     className={cn(
                       "p-2 transition-all group relative rounded-md flex items-center justify-center",
-                      active ? "text-white bg-white/5" : "text-gray-400 hover:text-white hover:bg-white/5"
+                      active
+                        ? "text-white bg-white/5"
+                        : "text-gray-400 hover:text-white hover:bg-white/5"
                     )}
                     title={m.label}
                   >
@@ -497,16 +559,29 @@ export default function Sidebar({ open, setOpen }) {
                 // if clicked mini corresponds to a known panel, show that; else map to a sensible default:
                 // 'create' -> modules, 'calendar' -> modules, 'notifications' -> modules, 'settings' -> modules
                 const mapToPanel = (id) =>
-                  ["modules", "reports", "analytics", "dashboards", "requests", "marketplace", "search", "zia"].includes(
-                    id
-                  )
+                  [
+                    "modules",
+                    "reports",
+                    "analytics",
+                    "dashboards",
+                    "requests",
+                    "marketplace",
+                    "search",
+                    "zia",
+                  ].includes(id)
                     ? id
                     : "modules";
 
                 const panelKey = mapToPanel(activeMini);
                 const panelData = panels[panelKey];
 
-                return <RightPanel key={panelKey} panelKey={panelKey} panelData={panelData} />;
+                return (
+                  <RightPanel
+                    key={panelKey}
+                    panelKey={panelKey}
+                    panelData={panelData}
+                  />
+                );
               })()}
             </AnimatePresence>
           </div>

@@ -1,157 +1,127 @@
-import React, { useState, useMemo } from 'react';
-import { Helmet } from 'react-helmet';
-import { Plus, Filter, Download, Search } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Card } from '@/components/ui/card';
-import LeadsList from '@/components/leads/LeadsList';
-import CreateLeadDialog from '@/components/leads/CreateLeadDialog';
-import { useToast } from '@/components/ui/use-toast';
-import { useData } from '@/contexts/DataContext';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import React, { useState } from 'react';
+import LeadsHeader from '../components/leads/LeadsHeader';
+import LeadsTopBar from '../components/leads/LeadsTopBar';
+import LeadsFilterPanel from '../components/leads/LeadsFilterPanel';
+import LeadsTable from '../components/leads/LeadsTable';
 
 const LeadsPage = () => {
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  const { data, addDataItem, updateData } = useData();
-  const { toast } = useToast();
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filters, setFilters] = useState({
-    status: { New: true, Contacted: true, Qualified: true, Lost: true },
-    source: { Website: true, Referral: true, LinkedIn: true, 'Cold Call': true, Event: true },
-  });
+  const [selectedLeads, setSelectedLeads] = useState([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [recordsPerPage, setRecordsPerPage] = useState(10);
 
-  const handleExport = () => {
-    toast({
-      title: "Exporting Leads...",
-      description: "This feature is not fully implemented in the demo.",
-    });
-    // Basic CSV export logic
-    const headers = ['id', 'name', 'company', 'email', 'phone', 'status', 'source', 'score'];
-    const csvContent = [
-      headers.join(','),
-      ...data.leads.map(lead => headers.map(header => `"${lead[header]}"`).join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    if (link.download !== undefined) {
-      const url = URL.createObjectURL(blob);
-      link.setAttribute('href', url);
-      link.setAttribute('download', 'leads.csv');
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+  // Mock data matching the screenshot exactly
+  const leadsData = [
+    {
+      id: 1,
+      name: 'Christopher Maclead (Sample)',
+      company: 'Rangoni Of Florence',
+      email: 'christopher-maclead@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Today'
+    },
+    {
+      id: 2,
+      name: 'Carissa Kidman (Sample)',
+      company: 'Oh My Goodknits Inc',
+      email: 'carissa-kidman@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Nov 20'
+    },
+    {
+      id: 3,
+      name: 'James Merced (Sample)',
+      company: 'Kwik Kopy Printing',
+      email: 'james-merced@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Nov 19'
+    },
+    {
+      id: 4,
+      name: 'Treas Sweely (Sample)',
+      company: 'Moorong Associates',
+      email: 'treas-sweely@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Nov 18'
+    },
+    {
+      id: 5,
+      name: 'Felix Hirpara (Sample)',
+      company: 'Chapman',
+      email: 'felix.hirpara@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Nov 17'
+    },
+    {
+      id: 6,
+      name: 'Kayleigh Lace (Sample)',
+      company: 'Printing Dimensions',
+      email: 'kayleigh-lace@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Nov 16'
+    },
+    {
+      id: 7,
+      name: 'Yvonne Tjepkema (Sample)',
+      company: 'Grayson',
+      email: 'yvonne-tjepkema@noemail.invalid',
+      phone: '555-555-5555',
+      lastActivity: 'Nov 15'
+    }
+  ];
+
+  const handleSelectLead = (leadId) => {
+    setSelectedLeads(prev => 
+      prev.includes(leadId) 
+        ? prev.filter(id => id !== leadId)
+        : [...prev, leadId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedLeads.length === leadsData.length) {
+      setSelectedLeads([]);
+    } else {
+      setSelectedLeads(leadsData.map(lead => lead.id));
     }
   };
 
-  const onLeadCreated = (lead) => {
-    addDataItem('leads', lead);
-    setCreateDialogOpen(false);
-  };
-
-  const filteredLeads = useMemo(() => {
-    return (data.leads || []).filter(lead => {
-      const searchMatch = Object.values(lead).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
-      );
-      const statusMatch = filters.status[lead.status];
-      const sourceMatch = filters.source[lead.source];
-      return searchMatch && statusMatch && sourceMatch;
-    });
-  }, [data.leads, searchTerm, filters]);
-
-  const handleFilterChange = (type, key) => {
-    setFilters(prev => ({
-      ...prev,
-      [type]: {
-        ...prev[type],
-        [key]: !prev[type][key]
-      }
-    }));
-  };
-
   return (
-    <>
-      <Helmet>
-        <title>Leads - CloudCRM</title>
-        <meta name="description" content="Manage your sales leads" />
-      </Helmet>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Leads</h1>
-            <p className="text-muted-foreground mt-1">Manage and convert your sales leads</p>
+    <div className="flex h-screen bg-gray-50">
+      {/* Left Sidebar - Your existing component */}
+            
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <LeadsHeader />
+        
+        <div className="flex flex-1 overflow-hidden">
+          {/* Left Filter Panel */}
+          <div className="w-80 flex-shrink-0 border-r border-gray-200 bg-white overflow-y-auto">
+            <LeadsFilterPanel />
           </div>
-          <div className="flex items-center space-x-3">
-            <Button variant="outline" onClick={handleExport}>
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button onClick={() => setCreateDialogOpen(true)} className="bg-blue-600 hover:bg-blue-700">
-              <Plus className="w-4 h-4 mr-2" />
-              New Lead
-            </Button>
-          </div>
-        </div>
-
-        <Card className="p-4">
-          <div className="flex items-center space-x-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input 
-                placeholder="Search leads by name, company, email..." 
-                className="pl-10"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
+          
+          {/* Right Content Area */}
+          <div className="flex-1 flex flex-col min-w-0">
+            <LeadsTopBar 
+              totalRecords={leadsData.length}
+              selectedCount={selectedLeads.length}
+              currentPage={currentPage}
+              recordsPerPage={recordsPerPage}
+              onRecordsPerPageChange={setRecordsPerPage}
+              onPageChange={setCurrentPage}
+            />
+            
+            <div className="flex-1 overflow-auto">
+              <LeadsTable 
+                leads={leadsData}
+                selectedLeads={selectedLeads}
+                onSelectLead={handleSelectLead}
+                onSelectAll={handleSelectAll}
               />
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline">
-                  <Filter className="w-4 h-4 mr-2" />
-                  Filters
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56">
-                <DropdownMenuLabel>Status</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {Object.keys(filters.status).map(status => (
-                  <DropdownMenuCheckboxItem
-                    key={status}
-                    checked={filters.status[status]}
-                    onCheckedChange={() => handleFilterChange('status', status)}
-                  >
-                    {status}
-                  </DropdownMenuCheckboxItem>
-                ))}
-                <DropdownMenuLabel className="mt-2">Source</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                {Object.keys(filters.source).map(source => (
-                  <DropdownMenuCheckboxItem
-                    key={source}
-                    checked={filters.source[source]}
-                    onCheckedChange={() => handleFilterChange('source', source)}
-                  >
-                    {source}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
           </div>
-        </Card>
-
-        <LeadsList leads={filteredLeads} />
-        <CreateLeadDialog open={createDialogOpen} onOpenChange={setCreateDialogOpen} onLeadCreated={onLeadCreated} />
+        </div>
       </div>
-    </>
+    </div>
   );
 };
 
