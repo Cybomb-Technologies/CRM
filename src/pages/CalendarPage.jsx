@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
-import { Helmet } from 'react-helmet';
-import FullCalendar from '@fullcalendar/react';
-import dayGridPlugin from '@fullcalendar/daygrid';
-import timeGridPlugin from '@fullcalendar/timegrid';
-import interactionPlugin from '@fullcalendar/interaction';
-import { Card, CardContent } from '@/components/ui/card';
-import { useData, useToast } from '@/hooks';
-import CreateActivityDialog from '@/components/activities/CreateActivityDialog';
+import React, { useState, useEffect } from "react";
+import { Helmet } from "react-helmet";
+import FullCalendar from "@fullcalendar/react";
+import dayGridPlugin from "@fullcalendar/daygrid";
+import timeGridPlugin from "@fullcalendar/timegrid";
+import interactionPlugin from "@fullcalendar/interaction";
+import { Card, CardContent } from "@/components/ui/card";
+import { useData, useToast } from "@/hooks";
+import { CreateActivityDialog } from "@/components/activities";
 
 const CalendarPage = () => {
   const { data, updateData, addDataItem } = useData();
@@ -16,25 +16,27 @@ const CalendarPage = () => {
   const [selectedDate, setSelectedDate] = useState(null);
 
   useEffect(() => {
-    const dealEvents = Object.values(data.deals).flat().map(deal => ({
-      id: `deal-${deal.id}`,
-      title: `Close: ${deal.title}`,
-      start: deal.closeDate,
-      allDay: true,
-      backgroundColor: '#f97316',
-      borderColor: '#f97316',
-      classNames: ['cursor-pointer'],
-    }));
+    const dealEvents = Object.values(data.deals)
+      .flat()
+      .map((deal) => ({
+        id: `deal-${deal.id}`,
+        title: `Close: ${deal.title}`,
+        start: deal.closeDate,
+        allDay: true,
+        backgroundColor: "#f97316",
+        borderColor: "#f97316",
+        classNames: ["cursor-pointer"],
+      }));
 
-    const activityEvents = data.activities.map(activity => ({
+    const activityEvents = data.activities.map((activity) => ({
       id: `activity-${activity.id}`,
       title: activity.title,
       start: activity.dueDate,
-      allDay: activity.type === 'Task',
-      backgroundColor: activity.type === 'Meeting' ? '#8b5cf6' : '#3b82f6',
-      borderColor: activity.type === 'Meeting' ? '#8b5cf6' : '#3b82f6',
-      classNames: ['cursor-pointer'],
-      extendedProps: { type: 'activity', originalId: activity.id },
+      allDay: activity.type === "Task",
+      backgroundColor: activity.type === "Meeting" ? "#8b5cf6" : "#3b82f6",
+      borderColor: activity.type === "Meeting" ? "#8b5cf6" : "#3b82f6",
+      classNames: ["cursor-pointer"],
+      extendedProps: { type: "activity", originalId: activity.id },
     }));
 
     setEvents([...dealEvents, ...activityEvents]);
@@ -44,47 +46,59 @@ const CalendarPage = () => {
     setSelectedDate(selectInfo.startStr);
     setDialogOpen(true);
   };
-  
+
   const handleEventClick = (clickInfo) => {
     toast({
-        title: "Edit Event",
-        description: `Editing "${clickInfo.event.title}" is not implemented yet.`,
+      title: "Edit Event",
+      description: `Editing "${clickInfo.event.title}" is not implemented yet.`,
     });
   };
 
   const handleEventDrop = (dropInfo) => {
     const { event } = dropInfo;
-    if (event.extendedProps.type === 'activity') {
-        const activityId = event.extendedProps.originalId;
-        const updatedActivities = data.activities.map(act => {
-            if (act.id === activityId) {
-                return { ...act, dueDate: dropInfo.event.start.toISOString() };
-            }
-            return act;
-        });
-        updateData('activities', updatedActivities);
-        toast({ title: "Activity Updated", description: "The due date has been changed." });
+    if (event.extendedProps.type === "activity") {
+      const activityId = event.extendedProps.originalId;
+      const updatedActivities = data.activities.map((act) => {
+        if (act.id === activityId) {
+          return { ...act, dueDate: dropInfo.event.start.toISOString() };
+        }
+        return act;
+      });
+      updateData("activities", updatedActivities);
+      toast({
+        title: "Activity Updated",
+        description: "The due date has been changed.",
+      });
     } else {
-        dropInfo.revert();
-        toast({ title: "Update Failed", description: "Deal close dates cannot be changed from the calendar.", variant: "destructive" });
+      dropInfo.revert();
+      toast({
+        title: "Update Failed",
+        description: "Deal close dates cannot be changed from the calendar.",
+        variant: "destructive",
+      });
     }
   };
-  
+
   const onActivityCreated = (activity) => {
-      addDataItem('activities', activity);
-      setDialogOpen(false);
-  }
+    addDataItem("activities", activity);
+    setDialogOpen(false);
+  };
 
   return (
     <>
       <Helmet>
         <title>Calendar - CloudCRM</title>
-        <meta name="description" content="Manage your schedule, events, and activities" />
+        <meta
+          name="description"
+          content="Manage your schedule, events, and activities"
+        />
       </Helmet>
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold text-foreground">Calendar</h1>
-          <p className="text-muted-foreground mt-1">Manage your schedule and activities</p>
+          <p className="text-muted-foreground mt-1">
+            Manage your schedule and activities
+          </p>
         </div>
 
         <Card>
@@ -93,9 +107,9 @@ const CalendarPage = () => {
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
               initialView="dayGridMonth"
               headerToolbar={{
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                left: "prev,next today",
+                center: "title",
+                right: "dayGridMonth,timeGridWeek,timeGridDay",
               }}
               events={events}
               editable={true}
