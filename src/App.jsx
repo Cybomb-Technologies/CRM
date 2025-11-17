@@ -24,6 +24,9 @@ import TasksPage from "@/pages/activities/TasksPage";
 import MeetingsPage from "@/pages/activities/MeetingsPage";
 import CallsPage from "@/pages/activities/CallsPage";
 import ActivitiesPage from "@/pages/activities/ActivitiesPage";
+import DocumentPage from "@/pages/Document";
+import CampaignsPage from "@/pages/Campaigns";
+import Forecasts from "@/pages/Forecasts";
 
 function App() {
   const { user } = useAuth();
@@ -66,6 +69,9 @@ function App() {
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="documents" element={<DocumentPage />} />
+            <Route path="campaigns/*" element={<CampaignsPage />} />
+            <Route path="/forecasts" element={<Forecasts />} />
             <Route path="activities" element={<ActivitiesPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="meetings" element={<MeetingsPage />} />
