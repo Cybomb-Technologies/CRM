@@ -22,6 +22,9 @@ import CalendarPage from '@/pages/CalendarPage';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { DataProvider } from '@/contexts/DataContext';
 import SignupPage from './pages/SignUp';
+import DocumentPage from '@/pages/Document';
+import CampaignsPage from '@/pages/Campaigns';
+import Forecasts from "@/pages/Forecasts";
 
 function App() {
   const { user } = useAuth();
@@ -53,6 +56,9 @@ function App() {
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
+            <Route path="documents" element={<DocumentPage />} />
+            <Route path="campaigns/*" element={<CampaignsPage />} />
+            <Route path="/forecasts" element={<Forecasts />} />
 
           </Route>
         </Routes>
