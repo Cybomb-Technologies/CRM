@@ -84,8 +84,12 @@ const modulesPanelData = {
       items: [
         { name: "Products", path: "/products", icon: Package },
         { name: "Price Books", path: "/price-books", icon: FileText },
+        
         { name: "Quotes", path: "/quotes", icon: FileText },
         { name: "Sales Orders", path: "/sales-orders", icon: FileText },
+        { name: "Purchase Orders", path: "/purchase-orders", icon: FileText },
+        { name: "Invoices", path: "/invoices", icon: FileText },
+        { name: "Vendors", path: "/vendors", icon: Building2 },
       ],
     },
   ],
