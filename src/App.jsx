@@ -22,6 +22,15 @@ import CalendarPage from '@/pages/CalendarPage';
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { DataProvider } from '@/contexts/DataContext';
 import SignupPage from './pages/SignUp';
+import PriceBooks from './pages/PriceBooks';
+import CreatePriceBook from './components/CreatePriceBookModal';
+import Quotes from './pages/Quotes';
+import CreateQuote from './pages/CreateQuote';
+import SalesOrders from './pages/SalesOrders';
+import CreateSalesOrder from './pages/CreateSalesOrder';
+import PurchaseOrders from './pages/PurchaseOrders';
+import CreatePurchaseOrder from './pages/CreatePurchaseOrder';
+import Invoices from './pages/Invoices';
 
 function App() {
   const { user } = useAuth();
@@ -53,7 +62,15 @@ function App() {
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
-
+            <Route path="price-books" element={<PriceBooks/>}/>
+            <Route path="create-price-book" element={<CreatePriceBook/>}/>
+            <Route path="quotes" element={<Quotes/>}/>
+            <Route path="create-quote" element={<CreateQuote/>}/>
+            <Route path="sales-orders" element={<SalesOrders/>}/>
+            <Route path="create-sales-order" element={<CreateSalesOrder />} />
+            <Route path="purchase-orders" element={<PurchaseOrders/>}/>
+            <Route path="create-purchase-order" element={<CreatePurchaseOrder/>}/>
+            <Route path="invoives" element={<Invoices/>}/>
           </Route>
         </Routes>
       </DataProvider>
