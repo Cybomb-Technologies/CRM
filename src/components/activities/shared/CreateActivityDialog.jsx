@@ -8,9 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { TaskForm } from "./TaskForm";
-import { MeetingForm } from "./MeetingForm";
-import { CallForm } from "./CallForm";
+import { TaskForm } from "../tasks/TaskForm";
+import { MeetingForm } from "../meetings/MeetingForm";
+import { CallForm } from "../calls/CallForm";
 
 export function CreateActivityDialog({
   open,

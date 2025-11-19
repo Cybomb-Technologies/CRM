@@ -25,7 +25,7 @@ import CreateLeadDialog from "@/components/leads/CreateLeadDialog";
 import CreateAccountDialog from "@/components/accounts/CreateAccountDialog";
 import CreateContactDialog from "@/components/contacts/CreateContactDialog";
 import CreateDealDialog from "@/components/deals/CreateDealDialog";
-import { CreateActivityDialog } from "@/components/activities";
+import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useData } from "@/contexts/DataContext";
 import { useToast } from "@/components/ui/use-toast";
