@@ -13,7 +13,7 @@ mongoose
 
 // Simple origin check middleware
 app.use((req, res, next) => {
-  const allowedOrigin = "http://localhost:3001";
+  const allowedOrigin = "http://localhost:3000";
   const requestOrigin = req.headers.origin;
 
   // Only set CORS headers if request comes from allowed origin
@@ -47,5 +47,5 @@ app.listen(PORT, () => {
   console.log(
     `🔑 JWT Secret: ${process.env.JWT_SECRET ? "Set" : "Using fallback"}`
   );
-  console.log(`🌐 Allowing requests from: http://localhost:3001`);
+  console.log(`🌐 Allowing requests from: http://localhost:3000`);
 });

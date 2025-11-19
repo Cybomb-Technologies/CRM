@@ -63,6 +63,9 @@ const initialData = {
       industry: 'Technology', 
       contacts: 1,
       email: 'info@techcorp.com',
+      type: 'Customer',
+      employees: 250,
+      annualRevenue: 50000000,
       billingAddress: {
         street: '123 Tech Street',
         city: 'San Francisco',
@@ -77,9 +80,7 @@ const initialData = {
         zipCode: '94105',
         country: 'USA'
       },
-      annualRevenue: 50000000,
-      employees: 250,
-      type: 'Customer',
+      description: 'Leading technology company specializing in enterprise software solutions.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     },
@@ -91,6 +92,9 @@ const initialData = {
       industry: 'R&D', 
       contacts: 1,
       email: 'contact@innovationlabs.com',
+      type: 'Partner',
+      employees: 120,
+      annualRevenue: 25000000,
       billingAddress: {
         street: '456 Innovation Ave',
         city: 'Boston',
@@ -98,9 +102,43 @@ const initialData = {
         zipCode: '02108',
         country: 'USA'
       },
-      annualRevenue: 25000000,
-      employees: 120,
-      type: 'Partner',
+      shippingAddress: {
+        street: '456 Innovation Ave',
+        city: 'Boston',
+        state: 'MA',
+        zipCode: '02108',
+        country: 'USA'
+      },
+      description: 'Research and development company focused on cutting-edge technologies.',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    { 
+      id: '3', 
+      name: 'Global Solutions Inc', 
+      website: 'globalsolutions.com', 
+      phone: '+1 234 567 8902', 
+      industry: 'Consulting', 
+      contacts: 0,
+      email: 'info@globalsolutions.com',
+      type: 'Prospect',
+      employees: 500,
+      annualRevenue: 120000000,
+      billingAddress: {
+        street: '789 Global Blvd',
+        city: 'New York',
+        state: 'NY',
+        zipCode: '10001',
+        country: 'USA'
+      },
+      shippingAddress: {
+        street: '789 Global Blvd',
+        city: 'New York',
+        state: 'NY',
+        zipCode: '10001',
+        country: 'USA'
+      },
+      description: 'International consulting firm providing business transformation services.',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     }
@@ -142,23 +180,209 @@ const initialData = {
       leadConversionDate: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
+    },
+    { 
+      id: '3', 
+      firstName: 'Jennifer',
+      lastName: 'Rodriguez',
+      name: 'Jennifer Rodriguez',
+      email: 'jennifer@techcorp.com', 
+      phone: '+1 234 567 8903', 
+      mobile: '+1 234 567 8999',
+      accountId: '1',
+      accountName: 'Tech Corp',
+      title: 'Sales Director',
+      department: 'Sales',
+      leadSource: 'Website',
+      reportsTo: '',
+      mailingAddress: {
+        street: '123 Tech Street',
+        city: 'San Francisco',
+        state: 'CA',
+        zipCode: '94105',
+        country: 'USA'
+      },
+      otherAddress: {
+        street: '',
+        city: '',
+        state: '',
+        zipCode: '',
+        country: ''
+      },
+      description: 'Sales director with 10+ years of experience in enterprise software.',
+      assistant: 'Lisa Thompson',
+      assistantPhone: '+1 234 567 8910',
+      emailOptOut: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
     }
   ],
   deals: {
-    qualification: [
-      { id: '1', title: 'Enterprise Software License', company: 'Tech Corp', contactId: '1', value: 45000, probability: 30, closeDate: new Date(2025, 11, 15).toISOString(), owner: 'John Doe' },
-      { id: '2', title: 'Cloud Migration Project', company: 'Innovation Labs', contactId: '2_contact', value: 78000, probability: 25, closeDate: new Date(2025, 11, 20).toISOString(), owner: 'Jane Smith', sourceLeadId: '2' }
+    'qualification': [
+      { 
+        id: '1', 
+        title: 'Enterprise Software License', 
+        company: 'Tech Corp', 
+        contactId: '1', 
+        contactName: 'Sarah Johnson',
+        value: 45000, 
+        probability: 30, 
+        stage: 'qualification',
+        closeDate: new Date(2025, 11, 15).toISOString(), 
+        owner: 'John Doe',
+        description: 'Enterprise CRM license for 250 users',
+        tags: ['enterprise', 'software'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      },
+      { 
+        id: '2', 
+        title: 'Cloud Migration Project', 
+        company: 'Innovation Labs', 
+        contactId: '2_contact', 
+        contactName: 'Michael Chen',
+        value: 78000, 
+        probability: 25, 
+        stage: 'qualification',
+        closeDate: new Date(2025, 11, 20).toISOString(), 
+        owner: 'Jane Smith', 
+        sourceLeadId: '2',
+        description: 'Full cloud infrastructure migration',
+        tags: ['cloud', 'migration'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     ],
-    proposal: [
-      { id: '3', title: 'Marketing Automation Suite', company: 'Growth Solutions', value: 32000, probability: 50, closeDate: new Date(2025, 11, 10).toISOString(), owner: 'John Doe' }
+    'needs-analysis': [
+      { 
+        id: '3', 
+        title: 'Marketing Automation Suite', 
+        company: 'Growth Solutions', 
+        contactId: '3', 
+        contactName: 'Jennifer Rodriguez',
+        value: 32000, 
+        probability: 45, 
+        stage: 'needs-analysis',
+        closeDate: new Date(2025, 11, 10).toISOString(), 
+        owner: 'John Doe',
+        description: 'Complete marketing automation platform',
+        tags: ['marketing', 'automation'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     ],
-    negotiation: [
-      { id: '4', title: 'CRM Implementation', company: 'Sales Pro Inc', value: 95000, probability: 75, closeDate: new Date(2025, 11, 5).toISOString(), owner: 'Jane Smith' }
+    'value-proposition': [
+      { 
+        id: '4', 
+        title: 'CRM Implementation', 
+        company: 'Sales Pro Inc', 
+        contactId: '4', 
+        contactName: 'David Wilson',
+        value: 95000, 
+        probability: 60, 
+        stage: 'value-proposition',
+        closeDate: new Date(2025, 11, 5).toISOString(), 
+        owner: 'Jane Smith',
+        description: 'Full CRM implementation with training',
+        tags: ['crm', 'implementation'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ],
+    'identify-decision-makers': [],
+    'proposal-price-quote': [
+      { 
+        id: '5', 
+        title: 'Analytics Platform', 
+        company: 'Data Insights', 
+        contactId: '5', 
+        contactName: 'Lisa Brown',
+        value: 52000, 
+        probability: 75, 
+        stage: 'proposal-price-quote',
+        closeDate: new Date(2025, 10, 28).toISOString(), 
+        owner: 'John Doe',
+        description: 'Advanced analytics and reporting platform',
+        tags: ['analytics', 'reporting'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ],
+    'negotiation-review': [
+      { 
+        id: '6', 
+        title: 'E-commerce Solution', 
+        company: 'Retail Pro', 
+        contactId: '6', 
+        contactName: 'Alex Thompson',
+        value: 68000, 
+        probability: 85, 
+        stage: 'negotiation-review',
+        closeDate: new Date(2025, 10, 15).toISOString(), 
+        owner: 'Jane Smith',
+        description: 'Complete e-commerce platform implementation',
+        tags: ['ecommerce', 'platform'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     ],
     'closed-won': [
-      { id: '5', title: 'Analytics Platform', company: 'Data Insights', value: 52000, probability: 100, closeDate: new Date(2025, 10, 28).toISOString(), owner: 'John Doe' }
+      { 
+        id: '7', 
+        title: 'Mobile App Development', 
+        company: 'Startup XYZ', 
+        contactId: '7', 
+        contactName: 'Maria Garcia',
+        value: 45000, 
+        probability: 100, 
+        stage: 'closed-won',
+        closeDate: new Date(2025, 9, 20).toISOString(), 
+        owner: 'John Doe',
+        description: 'Custom mobile application development',
+        tags: ['mobile', 'development'],
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
     ],
-    'closed-lost': []
+    'closed-lost': [
+      { 
+        id: '8', 
+        title: 'Legacy System Upgrade', 
+        company: 'Old Corp', 
+        contactId: '8', 
+        contactName: 'Robert Kim',
+        value: 120000, 
+        probability: 0, 
+        stage: 'closed-lost',
+        closeDate: new Date(2025, 8, 10).toISOString(), 
+        owner: 'Jane Smith',
+        description: 'Legacy system modernization project',
+        tags: ['legacy', 'upgrade'],
+        lostReason: 'Budget constraints',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ],
+    'closed-lost-to-competition': [
+      { 
+        id: '9', 
+        title: 'AI Implementation', 
+        company: 'Tech Giant Inc', 
+        contactId: '9', 
+        contactName: 'Sarah Williams',
+        value: 200000, 
+        probability: 0, 
+        stage: 'closed-lost-to-competition',
+        closeDate: new Date(2025, 7, 15).toISOString(), 
+        owner: 'John Doe',
+        description: 'Enterprise AI implementation project',
+        tags: ['ai', 'enterprise'],
+        lostReason: 'Competitor offered better pricing',
+        competitor: 'AI Solutions Co',
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      }
+    ]
   },
   activities: [
     { id: '1', title: 'Follow up with Sarah Johnson', type: 'Call', dueDate: '2025-11-10', status: 'Pending', assignedTo: 'John Doe', relatedTo: 'Lead: 1' },
@@ -183,8 +407,57 @@ const initialData = {
       { id: '2', quoteNumber: 'Q-2025-002', deal: 'Marketing Automation Suite', total: 32000, status: 'Draft' },
   ],
   campaigns: [
-    { id: '1', name: 'Q4 Product Launch', status: 'Active', startDate: '2025-10-01', endDate: '2025-12-31' },
-    { id: '2', name: 'Holiday Promotion', status: 'Planning', startDate: '2025-11-15', endDate: '2025-12-25' }
+    { 
+      id: '1', 
+      campaignName: 'Q4 Product Launch', 
+      status: 'Active', 
+      startDate: '2025-10-01', 
+      endDate: '2025-12-31',
+      type: 'Email',
+      members: [],
+      activities: [
+        {
+          id: 'activity_1',
+          title: 'Send Welcome Email to New Members',
+          type: 'Email',
+          status: 'Completed',
+          priority: 'High',
+          dueDate: '2025-11-20',
+          assignedTo: 'John Doe',
+          description: 'Send personalized welcome email to all new campaign members',
+          relatedTo: 'Campaign: Q4 Product Launch',
+          createdAt: '2025-11-15T10:00:00Z',
+          updatedAt: '2025-11-16T14:30:00Z',
+          createdBy: 'Jane Smith'
+        },
+        {
+          id: 'activity_2',
+          title: 'Follow-up Call with Enterprise Leads',
+          type: 'Call',
+          status: 'In Progress',
+          priority: 'Medium',
+          dueDate: '2025-11-25',
+          assignedTo: 'Mike Johnson',
+          description: 'Call enterprise leads to discuss product features and schedule demos',
+          relatedTo: 'Campaign: Q4 Product Launch',
+          createdAt: '2025-11-18T09:15:00Z',
+          updatedAt: '2025-11-18T09:15:00Z',
+          createdBy: 'John Doe'
+        }
+      ],
+      expectedResponse: 15
+    },
+    { 
+      id: '2', 
+      campaignName: 'Holiday Promotion', 
+      status: 'Planning', 
+      startDate: '2025-11-15', 
+      endDate: '2025-12-25',
+      type: 'Social Media',
+      members: [],
+      activities: [],
+      expectedResponse: 20
+    }
   ],
   autoresponders: [
     { id: '1', name: 'Welcome Series', trigger: 'New Lead', status: 'Active' },
@@ -241,24 +514,26 @@ export const DataProvider = ({ children }) => {
     }));
   }, []);
   
-  const addDataItem = useCallback((key, item) => {
+  const addDataItem = useCallback((key, item, stage = null) => {
     const currentData = data[key] || [];
     
     if (Array.isArray(currentData)) {
       const newData = [item, ...currentData];
       updateData(key, newData);
     } else {
+      // For deals object structure
       const newData = { ...currentData };
-      if (item.stage && newData[item.stage]) {
-        newData[item.stage] = [item, ...newData[item.stage]];
-      } else if (item.stage) {
-        newData[item.stage] = [item];
+      const targetStage = stage || item.stage || 'qualification';
+      
+      if (!newData[targetStage]) {
+        newData[targetStage] = [];
       }
+      newData[targetStage] = [item, ...newData[targetStage]];
       updateData(key, newData);
     }
   }, [data, updateData]);
 
-  const updateDataItem = useCallback((key, itemId, updatedItem) => {
+  const updateDataItem = useCallback((key, itemId, updatedItem, stage = null) => {
     const currentData = data[key] || [];
     
     if (Array.isArray(currentData)) {
@@ -267,9 +542,12 @@ export const DataProvider = ({ children }) => {
       );
       updateData(key, newData);
     } else {
+      // For deals object structure
       const newData = { ...currentData };
-      Object.keys(newData).forEach(stage => {
-        newData[stage] = newData[stage].map(item =>
+      const targetStage = stage || updatedItem.stage;
+      
+      Object.keys(newData).forEach(stageKey => {
+        newData[stageKey] = newData[stageKey].map(item =>
           item.id === itemId ? { ...item, ...updatedItem, updatedAt: new Date().toISOString() } : item
         );
       });
@@ -284,6 +562,7 @@ export const DataProvider = ({ children }) => {
       const newData = currentData.filter(item => item.id !== itemId);
       updateData(key, newData);
     } else {
+      // For deals object structure
       const newData = { ...currentData };
       Object.keys(newData).forEach(stage => {
         newData[stage] = newData[stage].filter(item => item.id !== itemId);
@@ -292,8 +571,54 @@ export const DataProvider = ({ children }) => {
     }
   }, [data, updateData]);
 
-  // LEAD CONVERSION LOGIC
-  const convertLead = useCallback((leadId) => {
+  // ACCOUNT MANAGEMENT FUNCTIONS
+
+  // Bulk delete accounts with associated contacts
+  const bulkDeleteAccounts = useCallback((accountIds) => {
+    const currentAccounts = data.accounts || [];
+    const currentContacts = data.contacts || [];
+    
+    // Delete accounts
+    const newAccounts = currentAccounts.filter(account => !accountIds.includes(account.id));
+    
+    // Also delete associated contacts
+    const newContacts = currentContacts.filter(contact => !accountIds.includes(contact.accountId));
+    
+    updateData('accounts', newAccounts);
+    updateData('contacts', newContacts);
+    
+    return {
+      success: true,
+      message: `${accountIds.length} accounts deleted successfully`
+    };
+  }, [data.accounts, data.contacts, updateData]);
+
+  // Update account contact count
+  const updateAccountContactCount = useCallback((accountId) => {
+    const currentContacts = data.contacts || [];
+    const contactCount = currentContacts.filter(contact => contact.accountId === accountId).length;
+    
+    const currentAccounts = data.accounts || [];
+    const newAccounts = currentAccounts.map(account => 
+      account.id === accountId ? { ...account, contacts: contactCount, updatedAt: new Date().toISOString() } : account
+    );
+    
+    updateData('accounts', newAccounts);
+  }, [data.accounts, data.contacts, updateData]);
+
+  // Get accounts with contact count
+  const getAccountsWithContactCount = useCallback(() => {
+    const currentAccounts = data.accounts || [];
+    const currentContacts = data.contacts || [];
+    
+    return currentAccounts.map(account => ({
+      ...account,
+      contacts: currentContacts.filter(contact => contact.accountId === account.id).length
+    }));
+  }, [data.accounts, data.contacts]);
+
+  // ENHANCED LEAD CONVERSION WITH DEAL CREATION
+  const convertLead = useCallback((leadId, dealData = {}) => {
     const lead = data.leads.find(l => l.id === leadId);
     if (!lead) return { success: false, message: 'Lead not found' };
 
@@ -309,7 +634,10 @@ export const DataProvider = ({ children }) => {
         phone: lead.phone,
         industry: lead.industry,
         email: lead.email,
-        contacts: 0,
+        contacts: 1,
+        type: 'Customer',
+        employees: lead.numberOfEmployees || 0,
+        annualRevenue: lead.annualRevenue || 0,
         billingAddress: {
           street: lead.streetAddress || '',
           city: lead.city || '',
@@ -324,16 +652,17 @@ export const DataProvider = ({ children }) => {
           zipCode: lead.zipCode || '',
           country: lead.country || ''
         },
-        annualRevenue: lead.annualRevenue || 0,
-        employees: lead.numberOfEmployees || 0,
-        type: 'Customer',
+        description: lead.description || `Account created from lead conversion on ${new Date().toLocaleDateString()}`,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       addDataItem('accounts', account);
+    } else {
+      // Update existing account contact count
+      updateAccountContactCount(account.id);
     }
 
-    // Create contact from lead - ONE-TIME COPY
+    // Create contact from lead
     const contact = {
       id: Date.now().toString() + '_contact',
       firstName: lead.firstName,
@@ -366,48 +695,63 @@ export const DataProvider = ({ children }) => {
       assistant: '',
       assistantPhone: '',
       emailOptOut: lead.emailOptOut || false,
-      convertedFromLead: leadId, // Track original lead
-      leadConversionDate: new Date().toISOString(), // Track conversion time
+      convertedFromLead: leadId,
+      leadConversionDate: new Date().toISOString(),
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     };
     addDataItem('contacts', contact);
 
-    // Create opportunity from qualified lead
+    // ENHANCED: Create opportunity from qualified lead with better logic
+    let opportunity = null;
     if (lead.leadStatus === 'Qualified' || lead.isQualified) {
-      const opportunity = {
-        id: Date.now().toString() + '_deal',
-        title: `${lead.company} - ${lead.firstName} ${lead.lastName}`,
+      const calculateDealValue = (lead) => {
+        if (lead.annualRevenue) {
+          return Math.round(lead.annualRevenue * 0.1); // 10% of annual revenue
+        }
+        return lead.numberOfEmployees ? lead.numberOfEmployees * 500 : 10000; // $500 per employee or $10k default
+      };
+
+      const calculateProbability = (lead) => {
+        if (lead.leadStatus === 'Qualified') return 40;
+        if (lead.tags?.includes('hot')) return 50;
+        return 20;
+      };
+
+      opportunity = {
+        id: `deal_${Date.now()}`,
+        title: `${lead.company} - ${lead.productInterest || 'Product'}`,
         company: lead.company,
         contactId: contact.id,
         contactName: contact.name,
-        value: 10000,
-        probability: 20,
+        accountId: account.id,
+        accountName: account.name,
+        value: calculateDealValue(lead),
+        probability: calculateProbability(lead),
         stage: 'qualification',
         closeDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
-        owner: 'Current User',
-        description: `Opportunity created from converted lead: ${lead.firstName} ${lead.lastName}`,
-        sourceLeadId: leadId, // Track source lead
+        owner: user?.name || 'Current User',
+        description: lead.description || `Opportunity created from converted lead: ${lead.firstName} ${lead.lastName}`,
+        sourceLeadId: leadId,
+        leadSource: lead.leadSource,
+        industry: lead.industry,
+        tags: lead.tags || [],
+        ...dealData,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       };
       
-      const currentDeals = data.deals;
-      const updatedDeals = {
-        ...currentDeals,
-        qualification: [opportunity, ...(currentDeals.qualification || [])]
-      };
-      updateData('deals', updatedDeals);
+      addDataItem('deals', opportunity, 'qualification');
     }
 
-    // Mark lead as converted with references
+    // Mark lead as converted
     const updatedLeads = data.leads.map(l =>
       l.id === leadId ? { 
         ...l, 
         isConverted: true, 
-        convertedToContactId: contact.id, // Reference to contact
-        convertedToAccountId: account.id, // Reference to account
-        conversionDate: new Date().toISOString(), // Conversion timestamp
+        convertedToContactId: contact.id,
+        convertedToAccountId: account.id,
+        conversionDate: new Date().toISOString(),
         updatedAt: new Date().toISOString() 
       } : l
     );
@@ -418,9 +762,9 @@ export const DataProvider = ({ children }) => {
       message: 'Lead converted successfully',
       contact, 
       account, 
-      opportunity: lead.isQualified 
+      opportunity
     };
-  }, [data, addDataItem, updateData]);
+  }, [data, addDataItem, updateData, updateAccountContactCount, user]);
 
   // BULK LEAD CONVERSION
   const bulkConvertLeads = useCallback((leadIds) => {
@@ -471,7 +815,7 @@ export const DataProvider = ({ children }) => {
         description: lead.description || contact.description,
         emailOptOut: lead.emailOptOut || contact.emailOptOut,
         updatedAt: new Date().toISOString(),
-        lastSyncedFromLead: new Date().toISOString() // Track sync time
+        lastSyncedFromLead: new Date().toISOString()
       };
 
       updateDataItem('contacts', contact.id, updatedContact);
@@ -560,23 +904,53 @@ export const DataProvider = ({ children }) => {
   }, [data.leads, updateData, user]);
 
   // ADD TO CAMPAIGN
-  const addLeadsToCampaign = useCallback((leadIds, campaignId) => {
-    const currentLeads = data.leads || [];
-    const newLeads = currentLeads.map(lead => 
-      leadIds.includes(lead.id) ? { 
-        ...lead, 
-        campaignId,
-        addedToCampaignAt: new Date().toISOString(),
-        updatedAt: new Date().toISOString() 
-      } : lead
-    );
-    updateData('leads', newLeads);
-    
+  // In your DataContext.jsx, update the addLeadsToCampaign function:
+const addLeadsToCampaign = useCallback((leadIds, campaignId) => {
+  const currentCampaigns = data.campaigns || [];
+  const campaign = currentCampaigns.find(c => c.id === campaignId);
+  
+  if (!campaign) {
     return {
-      success: true,
-      message: `${leadIds.length} leads added to campaign`
+      success: false,
+      message: 'Campaign not found'
     };
-  }, [data.leads, updateData]);
+  }
+
+  const updatedMembers = [...(campaign.members || [])];
+  
+  leadIds.forEach(leadId => {
+    const lead = data.leads.find(l => l.id === leadId);
+    if (lead && !updatedMembers.find(member => member.id === leadId)) {
+      updatedMembers.push({
+        id: lead.id,
+        name: `${lead.firstName} ${lead.lastName}`,
+        email: lead.email,
+        type: 'lead',
+        company: lead.company,
+        addedDate: new Date().toISOString(),
+        responded: false,
+        converted: false
+      });
+    }
+  });
+
+  const updatedCampaign = {
+    ...campaign,
+    members: updatedMembers,
+    updatedAt: new Date().toISOString()
+  };
+
+  const updatedCampaigns = currentCampaigns.map(c => 
+    c.id === campaignId ? updatedCampaign : c
+  );
+
+  updateData('campaigns', updatedCampaigns);
+  
+  return {
+    success: true,
+    message: `${leadIds.length} leads added to ${campaign.campaignName}`
+  };
+}, [data.campaigns, data.leads, updateData]);
 
   // CREATE CLIENT SCRIPT
   const createClientScript = useCallback((leadIds, scriptType = 'basic') => {
@@ -604,7 +978,206 @@ export default leads;
     };
   }, [data.leads]);
 
-  // Bulk operations
+  // DEAL SPECIFIC FUNCTIONS
+
+  // Get all deals as flat array
+  const getAllDeals = useCallback(() => {
+    const currentDeals = data.deals || {};
+    return Object.values(currentDeals).flat();
+  }, [data.deals]);
+
+  // Get deals by specific stage
+  const getDealsByStage = useCallback((stage) => {
+    const currentDeals = data.deals || {};
+    return currentDeals[stage] || [];
+  }, [data.deals]);
+
+  // Get deal stages configuration
+  const getDealStages = useCallback(() => {
+    return {
+      'qualification': 'Qualification',
+      'needs-analysis': 'Needs Analysis',
+      'value-proposition': 'Value Proposition',
+      'identify-decision-makers': 'Identify Decision Makers',
+      'proposal-price-quote': 'Proposal/Price Quote',
+      'negotiation-review': 'Negotiation/Review',
+      'closed-won': 'Closed Won',
+      'closed-lost': 'Closed Lost',
+      'closed-lost-to-competition': 'Closed Lost to Competition'
+    };
+  }, []);
+
+  // Move deal between stages
+  const moveDealStage = useCallback((dealId, fromStage, toStage) => {
+    const currentDeals = data.deals || {};
+    
+    // Remove from current stage
+    const updatedFromStage = (currentDeals[fromStage] || []).filter(deal => deal.id !== dealId);
+    
+    // Get deal data
+    const deal = (currentDeals[fromStage] || []).find(d => d.id === dealId);
+    if (!deal) return { success: false, message: 'Deal not found' };
+
+    // Update deal with new stage
+    const updatedDeal = {
+      ...deal,
+      stage: toStage,
+      updatedAt: new Date().toISOString()
+    };
+
+    // Add to new stage
+    const updatedToStage = [updatedDeal, ...(currentDeals[toStage] || [])];
+
+    // Update deals data
+    const updatedDeals = {
+      ...currentDeals,
+      [fromStage]: updatedFromStage,
+      [toStage]: updatedToStage
+    };
+
+    updateData('deals', updatedDeals);
+    
+    return { 
+      success: true, 
+      message: `Deal moved from ${fromStage} to ${toStage}`,
+      deal: updatedDeal 
+    };
+  }, [data.deals, updateData]);
+
+  // Bulk move deals between stages
+  const bulkMoveDeals = useCallback((dealIds, fromStage, toStage) => {
+    const currentDeals = data.deals || {};
+    const results = [];
+
+    dealIds.forEach(dealId => {
+      const result = moveDealStage(dealId, fromStage, toStage);
+      results.push(result);
+    });
+
+    const successful = results.filter(result => result.success);
+    const failed = results.filter(result => !result.success);
+
+    return {
+      success: successful.length > 0,
+      message: `${successful.length} deals moved successfully${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+      successful,
+      failed
+    };
+  }, [moveDealStage]);
+
+  // Update deal probability
+  const updateDealProbability = useCallback((dealId, probability) => {
+    const allDeals = getAllDeals();
+    const deal = allDeals.find(d => d.id === dealId);
+    
+    if (!deal) return { success: false, message: 'Deal not found' };
+
+    const updatedDeal = {
+      ...deal,
+      probability: Math.max(0, Math.min(100, probability)),
+      updatedAt: new Date().toISOString()
+    };
+
+    updateDataItem('deals', dealId, updatedDeal, deal.stage);
+    
+    return { success: true, deal: updatedDeal };
+  }, [getAllDeals, updateDataItem]);
+
+  // Update deal value
+  const updateDealValue = useCallback((dealId, value) => {
+    const allDeals = getAllDeals();
+    const deal = allDeals.find(d => d.id === dealId);
+    
+    if (!deal) return { success: false, message: 'Deal not found' };
+
+    const updatedDeal = {
+      ...deal,
+      value: Math.max(0, value),
+      updatedAt: new Date().toISOString()
+    };
+
+    updateDataItem('deals', dealId, updatedDeal, deal.stage);
+    
+    return { success: true, deal: updatedDeal };
+  }, [getAllDeals, updateDataItem]);
+
+  // Bulk operations for deals
+  const bulkUpdateDeals = useCallback((dealIds, updates) => {
+    const allDeals = getAllDeals();
+    const updatedDeals = allDeals.map(deal => 
+      dealIds.includes(deal.id) ? { ...deal, ...updates, updatedAt: new Date().toISOString() } : deal
+    );
+    
+    // Reorganize deals by stage
+    const reorganizedDeals = {};
+    updatedDeals.forEach(deal => {
+      if (!reorganizedDeals[deal.stage]) {
+        reorganizedDeals[deal.stage] = [];
+      }
+      reorganizedDeals[deal.stage].push(deal);
+    });
+    
+    updateData('deals', reorganizedDeals);
+    
+    return {
+      success: true,
+      message: `${dealIds.length} deals updated successfully`
+    };
+  }, [getAllDeals, updateData]);
+
+  const bulkDeleteDeals = useCallback((dealIds) => {
+    const allDeals = getAllDeals();
+    const remainingDeals = allDeals.filter(deal => !dealIds.includes(deal.id));
+    
+    // Reorganize remaining deals by stage
+    const reorganizedDeals = {};
+    remainingDeals.forEach(deal => {
+      if (!reorganizedDeals[deal.stage]) {
+        reorganizedDeals[deal.stage] = [];
+      }
+      reorganizedDeals[deal.stage].push(deal);
+    });
+    
+    updateData('deals', reorganizedDeals);
+    
+    return {
+      success: true,
+      message: `${dealIds.length} deals deleted successfully`
+    };
+  }, [getAllDeals, updateData]);
+
+  const manageDealTags = useCallback((dealIds, tagsToAdd = [], tagsToRemove = []) => {
+    const allDeals = getAllDeals();
+    const updatedDeals = allDeals.map(deal => {
+      if (dealIds.includes(deal.id)) {
+        const currentTags = deal.tags || [];
+        const updatedTags = [
+          ...currentTags.filter(tag => !tagsToRemove.includes(tag)),
+          ...tagsToAdd.filter(tag => !currentTags.includes(tag))
+        ];
+        return { ...deal, tags: updatedTags, updatedAt: new Date().toISOString() };
+      }
+      return deal;
+    });
+    
+    // Reorganize deals by stage
+    const reorganizedDeals = {};
+    updatedDeals.forEach(deal => {
+      if (!reorganizedDeals[deal.stage]) {
+        reorganizedDeals[deal.stage] = [];
+      }
+      reorganizedDeals[deal.stage].push(deal);
+    });
+    
+    updateData('deals', reorganizedDeals);
+    
+    return {
+      success: true,
+      message: `Tags updated for ${dealIds.length} deals`
+    };
+  }, [getAllDeals, updateData]);
+
+  // Bulk operations for leads
   const bulkUpdateLeads = useCallback((leadIds, updates) => {
     const currentLeads = data.leads || [];
     const newLeads = currentLeads.map(lead => 
@@ -644,6 +1217,15 @@ export default leads;
     updateData('contacts', newContacts);
   }, [data.contacts, updateData]);
 
+  // Account specific operations
+  const bulkUpdateAccounts = useCallback((accountIds, updates) => {
+    const currentAccounts = data.accounts || [];
+    const newAccounts = currentAccounts.map(account => 
+      accountIds.includes(account.id) ? { ...account, ...updates, updatedAt: new Date().toISOString() } : account
+    );
+    updateData('accounts', newAccounts);
+  }, [data.accounts, updateData]);
+
   const fetchLeads = useCallback(() => {
     setLoading(true);
     try {
@@ -672,16 +1254,54 @@ export default leads;
     }
   }, []);
 
+  const fetchAccounts = useCallback(() => {
+    setLoading(true);
+    try {
+      const storedAccounts = localStorage.getItem('crm_accounts');
+      const accountsData = storedAccounts ? JSON.parse(storedAccounts) : initialData.accounts;
+      setData(prev => ({ ...prev, accounts: accountsData }));
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+      setData(prev => ({ ...prev, accounts: initialData.accounts }));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  const fetchDeals = useCallback(() => {
+    setLoading(true);
+    try {
+      const storedDeals = localStorage.getItem('crm_deals');
+      const dealsData = storedDeals ? JSON.parse(storedDeals) : initialData.deals;
+      setData(prev => ({ ...prev, deals: dealsData }));
+    } catch (error) {
+      console.error('Error fetching deals:', error);
+      setData(prev => ({ ...prev, deals: initialData.deals }));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
   const value = { 
+    // Data
     data, 
+    leads: data.leads,
+    contacts: data.contacts,
+    accounts: data.accounts,
+    deals: data.deals,
+    campaigns: data.campaigns,
+    autoresponders: data.autoresponders,
+    drafts: data.drafts,
+    
+    // Core operations
     updateData, 
     addDataItem,
     updateDataItem,
     deleteDataItem,
+    
+    // Lead operations
     bulkUpdateLeads,
     bulkDeleteLeads,
-    bulkUpdateContacts,
-    bulkDeleteContacts,
     convertLead,
     bulkConvertLeads,
     syncLeadToContact,
@@ -690,15 +1310,37 @@ export default leads;
     approveLeads,
     addLeadsToCampaign,
     createClientScript,
-    leads: data.leads,
-    contacts: data.contacts,
-    accounts: data.accounts,
-    campaigns: data.campaigns,
-    autoresponders: data.autoresponders,
-    drafts: data.drafts,
+    
+    // Contact operations
+    bulkUpdateContacts,
+    bulkDeleteContacts,
+    
+    // Account operations
+    bulkUpdateAccounts,
+    bulkDeleteAccounts,
+    updateAccountContactCount,
+    getAccountsWithContactCount,
+    
+    // Deal operations
+    moveDealStage,
+    bulkMoveDeals,
+    updateDealProbability,
+    updateDealValue,
+    getAllDeals,
+    getDealsByStage,
+    getDealStages,
+    bulkUpdateDeals,
+    bulkDeleteDeals,
+    manageDealTags,
+    
+    // Loading state
     loading,
+    
+    // Fetch functions
     fetchLeads,
     fetchContacts,
+    fetchAccounts,
+    fetchDeals,
     fetchData
   };
 
