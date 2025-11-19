@@ -56,10 +56,10 @@ const SignupPage = () => {
 
       if (result.success) {
         toast({
-          title: "Welcome to CloudCRM!",
+          title: `Welcome to ${import.meta.env.VITE_APP_NAME}!`,
           description: "Your account has been created successfully."
         });
-        navigate('/login');
+        navigate('/'); // ✅ Navigate to home since user is auto-logged in
       } else {
         toast({
           title: "Registration failed",
@@ -82,8 +82,8 @@ const SignupPage = () => {
   return (
     <>
       <Helmet>
-        <title>Sign Up - CloudCRM</title>
-        <meta name="description" content="Create your CloudCRM account" />
+        <title>Sign Up - {import.meta.env.VITE_APP_NAME}</title>
+        <meta name="description" content={`Create your ${import.meta.env.VITE_APP_NAME} account`} />
       </Helmet>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4">
         <motion.div
@@ -98,7 +98,7 @@ const SignupPage = () => {
                 <span className="text-white font-bold text-2xl">C</span>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Create Account</h1>
-              <p className="text-gray-600">Sign up for your CloudCRM account</p>
+              <p className="text-gray-600">Sign up for your {import.meta.env.VITE_APP_NAME} account</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
