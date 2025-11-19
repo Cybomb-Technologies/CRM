@@ -13,6 +13,9 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Get API URL from environment variables
+  const API_URL = import.meta.env.VITE_API_URL;
 
   useEffect(() => {
     const token = localStorage.getItem('crm_token');
@@ -21,7 +24,6 @@ export const AuthProvider = ({ children }) => {
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-        // Optionally verify token with backend here
       } catch (error) {
         console.error('Error parsing stored user:', error);
         localStorage.removeItem('crm_token');
@@ -34,8 +36,9 @@ export const AuthProvider = ({ children }) => {
   const login = async (email, password) => {
     try {
       console.log('🔐 Making login API call to backend...');
+      console.log('🌐 API URL:', `${API_URL}/auth/login`);
       
-      const response = await fetch('http://localhost:5000/api/auth/login', {
+      const response = await fetch(`${API_URL}/auth/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -52,7 +55,6 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Login failed');
       }
     
-      // Backend returns: { message, token, user }
       localStorage.setItem('crm_token', data.token);
       localStorage.setItem('crm_user', JSON.stringify(data.user));
       setUser(data.user);
@@ -72,27 +74,26 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
-  // In your AuthContext.jsx - make sure you have this register function
-const register = async (name, email, password) => {
-  try {
-    console.log('📝 Making registration API call to backend...');
-    
-    const response = await fetch('http://localhost:5000/api/auth/register', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
+  const register = async (name, email, password) => {
+    try {
+      console.log('📝 Making registration API call to backend...');
+      console.log('🌐 API URL:', `${API_URL}/auth/register`);
+      
+      const response = await fetch(`${API_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ name, email, password }),
+      });
 
-    const data = await response.json();
-    console.log('📡 Registration API response:', data);
+      const data = await response.json();
+      console.log('📡 Registration API response:', data);
 
-    if (!response.ok) {
-      throw new Error(data.message || 'Registration failed');
-    }
+      if (!response.ok) {
+        throw new Error(data.message || 'Registration failed');
+      }
 
-    if (data.success) {
       // Auto-login after successful registration
       localStorage.setItem('crm_token', data.token);
       localStorage.setItem('crm_user', JSON.stringify(data.user));
@@ -103,20 +104,15 @@ const register = async (name, email, password) => {
         user: data.user,
         token: data.token
       };
-    } else {
+    } catch (error) {
+      console.error('🚨 Registration error:', error);
       return {
         success: false,
-        error: data.message || 'Registration failed'
+        error: error.message || 'Network error occurred'
       };
     }
-  } catch (error) {
-    console.error('🚨 Registration error:', error);
-    return {
-      success: false,
-      error: error.message || 'Network error occurred'
-    };
-  }
-};
+  };
+
   const logout = () => {
     localStorage.removeItem('crm_token');
     localStorage.removeItem('crm_user');

@@ -163,7 +163,7 @@ const Header = ({ toggleSidebar }) => {
       <CreateActivityDialog
         open={dialogs.activity}
         onOpenChange={() => closeDialog("activity")}
-        onActivityCreated={(item) => onCreated("activity", "activities", item)}
+        onActivityCreated={(item) => onCreated("activity", item)}
       />
     </>
   );

@@ -1,4 +1,4 @@
-// src/components/leads/CreateLeadDialog.jsx
+// src/components/contacts/CreateContactDialog.jsx
 import React from 'react';
 import {
   Dialog,
@@ -6,11 +6,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import LeadForm from './LeadForm';
+import ContactForm from './ContactForm';
 
-const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
-  const handleSuccess = (lead) => {
-    onLeadCreated(lead);
+const CreateContactDialog = ({ open, onOpenChange, onContactCreated }) => {
+  const handleSuccess = (contact) => {
+    onContactCreated(contact);
     onOpenChange(false);
   };
 
@@ -18,9 +18,9 @@ const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Lead</DialogTitle>
+          <DialogTitle>Create New Contact</DialogTitle>
         </DialogHeader>
-        <LeadForm 
+        <ContactForm 
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
         />
@@ -29,4 +29,4 @@ const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
   );
 };
 
-export default CreateLeadDialog;
+export default CreateContactDialog;
