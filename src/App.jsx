@@ -23,19 +23,23 @@ import SignupPage from "./pages/SignUp";
 import TasksPage from "@/pages/activities/TasksPage";
 import MeetingsPage from "@/pages/activities/MeetingsPage";
 import CallsPage from "@/pages/activities/CallsPage";
-import ActivitiesPage from "@/pages/activities/ActivitiesPage";
 import DocumentPage from "@/pages/Document";
 import CampaignsPage from "@/pages/Campaigns";
 import Forecasts from "@/pages/Forecasts";
-import PriceBooks from './pages/PriceBooks';
-import CreatePriceBook from './components/CreatePriceBookModal';
-import Quotes from './pages/Quotes';
-import CreateQuote from './pages/CreateQuote';
-import SalesOrders from './pages/SalesOrders';
-import CreateSalesOrder from './pages/CreateSalesOrder';
-import PurchaseOrders from './pages/PurchaseOrders';
-import CreatePurchaseOrder from './pages/CreatePurchaseOrder';
-import Invoices from './pages/Invoices';
+import PriceBooks from "./pages/PriceBooks";
+import CreatePriceBook from "./components/CreatePriceBookModal";
+import Quotes from "./pages/Quotes";
+import CreateQuote from "./pages/CreateQuote";
+import SalesOrders from "./pages/SalesOrders";
+import CreateSalesOrder from "./pages/CreateSalesOrder";
+import PurchaseOrders from "./pages/PurchaseOrders";
+import CreatePurchaseOrder from "./pages/CreatePurchaseOrder";
+import Invoices from "./pages/Invoices";
+import CasesPage from "@/pages/CasesPage";
+import SolutionsPage from "@/pages/SolutionsPage";
+import SalesInboxPage from "@/pages/SalesInboxPage";
+import SocialPage from "./pages/SocialPage";
+import VisitsPage from "@/pages/VisitsPage";
 
 function App() {
   const { user } = useAuth();
@@ -78,21 +82,29 @@ function App() {
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
-            <Route path="price-books" element={<PriceBooks/>}/>
-            <Route path="create-price-book" element={<CreatePriceBook/>}/>
-            <Route path="quotes" element={<Quotes/>}/>
-            <Route path="create-quote" element={<CreateQuote/>}/>
-            <Route path="sales-orders" element={<SalesOrders/>}/>
+            <Route path="price-books" element={<PriceBooks />} />
+            <Route path="create-price-book" element={<CreatePriceBook />} />
+            <Route path="quotes" element={<Quotes />} />
+            <Route path="create-quote" element={<CreateQuote />} />
+            <Route path="sales-orders" element={<SalesOrders />} />
             <Route path="create-sales-order" element={<CreateSalesOrder />} />
-            <Route path="purchase-orders" element={<PurchaseOrders/>}/>
-            <Route path="create-purchase-order" element={<CreatePurchaseOrder/>}/>
-            <Route path="invoives" element={<Invoices/>}/>            <Route path="documents" element={<DocumentPage />} />
+            <Route path="purchase-orders" element={<PurchaseOrders />} />
+            <Route
+              path="create-purchase-order"
+              element={<CreatePurchaseOrder />}
+            />
+            <Route path="invoives" element={<Invoices />} />{" "}
+            <Route path="documents" element={<DocumentPage />} />
             <Route path="campaigns/*" element={<CampaignsPage />} />
             <Route path="/forecasts" element={<Forecasts />} />
-            <Route path="activities" element={<ActivitiesPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="meetings" element={<MeetingsPage />} />
             <Route path="calls" element={<CallsPage />} />
+            <Route path="cases" element={<CasesPage />} />
+            <Route path="solutions" element={<SolutionsPage />} />
+            <Route path="sales-inbox" element={<SalesInboxPage />} />
+            <Route path="social" element={<SocialPage />} />
+            <Route path="visits" element={<VisitsPage />} />{" "}
           </Route>
         </Routes>
       </DataProvider>

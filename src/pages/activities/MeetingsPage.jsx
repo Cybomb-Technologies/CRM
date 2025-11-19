@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
-import { ActivitiesList, CreateActivityDialog } from "@/components/activities";
+import { MeetingsView } from "@/components/activities/meetings/MeetingsView";
+import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -25,8 +26,7 @@ export default function MeetingsPage() {
           </Button>
         </div>
 
-        <ActivitiesList
-          type="meetings"
+        <MeetingsView
           onCreateActivity={(type) => setIsCreateDialogOpen(true)}
         />
 

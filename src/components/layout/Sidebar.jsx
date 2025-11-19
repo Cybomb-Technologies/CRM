@@ -41,6 +41,9 @@ import {
   Download,
   Zap,
   CheckCircle,
+  Lightbulb,
+  Inbox, // ADD THIS
+  MapPin,
 } from "lucide-react";
 
 // Utility: classNames
@@ -72,7 +75,6 @@ const modulesPanelData = {
       header: "Activities",
       key: "activities",
       items: [
-        { name: "All Activities", path: "/activities", icon: Calendar },
         { name: "Tasks", path: "/tasks", icon: CheckCircle }, // Use appropriate icon
         { name: "Meetings", path: "/meetings", icon: Calendar },
         { name: "Calls", path: "/calls", icon: Phone },
@@ -84,12 +86,30 @@ const modulesPanelData = {
       items: [
         { name: "Products", path: "/products", icon: Package },
         { name: "Price Books", path: "/price-books", icon: FileText },
-        
+
         { name: "Quotes", path: "/quotes", icon: FileText },
         { name: "Sales Orders", path: "/sales-orders", icon: FileText },
         { name: "Purchase Orders", path: "/purchase-orders", icon: FileText },
         { name: "Invoices", path: "/invoices", icon: FileText },
         { name: "Vendors", path: "/vendors", icon: Building2 },
+      ],
+    },
+
+    {
+      header: "Support",
+      key: "support",
+      items: [
+        { name: "Cases", path: "/cases", icon: FileText },
+        { name: "Solutions", path: "/solutions", icon: Lightbulb },
+      ],
+    },
+    {
+      header: "Integrations",
+      key: "integrations",
+      items: [
+        { name: "Sales Inbox", path: "/sales-inbox", icon: Inbox },
+        { name: "Social", path: "/social", icon: Users },
+        { name: "Visits", path: "/visits", icon: MapPin },
       ],
     },
   ],

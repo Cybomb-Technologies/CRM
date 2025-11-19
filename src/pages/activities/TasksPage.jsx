@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
-import { ActivitiesList, CreateActivityDialog } from "@/components/activities";
+import { TasksView } from "@/components/activities/tasks/TasksView";
+import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
@@ -25,10 +26,7 @@ export default function TasksPage() {
           </Button>
         </div>
 
-        <ActivitiesList
-          type="tasks"
-          onCreateActivity={(type) => setIsCreateDialogOpen(true)}
-        />
+        <TasksView onCreateActivity={(type) => setIsCreateDialogOpen(true)} />
 
         <CreateActivityDialog
           open={isCreateDialogOpen}
