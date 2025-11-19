@@ -1,4 +1,3 @@
-// src/components/campaigns/CampaignHome.jsx
 import React from "react";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +18,13 @@ const CampaignHome = () => {
             className="px-5 py-2 bg-[#4667d8] text-white rounded-md hover:bg-[#3c59c0] shadow-sm"
           >
             Create Campaign
+          </button>
+
+          <button
+            onClick={() => navigate("/campaigns/list")}
+            className="px-5 py-2 bg-[#4667d8] text-white rounded-md hover:bg-[#3c59c0] shadow-sm"
+          >
+            View Campaigns
           </button>
 
           <button
