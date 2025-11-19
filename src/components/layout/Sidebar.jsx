@@ -54,7 +54,7 @@ const cn = (...classes) => classes.filter(Boolean).join(" ");
 const modulesPanelData = {
   title: "Modules",
   groups: [
-    { header: null, items: [{ name: "Home", path: "/home", icon: Home }] },
+    { header: null, items: [{ name: "Home", path: "/", icon: Home }] },
     {
       header: "Sales",
       key: "sales",
@@ -510,7 +510,7 @@ export default function Sidebar({ open, setOpen }) {
             </div>
 
             {/* Icons */}
-            <div className="flex-1 flex flex-col items-center space-y-6 pt-4">
+            <div className="flex-1 flex flex-col items-center space-y-1 pt-1">
               {miniIcons.map((m) => {
                 const Icon = m.icon;
                 const active = activeMini === m.id;

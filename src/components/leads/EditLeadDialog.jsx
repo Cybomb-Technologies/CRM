@@ -1,4 +1,4 @@
-// src/components/leads/CreateLeadDialog.jsx
+// src/components/leads/EditLeadDialog.jsx
 import React from 'react';
 import {
   Dialog,
@@ -8,9 +8,9 @@ import {
 } from '@/components/ui/dialog';
 import LeadForm from './LeadForm';
 
-const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
-  const handleSuccess = (lead) => {
-    onLeadCreated(lead);
+const EditLeadDialog = ({ open, onOpenChange, onLeadUpdated, initialData }) => {
+  const handleSuccess = (updatedLead) => {
+    onLeadUpdated(updatedLead);
     onOpenChange(false);
   };
 
@@ -18,15 +18,16 @@ const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Lead</DialogTitle>
+          <DialogTitle>Edit Lead</DialogTitle>
         </DialogHeader>
         <LeadForm 
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
+          initialData={initialData}
         />
       </DialogContent>
     </Dialog>
   );
 };
 
-export default CreateLeadDialog;
+export default EditLeadDialog;
