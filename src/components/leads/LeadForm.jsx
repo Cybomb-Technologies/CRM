@@ -14,9 +14,11 @@ import {
 import { User, Building, Mail, Phone, Globe, MapPin, Upload } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/components/ui/use-toast';
+import { useAuth } from '@/contexts/AuthContext';
 
 const LeadForm = ({ onSuccess, onCancel, initialData }) => {
   const { addDataItem, updateDataItem } = useData();
+  const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
@@ -59,15 +61,24 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
     image: null
   });
 
-  // Initialize form with initialData when editing
+  // Initialize form with initialData when editing and set logged-in user as owner for new leads
   useEffect(() => {
     if (initialData) {
+      // For editing, use the existing data
       setFormData(prev => ({
         ...prev,
         ...initialData
       }));
+    } else {
+      // For new leads, automatically set the logged-in user as owner
+      if (user) {
+        setFormData(prev => ({
+          ...prev,
+          leadOwner: user.id || user.email // Use user ID or email as identifier
+        }));
+      }
     }
-  }, [initialData]);
+  }, [initialData, user]);
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -139,21 +150,26 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
         });
       }
       
+      // Ensure lead owner is set to current user if not already set
+      const finalLeadOwner = formData.leadOwner || (user ? user.id || user.email : '');
+      
       if (initialData) {
         // Update existing lead
         const updatedLead = {
           ...initialData,
           ...formData,
+          leadOwner: finalLeadOwner,
           image: imageToStore,
           updatedAt: new Date().toISOString()
         };
         updateDataItem('leads', updatedLead.id, updatedLead);
         onSuccess(updatedLead);
       } else {
-        // Create new lead
+        // Create new lead - automatically set current user as owner
         const newLead = {
           id: Date.now().toString(),
           ...formData,
+          leadOwner: finalLeadOwner, // Ensure owner is set
           image: imageToStore,
           isConverted: false,
           isLocked: false,
@@ -161,6 +177,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
           isUnread: true,
           isUnsubscribed: false,
           isQualified: formData.leadStatus === 'Qualified',
+          createdBy: user ? user.id || user.email : '', // Track who created the lead
           createdAt: new Date().toISOString(),
           updatedAt: new Date().toISOString()
         };
@@ -187,9 +204,9 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
   const handleSaveAndNew = async (e) => {
     await handleSubmit(e);
     if (!loading) {
-      // Reset form for new entry
+      // Reset form for new entry, but keep the logged-in user as owner
       setFormData({
-        leadOwner: '',
+        leadOwner: user ? user.id || user.email : '', // Reset with current user
         firstName: '',
         title: '',
         phone: '',
@@ -243,6 +260,12 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
 
   const imageUrl = getImageUrl(formData.image);
 
+  // Get current user display name for the owner field
+  const getCurrentUserDisplay = () => {
+    if (!user) return 'Select Owner';
+    return user.name || user.email || 'Current User';
+  };
+
   return (
     <form onSubmit={handleSubmit} className="space-y-6">
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -290,7 +313,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
           </div>
         </div>
 
-        {/* Rest of the form remains the same */}
+        {/* Rest of the form */}
         {/* Lead Information */}
         <div className="lg:col-span-2">
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
@@ -304,15 +327,15 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Lead Owner</label>
-                  <Select value={formData.leadOwner} onValueChange={(value) => handleChange('leadOwner', value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Owner" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="user1">User 1</SelectItem>
-                      <SelectItem value="user2">User 2</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <div className="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
+                    <strong>{getCurrentUserDisplay()}</strong>
+                    
+                  </div>
+                  <input
+                    type="hidden"
+                    value={formData.leadOwner}
+                    onChange={(e) => handleChange('leadOwner', e.target.value)}
+                  />
                 </div>
 
                 <div>

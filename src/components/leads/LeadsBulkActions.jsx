@@ -7,6 +7,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import {
   Dialog,
@@ -44,10 +47,12 @@ import {
   Copy,
   Filter,
   CheckSquare,
-  Square
+  Square,
+  ChevronRight
 } from 'lucide-react';
 import { useData } from '@/contexts/DataContext';
 import { useToast } from '@/components/ui/use-toast';
+import AddToCampaignDialog from '@/components/campaigns/AddToCampaignDialog';
 
 const LeadsBulkActions = ({ 
   selectedLeads, 
@@ -63,7 +68,7 @@ const LeadsBulkActions = ({
     bulkConvertLeads, 
     manageLeadTags, 
     approveLeads, 
-    addLeadsToCampaign, 
+    addLeadsToCampaign,
     createClientScript,
     deduplicateLeads,
     data,
@@ -75,6 +80,7 @@ const LeadsBulkActions = ({
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showTagsDialog, setShowTagsDialog] = useState(false);
   const [showCampaignDialog, setShowCampaignDialog] = useState(false);
+  const [showSimpleCampaignDialog, setShowSimpleCampaignDialog] = useState(false);
   const [showScriptDialog, setShowScriptDialog] = useState(false);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showDeduplicateDialog, setShowDeduplicateDialog] = useState(false);
@@ -139,21 +145,41 @@ const LeadsBulkActions = ({
     fetchLeads();
   };
 
-  const handleAddToCampaign = async () => {
-    const result = await addLeadsToCampaign(selectedLeads, campaignData.campaignId);
-    toast({
-      title: "Added to Campaign",
-      description: result.message,
-    });
-    setShowCampaignDialog(false);
-    setCampaignData({ campaignId: '' });
-    fetchLeads();
+  // FIXED: Quick Add to Campaign function
+  const handleQuickAddToCampaign = async () => {
+    if (!campaignData.campaignId) {
+      toast({
+        title: "Error",
+        description: "Please select a campaign.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const result = await addLeadsToCampaign(selectedLeads, campaignData.campaignId);
+      
+      toast({
+        title: "Success",
+        description: result.message,
+      });
+      
+      setShowSimpleCampaignDialog(false);
+      setCampaignData({ campaignId: '' });
+      fetchLeads();
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to add leads to campaign. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCreateClientScript = async () => {
     const result = createClientScript(selectedLeads);
     setShowScriptDialog(true);
-    // In a real app, you might want to download the script file
     toast({
       title: "Script Generated",
       description: result.message,
@@ -236,12 +262,12 @@ const LeadsBulkActions = ({
             <tbody>
               ${leadsToPrint.map(lead => `
                 <tr>
-                  <td>${lead.firstName} ${lead.lastName}</td>
-                  <td>${lead.company}</td>
-                  <td>${lead.email}</td>
-                  <td>${lead.phone}</td>
-                  <td>${lead.leadStatus}</td>
-                  <td>${lead.leadSource}</td>
+                  <td>${lead?.firstName || ''} ${lead?.lastName || ''}</td>
+                  <td>${lead?.company || ''}</td>
+                  <td>${lead?.email || ''}</td>
+                  <td>${lead?.phone || ''}</td>
+                  <td>${lead?.leadStatus || ''}</td>
+                  <td>${lead?.leadSource || ''}</td>
                 </tr>
               `).join('')}
             </tbody>
@@ -311,11 +337,22 @@ const LeadsBulkActions = ({
               Autoresponders
             </DropdownMenuItem>
 
-            {/* Add to Campaign */}
-            <DropdownMenuItem onClick={() => setShowCampaignDialog(true)}>
-              <Users className="w-4 h-4 mr-2" />
-              Add to Campaigns
-            </DropdownMenuItem>
+            {/* Add to Campaign - Enhanced with submenu */}
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className="flex items-center">
+                <Users className="w-4 h-4 mr-2" />
+                Add to Campaigns
+                <ChevronRight className="w-4 h-4 ml-auto" />
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent>
+                <DropdownMenuItem onClick={() => setShowCampaignDialog(true)}>
+                  Enhanced Campaign Manager
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => setShowSimpleCampaignDialog(true)}>
+                  Quick Add to Campaign
+                </DropdownMenuItem>
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
 
             <DropdownMenuSeparator />
 
@@ -548,11 +585,26 @@ const LeadsBulkActions = ({
         </DialogContent>
       </Dialog>
 
-      {/* Add to Campaign Dialog */}
-      <Dialog open={showCampaignDialog} onOpenChange={setShowCampaignDialog}>
+      {/* NEW Enhanced Campaign Dialog */}
+      <AddToCampaignDialog
+        open={showCampaignDialog}
+        onOpenChange={setShowCampaignDialog}
+        selectedLeads={selectedLeads}
+        onSuccess={() => {
+          setSelectedLeads([]);
+          fetchLeads();
+          toast({
+            title: "Success",
+            description: `${selectedLeads.length} leads added to campaign successfully.`,
+          });
+        }}
+      />
+
+      {/* FIXED: Quick Add to Campaign Dialog */}
+      <Dialog open={showSimpleCampaignDialog} onOpenChange={setShowSimpleCampaignDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Add to Campaign</DialogTitle>
+            <DialogTitle>Quick Add to Campaign</DialogTitle>
             <DialogDescription>
               Add {selectedLeads.length} selected leads to a campaign
             </DialogDescription>
@@ -560,14 +612,19 @@ const LeadsBulkActions = ({
           <div className="space-y-4">
             <div>
               <Label>Campaign</Label>
-              <Select value={campaignData.campaignId} onValueChange={(value) => setCampaignData(prev => ({ ...prev, campaignId: value }))}>
+              <Select 
+                value={campaignData.campaignId} 
+                onValueChange={(value) => setCampaignData(prev => ({ ...prev, campaignId: value }))}
+              >
                 <SelectTrigger>
                   <SelectValue placeholder="Select campaign" />
                 </SelectTrigger>
                 <SelectContent>
-                  {data.campaigns?.map(campaign => (
+                  {data.campaigns?.filter(campaign => 
+                    campaign.status === 'Active' || campaign.status === 'Planning'
+                  ).map(campaign => (
                     <SelectItem key={campaign.id} value={campaign.id}>
-                      {campaign.name} ({campaign.status})
+                      {campaign.campaignName} ({campaign.status})
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -575,10 +632,10 @@ const LeadsBulkActions = ({
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCampaignDialog(false)}>
+            <Button variant="outline" onClick={() => setShowSimpleCampaignDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleAddToCampaign}>
+            <Button onClick={handleQuickAddToCampaign}>
               <Users className="w-4 h-4 mr-2" />
               Add to Campaign
             </Button>
