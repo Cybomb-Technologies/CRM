@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
-import { CallsView } from "@/components/activities/calls/CallsView";
-import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
+import { CallsList } from "@/components/calls/CallsList";
+import { CreateCallDialog } from "@/components/calls/CreateCallDialog";
 import { Button } from "@/components/ui/button";
 import { Plus, Phone } from "lucide-react";
 
@@ -37,12 +37,11 @@ export default function CallsPage() {
           </div>
         </div>
 
-        <CallsView onCreateActivity={(type) => setIsCreateDialogOpen(true)} />
+        <CallsList onCreateCall={() => setIsCreateDialogOpen(true)} />
 
-        <CreateActivityDialog
+        <CreateCallDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
-          defaultType="call"
         />
       </div>
     </>

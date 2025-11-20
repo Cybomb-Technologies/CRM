@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ActivityCard } from "../shared/ActivityCard";
-import { ActivityFilters } from "../shared/ActivityFilters";
-import { mockMeetings } from "../shared/utils";
+import { MeetingCard } from "./MeetingCard";
+import { MeetingFilters } from "./MeetingFilters";
+import { mockMeetings } from "./utils";
 
-export function MeetingsView({ onCreateActivity }) {
+export function MeetingsList({ onCreateMeeting }) {
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -38,11 +38,7 @@ export function MeetingsView({ onCreateActivity }) {
 
   return (
     <div className="space-y-6">
-      <ActivityFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        type="meetings"
-      />
+      <MeetingFilters filters={filters} onFiltersChange={setFilters} />
 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -59,9 +55,9 @@ export function MeetingsView({ onCreateActivity }) {
         ) : (
           <div className="space-y-4">
             {filteredMeetings.map((meeting) => (
-              <ActivityCard
+              <MeetingCard
                 key={meeting.id}
-                activity={meeting}
+                meeting={meeting}
                 onEdit={handleEdit}
                 onComplete={handleComplete}
                 onDelete={handleDelete}
