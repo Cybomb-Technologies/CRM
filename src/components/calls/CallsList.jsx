@@ -1,9 +1,9 @@
 import React, { useState } from "react";
-import { ActivityCard } from "../shared/ActivityCard";
-import { ActivityFilters } from "../shared/ActivityFilters";
-import { mockCalls } from "../shared/utils";
+import { CallCard } from "./CallCard";
+import { CallFilters } from "./CallFilters";
+import { mockCalls } from "./utils";
 
-export function CallsView({ onCreateActivity }) {
+export function CallsList({ onCreateCall }) {
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -41,11 +41,7 @@ export function CallsView({ onCreateActivity }) {
 
   return (
     <div className="space-y-6">
-      <ActivityFilters
-        filters={filters}
-        onFiltersChange={setFilters}
-        type="calls"
-      />
+      <CallFilters filters={filters} onFiltersChange={setFilters} />
 
       <div className="space-y-4">
         <div className="flex justify-between items-center">
@@ -62,9 +58,9 @@ export function CallsView({ onCreateActivity }) {
         ) : (
           <div className="space-y-4">
             {filteredCalls.map((call) => (
-              <ActivityCard
+              <CallCard
                 key={call.id}
-                activity={call}
+                call={call}
                 onEdit={handleEdit}
                 onComplete={handleComplete}
                 onDelete={handleDelete}

@@ -9,10 +9,46 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { ChevronDown } from "lucide-react";
 
-export function TaskForm({ formData, onInputChange }) {
+export function TaskForm({ formData, onInputChange, currentUser }) {
   return (
     <div className="space-y-4">
+      {/* Task Owner Field */}
+      <div>
+        <Label htmlFor="taskOwner">Task Owner</Label>
+        <Select
+          value={currentUser?.id || ""}
+          onValueChange={(value) => {
+            // For now, only current user is available
+            // This sets up for future multi-user support
+            onInputChange("assignedTo", currentUser?.name || "You");
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <div className="flex items-center justify-between w-full">
+              <span>{currentUser?.name || "You"}</span>
+              <ChevronDown className="h-4 w-4 opacity-50" />
+            </div>
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value={currentUser?.id || "current-user"}>
+              <div className="flex flex-col">
+                <span className="font-medium">
+                  {currentUser?.name || "You"}
+                </span>
+                <span className="text-sm text-gray-500">
+                  {currentUser?.email || ""}
+                </span>
+              </div>
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <p className="text-xs text-gray-500 mt-1">
+          Currently assigned to: {currentUser?.name} ({currentUser?.email})
+        </p>
+      </div>
+
       <div>
         <Label htmlFor="title">Task Title *</Label>
         <Input

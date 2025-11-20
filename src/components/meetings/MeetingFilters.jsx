@@ -10,14 +10,9 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Search, Filter } from "lucide-react";
-import {
-  typeOptions,
-  statusOptions,
-  priorityOptions,
-  callTypeOptions,
-} from "./utils";
+import { statusOptions, priorityOptions } from "./utils";
 
-export function ActivityFilters({ filters, onFiltersChange, type = "all" }) {
+export function MeetingFilters({ filters, onFiltersChange }) {
   const handleFilterChange = (filterType, value) => {
     onFiltersChange({
       ...filters,
@@ -28,10 +23,8 @@ export function ActivityFilters({ filters, onFiltersChange, type = "all" }) {
   const handleClearFilters = () => {
     onFiltersChange({
       search: "",
-      type: "all",
       status: "all",
       priority: "all",
-      callType: "all",
     });
   };
 
@@ -45,36 +38,13 @@ export function ActivityFilters({ filters, onFiltersChange, type = "all" }) {
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
           <Input
             id="search"
-            placeholder="Search activities..."
+            placeholder="Search meetings..."
             value={filters.search}
             onChange={(e) => handleFilterChange("search", e.target.value)}
             className="pl-10"
           />
         </div>
       </div>
-
-      {type === "all" && (
-        <div className="w-48">
-          <Label htmlFor="type" className="text-sm font-medium mb-1 block">
-            Type
-          </Label>
-          <Select
-            value={filters.type}
-            onValueChange={(value) => handleFilterChange("type", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All types" />
-            </SelectTrigger>
-            <SelectContent>
-              {typeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       <div className="w-48">
         <Label htmlFor="status" className="text-sm font-medium mb-1 block">
@@ -117,29 +87,6 @@ export function ActivityFilters({ filters, onFiltersChange, type = "all" }) {
           </SelectContent>
         </Select>
       </div>
-
-      {type === "call" && (
-        <div className="w-48">
-          <Label htmlFor="callType" className="text-sm font-medium mb-1 block">
-            Call Type
-          </Label>
-          <Select
-            value={filters.callType}
-            onValueChange={(value) => handleFilterChange("callType", value)}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="All call types" />
-            </SelectTrigger>
-            <SelectContent>
-              {callTypeOptions.map((option) => (
-                <SelectItem key={option.value} value={option.value}>
-                  {option.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
 
       <Button variant="outline" onClick={handleClearFilters}>
         <Filter className="w-4 h-4 mr-2" />

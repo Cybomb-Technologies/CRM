@@ -1,12 +1,17 @@
 import React, { useState } from "react";
 import { Helmet } from "react-helmet";
-import { TasksView } from "@/components/activities/tasks/TasksView";
-import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
+import { TasksList } from "@/components/tasks/TasksList";
+import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 
 export default function TasksPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  const handleTaskCreated = () => {
+    setRefreshTrigger((prev) => prev + 1);
+  };
 
   return (
     <>
@@ -26,12 +31,15 @@ export default function TasksPage() {
           </Button>
         </div>
 
-        <TasksView onCreateActivity={(type) => setIsCreateDialogOpen(true)} />
+        <TasksList
+          onCreateTask={() => setIsCreateDialogOpen(true)}
+          refreshTrigger={refreshTrigger}
+        />
 
-        <CreateActivityDialog
+        <CreateTaskDialog
           open={isCreateDialogOpen}
           onOpenChange={setIsCreateDialogOpen}
-          defaultType="task"
+          onTaskCreated={handleTaskCreated}
         />
       </div>
     </>

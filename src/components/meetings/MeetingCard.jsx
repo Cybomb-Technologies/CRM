@@ -10,16 +10,12 @@ import {
   Target,
   Users,
   MapPin,
-  Phone,
-  PhoneIncoming,
-  PhoneOutgoing,
   Edit,
   Trash2,
   MoreVertical,
 } from "lucide-react";
-import { getPriorityColor } from "./utils";
 
-export function ActivityCard({ activity, onEdit, onComplete, onDelete }) {
+export function MeetingCard({ meeting, onEdit, onComplete, onDelete }) {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -35,24 +31,16 @@ export function ActivityCard({ activity, onEdit, onComplete, onDelete }) {
     });
   };
 
-  const getTypeIcon = (type, isOnline = false, callType = "") => {
-    switch (type) {
-      case "task":
-        return <Calendar className="w-5 h-5 text-blue-600" />;
-      case "meeting":
-        return isOnline ? (
-          <MapPin className="w-5 h-5 text-green-600" />
-        ) : (
-          <Users className="w-5 h-5 text-green-600" />
-        );
-      case "call":
-        return callType === "inbound" ? (
-          <PhoneIncoming className="w-5 h-5 text-purple-600" />
-        ) : (
-          <PhoneOutgoing className="w-5 h-5 text-purple-600" />
-        );
+  const getPriorityColor = (priority) => {
+    switch (priority) {
+      case "high":
+        return "destructive";
+      case "medium":
+        return "default";
+      case "low":
+        return "secondary";
       default:
-        return <Calendar className="w-5 h-5 text-gray-600" />;
+        return "default";
     }
   };
 
@@ -64,8 +52,6 @@ export function ActivityCard({ activity, onEdit, onComplete, onDelete }) {
         return "bg-blue-100 text-blue-800";
       case "in-progress":
         return "bg-yellow-100 text-yellow-800";
-      case "pending":
-        return "bg-gray-100 text-gray-800";
       case "cancelled":
         return "bg-red-100 text-red-800";
       default:
@@ -94,77 +80,63 @@ export function ActivityCard({ activity, onEdit, onComplete, onDelete }) {
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3 flex-1">
             <div className="flex flex-col items-center mt-1">
-              {getTypeIcon(activity.type, activity.isOnline, activity.callType)}
+              {meeting.isOnline ? (
+                <MapPin className="w-5 h-5 text-green-600" />
+              ) : (
+                <Users className="w-5 h-5 text-green-600" />
+              )}
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
-                <h3 className="font-semibold text-lg">{activity.title}</h3>
-                <Badge variant={getPriorityColor(activity.priority)}>
-                  {activity.priority}
+                <h3 className="font-semibold text-lg">{meeting.title}</h3>
+                <Badge variant={getPriorityColor(meeting.priority)}>
+                  {meeting.priority}
                 </Badge>
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                    activity.status
+                    meeting.status
                   )}`}
                 >
-                  {activity.status}
+                  {meeting.status}
                 </span>
-                {activity.type === "call" && activity.callType && (
-                  <Badge variant="outline">{activity.callType}</Badge>
-                )}
               </div>
 
-              <p className="text-gray-600 mb-3">{activity.description}</p>
+              <p className="text-gray-600 mb-3">{meeting.description}</p>
 
               <div className="flex items-center space-x-4 text-sm text-gray-500">
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
-                  {formatDate(
-                    activity.dueDate ||
-                      activity.startTime ||
-                      activity.scheduledTime
-                  )}
+                  {formatDate(meeting.startTime)}
                 </div>
                 <div className="flex items-center">
                   <Clock className="w-4 h-4 mr-1" />
-                  {formatTime(
-                    activity.dueDate ||
-                      activity.startTime ||
-                      activity.scheduledTime
-                  )}
+                  {formatTime(meeting.startTime)}
                 </div>
                 <div className="flex items-center">
                   <User className="w-4 h-4 mr-1" />
-                  {activity.assignedTo}
+                  {meeting.assignedTo}
                 </div>
                 <div className="flex items-center">
-                  {getRelatedToIcon(activity.relatedTo.type)}
-                  <span className="ml-1">{activity.relatedTo.name}</span>
+                  {getRelatedToIcon(meeting.relatedTo.type)}
+                  <span className="ml-1">{meeting.relatedTo.name}</span>
                 </div>
               </div>
 
-              {/* Type-specific details */}
-              {activity.type === "meeting" && activity.attendees && (
+              {meeting.attendees && (
                 <div className="mt-2 text-sm text-gray-500">
-                  <strong>Attendees:</strong> {activity.attendees.join(", ")}
+                  <strong>Attendees:</strong> {meeting.attendees.join(", ")}
                 </div>
               )}
 
-              {activity.type === "meeting" && activity.location && (
+              {meeting.location && (
                 <div className="mt-1 text-sm text-gray-500">
-                  <strong>Location:</strong> {activity.location}
+                  <strong>Location:</strong> {meeting.location}
                 </div>
               )}
 
-              {activity.type === "call" && activity.duration && (
+              {meeting.duration && (
                 <div className="mt-1 text-sm text-gray-500">
-                  <strong>Duration:</strong> {activity.duration} minutes
-                </div>
-              )}
-
-              {activity.type === "call" && activity.outcome && (
-                <div className="mt-2 p-2 bg-gray-50 rounded text-sm">
-                  <strong>Outcome:</strong> {activity.outcome}
+                  <strong>Duration:</strong> {meeting.duration} minutes
                 </div>
               )}
             </div>
@@ -174,15 +146,15 @@ export function ActivityCard({ activity, onEdit, onComplete, onDelete }) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onEdit && onEdit(activity)}
+              onClick={() => onEdit && onEdit(meeting)}
             >
               <Edit className="w-4 h-4" />
             </Button>
-            {activity.status !== "completed" && (
+            {meeting.status !== "completed" && (
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => onComplete && onComplete(activity)}
+                onClick={() => onComplete && onComplete(meeting)}
               >
                 Complete
               </Button>
@@ -190,7 +162,7 @@ export function ActivityCard({ activity, onEdit, onComplete, onDelete }) {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onDelete && onDelete(activity)}
+              onClick={() => onDelete && onDelete(meeting)}
             >
               <Trash2 className="w-4 h-4" />
             </Button>

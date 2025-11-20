@@ -11,6 +11,8 @@ import {
   Sun,
   Moon,
   CheckSquare,
+  Calendar,
+  Phone,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +27,9 @@ import CreateLeadDialog from "@/components/leads/CreateLeadDialog";
 import CreateAccountDialog from "@/components/accounts/CreateAccountDialog";
 import CreateContactDialog from "@/components/contacts/CreateContactDialog";
 import CreateDealDialog from "@/components/deals/CreateDealDialog";
-import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
+import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
+import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
+import { CreateCallDialog } from "@/components/calls/CreateCallDialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useData } from "@/contexts/DataContext";
 import { useToast } from "@/components/ui/use-toast";
@@ -41,7 +45,9 @@ const Header = ({ toggleSidebar }) => {
     account: false,
     contact: false,
     deal: false,
-    activity: false,
+    task: false,
+    meeting: false,
+    call: false,
   });
 
   const openDialog = (type) =>
@@ -57,6 +63,13 @@ const Header = ({ toggleSidebar }) => {
       addDataItem(pluralType, item);
     }
     closeDialog(type);
+
+    toast({
+      title: "Success!",
+      description: `${
+        type.charAt(0).toUpperCase() + type.slice(1)
+      } created successfully.`,
+    });
   };
 
   const handleSearch = (e) => {
@@ -114,8 +127,14 @@ const Header = ({ toggleSidebar }) => {
                 <DropdownMenuItem onClick={() => openDialog("deal")}>
                   <TrendingUp className="w-4 h-4 mr-2" /> New Deal
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => openDialog("activity")}>
-                  <CheckSquare className="w-4 h-4 mr-2" /> New Activity
+                <DropdownMenuItem onClick={() => openDialog("task")}>
+                  <CheckSquare className="w-4 h-4 mr-2" /> New Task
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openDialog("meeting")}>
+                  <Calendar className="w-4 h-4 mr-2" /> New Meeting
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openDialog("call")}>
+                  <Phone className="w-4 h-4 mr-2" /> New Call
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -140,6 +159,7 @@ const Header = ({ toggleSidebar }) => {
         </div>
       </header>
 
+      {/* Dialogs */}
       <CreateLeadDialog
         open={dialogs.lead}
         onOpenChange={() => closeDialog("lead")}
@@ -160,10 +180,17 @@ const Header = ({ toggleSidebar }) => {
         onOpenChange={() => closeDialog("deal")}
         onDealCreated={(item) => onCreated("deal", item)}
       />
-      <CreateActivityDialog
-        open={dialogs.activity}
-        onOpenChange={() => closeDialog("activity")}
-        onActivityCreated={(item) => onCreated("activity", item)}
+      <CreateTaskDialog
+        open={dialogs.task}
+        onOpenChange={() => closeDialog("task")}
+      />
+      <CreateMeetingDialog
+        open={dialogs.meeting}
+        onOpenChange={() => closeDialog("meeting")}
+      />
+      <CreateCallDialog
+        open={dialogs.call}
+        onOpenChange={() => closeDialog("call")}
       />
     </>
   );

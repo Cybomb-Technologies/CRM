@@ -6,7 +6,7 @@ import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
 import { Card, CardContent } from "@/components/ui/card";
 import { useData, useToast } from "@/hooks";
-import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
+// import { CreateActivityDialog } from "@/components/activities/shared/CreateActivityDialog";
 
 const CalendarPage = () => {
   const { data, updateData, addDataItem } = useData();
