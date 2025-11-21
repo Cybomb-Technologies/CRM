@@ -1,0 +1,52 @@
+// src/components/accounts/AccountsViewFilters.jsx
+import React from 'react';
+import { Button } from '@/components/ui/button';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+
+const AccountsViewFilters = ({ currentView, onViewChange }) => {
+  const viewOptions = [
+    { value: 'all', label: 'All Accounts' },
+    { value: 'customers', label: 'Customers' },
+    { value: 'partners', label: 'Partners' },
+    { value: 'vendors', label: 'Vendors' },
+    { value: 'recently-created', label: 'Recently Created' },
+    { value: 'recently-modified', label: 'Recently Modified' },
+    { value: 'today', label: "Today's Accounts" },
+    { value: 'high-value', label: 'High Value Accounts' }
+  ];
+
+  return (
+    <div className="flex items-center gap-4">
+      <div className="flex-1 max-w-xs">
+        <Select value={currentView} onValueChange={onViewChange}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select a view" />
+          </SelectTrigger>
+          <SelectContent>
+            {viewOptions.map((view) => (
+              <SelectItem key={view.value} value={view.value}>
+                {view.label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      
+      <Button variant="outline" size="sm">
+        Save View
+      </Button>
+      
+      <Button variant="outline" size="sm">
+        Manage Views
+      </Button>
+    </div>
+  );
+};
+
+export default AccountsViewFilters;

@@ -16,6 +16,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Get API URL from environment variables
+  const API_URL = import.meta.env.VITE_API_URL;
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -62,8 +65,8 @@ const LoginPage = () => {
   return (
     <>
       <Helmet>
-        <title>Login - CloudCRM</title>
-        <meta name="description" content="Login to your CloudCRM account" />
+        <title>Login - {import.meta.env.VITE_APP_NAME}</title>
+        <meta name="description" content={`Login to your ${import.meta.env.VITE_APP_NAME} account`} />
       </Helmet>
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 via-white to-blue-50 p-4">
         <motion.div
@@ -78,7 +81,7 @@ const LoginPage = () => {
                 <span className="text-white font-bold text-2xl">C</span>
               </div>
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Welcome Back</h1>
-              <p className="text-gray-600">Sign in to your CloudCRM account</p>
+              <p className="text-gray-600">Sign in to your {import.meta.env.VITE_APP_NAME} account</p>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">

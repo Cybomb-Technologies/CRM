@@ -41,6 +41,9 @@ import {
   Download,
   Zap,
   CheckCircle,
+  Lightbulb,
+  Inbox, // ADD THIS
+  MapPin,
 } from "lucide-react";
 
 // Utility: classNames
@@ -54,7 +57,7 @@ const cn = (...classes) => classes.filter(Boolean).join(" ");
 const modulesPanelData = {
   title: "Modules",
   groups: [
-    { header: null, items: [{ name: "Home", path: "/home", icon: Home }] },
+    { header: null, items: [{ name: "Home", path: "/", icon: Home }] },
     {
       header: "Sales",
       key: "sales",
@@ -72,7 +75,6 @@ const modulesPanelData = {
       header: "Activities",
       key: "activities",
       items: [
-        { name: "All Activities", path: "/activities", icon: Calendar },
         { name: "Tasks", path: "/tasks", icon: CheckCircle }, // Use appropriate icon
         { name: "Meetings", path: "/meetings", icon: Calendar },
         { name: "Calls", path: "/calls", icon: Phone },
@@ -84,12 +86,30 @@ const modulesPanelData = {
       items: [
         { name: "Products", path: "/products", icon: Package },
         { name: "Price Books", path: "/price-books", icon: FileText },
-        
+
         { name: "Quotes", path: "/quotes", icon: FileText },
         { name: "Sales Orders", path: "/sales-orders", icon: FileText },
         { name: "Purchase Orders", path: "/purchase-orders", icon: FileText },
         { name: "Invoices", path: "/invoices", icon: FileText },
         { name: "Vendors", path: "/vendors", icon: Building2 },
+      ],
+    },
+
+    {
+      header: "Support",
+      key: "support",
+      items: [
+        { name: "Cases", path: "/cases", icon: FileText },
+        { name: "Solutions", path: "/solutions", icon: Lightbulb },
+      ],
+    },
+    {
+      header: "Integrations",
+      key: "integrations",
+      items: [
+        { name: "Sales Inbox", path: "/sales-inbox", icon: Inbox },
+        { name: "Social", path: "/social", icon: Users },
+        { name: "Visits", path: "/visits", icon: MapPin },
       ],
     },
   ],
@@ -510,7 +530,7 @@ export default function Sidebar({ open, setOpen }) {
             </div>
 
             {/* Icons */}
-            <div className="flex-1 flex flex-col items-center space-y-6 pt-4">
+            <div className="flex-1 flex flex-col items-center space-y-1 pt-1">
               {miniIcons.map((m) => {
                 const Icon = m.icon;
                 const active = activeMini === m.id;
