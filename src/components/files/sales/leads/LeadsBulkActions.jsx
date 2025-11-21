@@ -304,7 +304,7 @@ const LeadsBulkActions = ({
               Bulk Actions
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent align="end" className="w-64 max-h-80 overflow-y-auto">
             {/* Mass Update */}
             <DropdownMenuItem onClick={() => setShowUpdateDialog(true)}>
               <Edit className="w-4 h-4 mr-2" />
@@ -344,7 +344,7 @@ const LeadsBulkActions = ({
                 Add to Campaigns
                 <ChevronRight className="w-4 h-4 ml-auto" />
               </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
+              <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
                 <DropdownMenuItem onClick={() => setShowCampaignDialog(true)}>
                   Enhanced Campaign Manager
                 </DropdownMenuItem>
@@ -442,7 +442,7 @@ const LeadsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="New">New</SelectItem>
                   <SelectItem value="Contacted">Contacted</SelectItem>
                   <SelectItem value="Qualified">Qualified</SelectItem>
@@ -457,7 +457,7 @@ const LeadsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select source" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="Website">Website</SelectItem>
                   <SelectItem value="Referral">Referral</SelectItem>
                   <SelectItem value="LinkedIn">LinkedIn</SelectItem>
@@ -472,7 +472,7 @@ const LeadsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select industry" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="Technology">Technology</SelectItem>
                   <SelectItem value="Finance">Finance</SelectItem>
                   <SelectItem value="Healthcare">Healthcare</SelectItem>
@@ -508,7 +508,7 @@ const LeadsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select template" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="welcome">Welcome Email</SelectItem>
                   <SelectItem value="followup">Follow-up</SelectItem>
                   <SelectItem value="promotion">Promotion</SelectItem>
@@ -619,7 +619,7 @@ const LeadsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select campaign" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {data.campaigns?.filter(campaign => 
                     campaign.status === 'Active' || campaign.status === 'Planning'
                   ).map(campaign => (

@@ -167,7 +167,7 @@ const CreateContactDialog = ({ open, onOpenChange, onContactCreated }) => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select Department" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {departments.map(dept => (
                         <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                       ))}
@@ -230,7 +230,7 @@ const CreateContactDialog = ({ open, onOpenChange, onContactCreated }) => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select Source" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {leadSources.map(source => (
                         <SelectItem key={source} value={source}>{source}</SelectItem>
                       ))}

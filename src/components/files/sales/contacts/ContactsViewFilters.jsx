@@ -25,7 +25,7 @@ const ContactsViewFilters = ({ currentView, onViewChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="Select a view" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             {viewOptions.map((view) => (
               <SelectItem key={view.value} value={view.value}>
                 {view.label}

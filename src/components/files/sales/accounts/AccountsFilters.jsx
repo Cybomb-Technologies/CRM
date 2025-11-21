@@ -34,7 +34,7 @@ const AccountsFilters = ({ filters, onFiltersChange, accounts }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Industries" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             {industries.map(industry => (
               <SelectItem key={industry} value={industry}>{industry}</SelectItem>
             ))}
@@ -48,7 +48,7 @@ const AccountsFilters = ({ filters, onFiltersChange, accounts }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Types" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             {types.map(type => (
               <SelectItem key={type} value={type}>{type}</SelectItem>
             ))}
