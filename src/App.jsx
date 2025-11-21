@@ -36,6 +36,9 @@ import CreateSalesOrder from './pages/CreateSalesOrder';
 import PurchaseOrders from './pages/PurchaseOrders';
 import CreatePurchaseOrder from './pages/CreatePurchaseOrder';
 import Invoices from './pages/Invoices';
+import CreateInvoice from "./pages/CreateInvoice";
+import Vendors from "./pages/Vendors";
+import CreateVendor from "./pages/CreateVendor";
 
 function App() {
   const { user } = useAuth();
@@ -86,13 +89,16 @@ function App() {
             <Route path="create-sales-order" element={<CreateSalesOrder />} />
             <Route path="purchase-orders" element={<PurchaseOrders/>}/>
             <Route path="create-purchase-order" element={<CreatePurchaseOrder/>}/>
-            <Route path="invoives" element={<Invoices/>}/>            <Route path="documents" element={<DocumentPage />} />
+            <Route path="invoices" element={<Invoices/>}/>            <Route path="documents" element={<DocumentPage />} />
             <Route path="campaigns/*" element={<CampaignsPage />} />
             <Route path="/forecasts" element={<Forecasts />} />
             <Route path="activities" element={<ActivitiesPage />} />
             <Route path="tasks" element={<TasksPage />} />
             <Route path="meetings" element={<MeetingsPage />} />
             <Route path="calls" element={<CallsPage />} />
+            <Route path="create-invoice" element={<CreateInvoice/>}/>
+            <Route path="vendors" element={<Vendors/>}/>
+            <Route path="create-vendor" element={<CreateVendor/>}/>
           </Route>
         </Routes>
       </DataProvider>
