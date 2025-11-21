@@ -192,7 +192,7 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select Industry" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {industries.map(industry => (
                     <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                   ))}
@@ -218,7 +218,7 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {accountTypes.map(type => (
                     <SelectItem key={type} value={type}>{type}</SelectItem>
                   ))}

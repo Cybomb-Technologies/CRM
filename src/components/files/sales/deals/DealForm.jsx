@@ -209,7 +209,7 @@ const DealForm = ({ onSuccess, onCancel, initialData }) => {
               <SelectTrigger>
                 <SelectValue placeholder="Select Company" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60 overflow-y-auto">
                 {data.accounts?.map(account => (
                   <SelectItem key={account.id} value={account.name}>
                     {account.name}
@@ -225,7 +225,7 @@ const DealForm = ({ onSuccess, onCancel, initialData }) => {
               <SelectTrigger>
                 <SelectValue placeholder="Select Contact" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60 overflow-y-auto">
                 {data.contacts?.map(contact => (
                   <SelectItem key={contact.id} value={contact.id}>
                     {contact.name} ({contact.company || contact.accountName})
@@ -305,7 +305,7 @@ const DealForm = ({ onSuccess, onCancel, initialData }) => {
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60 overflow-y-auto">
                 {stageOptions.map(stage => (
                   <SelectItem key={stage.value} value={stage.value}>
                     <div className="flex items-center">
@@ -325,7 +325,7 @@ const DealForm = ({ onSuccess, onCancel, initialData }) => {
               <SelectTrigger>
                 <SelectValue placeholder="Select Source" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="max-h-60 overflow-y-auto">
                 <SelectItem value="Website">Website</SelectItem>
                 <SelectItem value="Referral">Referral</SelectItem>
                 <SelectItem value="LinkedIn">LinkedIn</SelectItem>

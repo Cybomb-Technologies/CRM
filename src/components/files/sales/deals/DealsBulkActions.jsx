@@ -209,7 +209,7 @@ const DealsBulkActions = ({
               Bulk Actions
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-64">
+          <DropdownMenuContent align="end" className="w-64 max-h-96 overflow-y-auto">
             {/* Mass Update */}
             <DropdownMenuItem onClick={() => setShowUpdateDialog(true)}>
               <Edit className="w-4 h-4 mr-2" />
@@ -298,7 +298,7 @@ const DealsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select stage" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {Object.entries(dealStages).map(([stageKey, stageLabel]) => (
                     <SelectItem key={stageKey} value={stageKey}>
                       {stageLabel}
@@ -323,7 +323,7 @@ const DealsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select probability" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="10">10% - Very Low</SelectItem>
                   <SelectItem value="25">25% - Low</SelectItem>
                   <SelectItem value="50">50% - Medium</SelectItem>

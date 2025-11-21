@@ -37,7 +37,7 @@ const DealsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Stages" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="all-stages">All Stages</SelectItem>
             {Object.entries(dealStages).map(([stageKey, stageLabel]) => (
               <SelectItem key={stageKey} value={stageKey}>
@@ -54,7 +54,7 @@ const DealsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Owners" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="all-owners">All Owners</SelectItem>
             <SelectItem value="John Doe">John Doe</SelectItem>
             <SelectItem value="Jane Smith">Jane Smith</SelectItem>
@@ -78,7 +78,7 @@ const DealsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Probabilities" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="all-probabilities">All Probabilities</SelectItem>
             <SelectItem value="high">High (70%+)</SelectItem>
             <SelectItem value="medium">Medium (30-69%)</SelectItem>
@@ -93,7 +93,7 @@ const DealsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Values" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="all-values">All Values</SelectItem>
             <SelectItem value="0-500000">₹0 - ₹5L</SelectItem>
             <SelectItem value="500000-2500000">₹5L - ₹25L</SelectItem>

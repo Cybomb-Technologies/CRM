@@ -380,7 +380,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select Source" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {leadSources.map(source => (
                         <SelectItem key={source} value={source}>{source}</SelectItem>
                       ))}
@@ -394,7 +394,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                     <SelectTrigger>
                       <SelectValue placeholder="Select Industry" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-60 overflow-y-auto">
                       {industries.map(industry => (
                         <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                       ))}

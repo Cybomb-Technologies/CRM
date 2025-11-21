@@ -32,7 +32,7 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="New">New</SelectItem>
             <SelectItem value="Contacted">Contacted</SelectItem>
             <SelectItem value="Qualified">Qualified</SelectItem>
@@ -47,7 +47,7 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Sources" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="Website">Website</SelectItem>
             <SelectItem value="Referral">Referral</SelectItem>
             <SelectItem value="LinkedIn">LinkedIn</SelectItem>
@@ -65,7 +65,7 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Industries" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="Technology">Technology</SelectItem>
             <SelectItem value="Finance">Finance</SelectItem>
             <SelectItem value="Healthcare">Healthcare</SelectItem>
@@ -82,7 +82,7 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Time" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             <SelectItem value="today">Today</SelectItem>
             <SelectItem value="yesterday">Yesterday</SelectItem>
             <SelectItem value="this-week">This Week</SelectItem>

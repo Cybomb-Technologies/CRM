@@ -84,7 +84,7 @@ const ContactsBulkActions = ({
               Bulk Actions
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuContent align="end" className="w-56 max-h-80 overflow-y-auto">
             {/* Mass Update */}
             <DropdownMenuItem onClick={() => setShowUpdateDialog(true)}>
               <Edit className="w-4 h-4 mr-2" />
@@ -106,10 +106,7 @@ const ContactsBulkActions = ({
             </DropdownMenuItem>
 
             {/* Add to Campaign */}
-            <DropdownMenuItem onClick={() => console.log('Add to campaign')}>
-              <Users className="w-4 h-4 mr-2" />
-              Add to Campaigns
-            </DropdownMenuItem>
+            
 
             <DropdownMenuSeparator />
 
@@ -156,7 +153,7 @@ const ContactsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select department" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="Administration">Administration</SelectItem>
                   <SelectItem value="Engineering">Engineering</SelectItem>
                   <SelectItem value="Finance">Finance</SelectItem>
@@ -176,7 +173,7 @@ const ContactsBulkActions = ({
                 <SelectTrigger>
                   <SelectValue placeholder="Select source" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   <SelectItem value="Advertisement">Advertisement</SelectItem>
                   <SelectItem value="Cold Call">Cold Call</SelectItem>
                   <SelectItem value="Employee Referral">Employee Referral</SelectItem>

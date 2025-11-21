@@ -228,7 +228,7 @@ const ContactForm = ({ onSuccess, onCancel, initialData }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select Department" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {departments.map(dept => (
                     <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                   ))}
@@ -290,7 +290,7 @@ const ContactForm = ({ onSuccess, onCancel, initialData }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select Account" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {data.accounts?.map(account => (
                     <SelectItem key={account.id} value={account.id}>
                       {account.name}
@@ -306,7 +306,7 @@ const ContactForm = ({ onSuccess, onCancel, initialData }) => {
                 <SelectTrigger>
                   <SelectValue placeholder="Select Source" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-60 overflow-y-auto">
                   {leadSources.map(source => (
                     <SelectItem key={source} value={source}>{source}</SelectItem>
                   ))}

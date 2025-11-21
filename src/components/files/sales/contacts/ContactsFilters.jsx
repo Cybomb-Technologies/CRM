@@ -36,7 +36,7 @@ const ContactsFilters = ({ filters, onFiltersChange, contacts }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Accounts" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             {accounts.map(account => (
               <SelectItem key={account} value={account}>{account}</SelectItem>
             ))}
@@ -50,7 +50,7 @@ const ContactsFilters = ({ filters, onFiltersChange, contacts }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Departments" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             {departments.map(dept => (
               <SelectItem key={dept} value={dept}>{dept}</SelectItem>
             ))}
@@ -64,7 +64,7 @@ const ContactsFilters = ({ filters, onFiltersChange, contacts }) => {
           <SelectTrigger>
             <SelectValue placeholder="All Sources" />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="max-h-60 overflow-y-auto">
             {leadSources.map(source => (
               <SelectItem key={source} value={source}>{source}</SelectItem>
             ))}
