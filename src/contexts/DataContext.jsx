@@ -780,6 +780,179 @@ export const DataProvider = ({ children }) => {
     };
   }, [convertLead]);
 
+  // APPROVE LEADS WITH CONVERSION FUNCTIONALITY
+  const approveLeads = useCallback((leadIds, dealData = {}) => {
+    const currentLeads = data.leads || [];
+    const results = [];
+    
+    leadIds.forEach(leadId => {
+      const lead = currentLeads.find(l => l.id === leadId);
+      if (!lead) {
+        results.push({ success: false, message: `Lead ${leadId} not found` });
+        return;
+      }
+
+      try {
+        // Check if account already exists
+        let account = data.accounts.find(acc => acc.name === lead.company);
+        
+        // If account doesn't exist, create it
+        if (!account) {
+          account = {
+            id: `account_${Date.now()}_${leadId}`,
+            name: lead.company,
+            website: lead.website || '',
+            phone: lead.phone,
+            industry: lead.industry,
+            email: lead.email,
+            contacts: 1,
+            type: 'Customer',
+            employees: lead.numberOfEmployees || 0,
+            annualRevenue: lead.annualRevenue || 0,
+            billingAddress: {
+              street: lead.streetAddress || '',
+              city: lead.city || '',
+              state: lead.state || '',
+              zipCode: lead.zipCode || '',
+              country: lead.country || ''
+            },
+            shippingAddress: {
+              street: lead.streetAddress || '',
+              city: lead.city || '',
+              state: lead.state || '',
+              zipCode: lead.zipCode || '',
+              country: lead.country || ''
+            },
+            description: lead.description || `Account created from approved lead on ${new Date().toLocaleDateString()}`,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+          };
+          addDataItem('accounts', account);
+        } else {
+          // Update existing account contact count
+          updateAccountContactCount(account.id);
+        }
+
+        // Create contact from lead
+        const contact = {
+          id: `contact_${Date.now()}_${leadId}`,
+          firstName: lead.firstName,
+          lastName: lead.lastName,
+          name: `${lead.firstName} ${lead.lastName}`,
+          email: lead.email,
+          phone: lead.phone,
+          mobile: lead.mobile || '',
+          accountId: account.id,
+          accountName: account.name,
+          title: lead.title || '',
+          department: '',
+          leadSource: lead.leadSource,
+          reportsTo: '',
+          mailingAddress: {
+            street: lead.streetAddress || '',
+            city: lead.city || '',
+            state: lead.state || '',
+            zipCode: lead.zipCode || '',
+            country: lead.country || ''
+          },
+          otherAddress: {
+            street: '',
+            city: '',
+            state: '',
+            zipCode: '',
+            country: ''
+          },
+          description: lead.description || `Created from approved lead on ${new Date().toLocaleDateString()}`,
+          assistant: '',
+          assistantPhone: '',
+          emailOptOut: lead.emailOptOut || false,
+          convertedFromLead: leadId,
+          leadConversionDate: new Date().toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        addDataItem('contacts', contact);
+
+        // Create opportunity from approved lead
+        const calculateDealValue = (lead) => {
+          if (lead.annualRevenue) {
+            return Math.round(lead.annualRevenue * 0.1); // 10% of annual revenue
+          }
+          return lead.numberOfEmployees ? lead.numberOfEmployees * 500 : 10000; // $500 per employee or $10k default
+        };
+
+        const calculateProbability = (lead) => {
+          if (lead.leadStatus === 'Qualified') return 60; // Higher probability for approved leads
+          if (lead.tags?.includes('hot')) return 70;
+          return 50; // Default higher probability for approved leads
+        };
+
+        const opportunity = {
+          id: `deal_approved_${Date.now()}_${leadId}`,
+          title: `${lead.company} - Approved Lead Opportunity`,
+          company: lead.company,
+          contactId: contact.id,
+          contactName: contact.name,
+          accountId: account.id,
+          accountName: account.name,
+          value: calculateDealValue(lead),
+          probability: calculateProbability(lead),
+          stage: 'qualification',
+          closeDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000).toISOString(), // 15 days for approved leads
+          owner: user?.name || 'Current User',
+          description: lead.description || `Opportunity created from approved lead: ${lead.firstName} ${lead.lastName}`,
+          sourceLeadId: leadId,
+          leadSource: lead.leadSource,
+          industry: lead.industry,
+          tags: [...(lead.tags || []), 'approved'],
+          ...dealData,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+        
+        addDataItem('deals', opportunity, 'qualification');
+
+        // Mark lead as approved and converted
+        const updatedLeads = currentLeads.map(l =>
+          l.id === leadId ? { 
+            ...l, 
+            isApproved: true, 
+            isConverted: true,
+            approvedAt: new Date().toISOString(),
+            approvedBy: user?.name || 'System',
+            convertedToContactId: contact.id,
+            convertedToAccountId: account.id,
+            conversionDate: new Date().toISOString(),
+            leadStatus: 'Qualified', // Auto-qualify approved leads
+            updatedAt: new Date().toISOString() 
+          } : l
+        );
+        updateData('leads', updatedLeads);
+
+        results.push({ 
+          success: true, 
+          message: `Lead ${lead.firstName} ${lead.lastName} approved and converted successfully`,
+          contact, 
+          account, 
+          opportunity
+        });
+
+      } catch (error) {
+        results.push({ success: false, message: `Error approving lead ${leadId}: ${error.message}` });
+      }
+    });
+
+    const successful = results.filter(result => result.success);
+    const failed = results.filter(result => !result.success);
+
+    return {
+      success: successful.length > 0,
+      message: `${successful.length} leads approved and converted successfully${failed.length > 0 ? `, ${failed.length} failed` : ''}`,
+      successful,
+      failed
+    };
+  }, [data, addDataItem, updateData, updateAccountContactCount, user]);
+
   // MANUAL SYNC FUNCTION
   const syncLeadToContact = useCallback((leadId) => {
     const lead = data.leads.find(l => l.id === leadId);
@@ -883,74 +1056,53 @@ export const DataProvider = ({ children }) => {
     };
   }, [data.leads, updateData]);
 
-  // APPROVE LEADS
-  const approveLeads = useCallback((leadIds) => {
-    const currentLeads = data.leads || [];
-    const newLeads = currentLeads.map(lead => 
-      leadIds.includes(lead.id) ? { 
-        ...lead, 
-        isApproved: true, 
-        approvedAt: new Date().toISOString(),
-        approvedBy: user?.name || 'System',
-        updatedAt: new Date().toISOString() 
-      } : lead
+  // ADD TO CAMPAIGN
+  const addLeadsToCampaign = useCallback((leadIds, campaignId) => {
+    const currentCampaigns = data.campaigns || [];
+    const campaign = currentCampaigns.find(c => c.id === campaignId);
+    
+    if (!campaign) {
+      return {
+        success: false,
+        message: 'Campaign not found'
+      };
+    }
+
+    const updatedMembers = [...(campaign.members || [])];
+    
+    leadIds.forEach(leadId => {
+      const lead = data.leads.find(l => l.id === leadId);
+      if (lead && !updatedMembers.find(member => member.id === leadId)) {
+        updatedMembers.push({
+          id: lead.id,
+          name: `${lead.firstName} ${lead.lastName}`,
+          email: lead.email,
+          type: 'lead',
+          company: lead.company,
+          addedDate: new Date().toISOString(),
+          responded: false,
+          converted: false
+        });
+      }
+    });
+
+    const updatedCampaign = {
+      ...campaign,
+      members: updatedMembers,
+      updatedAt: new Date().toISOString()
+    };
+
+    const updatedCampaigns = currentCampaigns.map(c => 
+      c.id === campaignId ? updatedCampaign : c
     );
-    updateData('leads', newLeads);
+
+    updateData('campaigns', updatedCampaigns);
     
     return {
       success: true,
-      message: `${leadIds.length} leads approved successfully`
+      message: `${leadIds.length} leads added to ${campaign.campaignName}`
     };
-  }, [data.leads, updateData, user]);
-
-  // ADD TO CAMPAIGN
-  // In your DataContext.jsx, update the addLeadsToCampaign function:
-const addLeadsToCampaign = useCallback((leadIds, campaignId) => {
-  const currentCampaigns = data.campaigns || [];
-  const campaign = currentCampaigns.find(c => c.id === campaignId);
-  
-  if (!campaign) {
-    return {
-      success: false,
-      message: 'Campaign not found'
-    };
-  }
-
-  const updatedMembers = [...(campaign.members || [])];
-  
-  leadIds.forEach(leadId => {
-    const lead = data.leads.find(l => l.id === leadId);
-    if (lead && !updatedMembers.find(member => member.id === leadId)) {
-      updatedMembers.push({
-        id: lead.id,
-        name: `${lead.firstName} ${lead.lastName}`,
-        email: lead.email,
-        type: 'lead',
-        company: lead.company,
-        addedDate: new Date().toISOString(),
-        responded: false,
-        converted: false
-      });
-    }
-  });
-
-  const updatedCampaign = {
-    ...campaign,
-    members: updatedMembers,
-    updatedAt: new Date().toISOString()
-  };
-
-  const updatedCampaigns = currentCampaigns.map(c => 
-    c.id === campaignId ? updatedCampaign : c
-  );
-
-  updateData('campaigns', updatedCampaigns);
-  
-  return {
-    success: true,
-    message: `${leadIds.length} leads added to ${campaign.campaignName}`
-  };
-}, [data.campaigns, data.leads, updateData]);
+  }, [data.campaigns, data.leads, updateData]);
 
   // CREATE CLIENT SCRIPT
   const createClientScript = useCallback((leadIds, scriptType = 'basic') => {
@@ -1304,10 +1456,10 @@ export default leads;
     bulkDeleteLeads,
     convertLead,
     bulkConvertLeads,
+    approveLeads, // Enhanced approveLeads function
     syncLeadToContact,
     manageLeadTags,
     deduplicateLeads,
-    approveLeads,
     addLeadsToCampaign,
     createClientScript,
     
