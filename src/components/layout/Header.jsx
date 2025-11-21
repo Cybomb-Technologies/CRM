@@ -23,13 +23,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import CreateLeadDialog from "@/components/leads/CreateLeadDialog";
-import CreateAccountDialog from "@/components/accounts/CreateAccountDialog";
-import CreateContactDialog from "@/components/contacts/CreateContactDialog";
-import CreateDealDialog from "@/components/deals/CreateDealDialog";
-import { CreateTaskDialog } from "@/components/tasks/CreateTaskDialog";
-import { CreateMeetingDialog } from "@/components/meetings/CreateMeetingDialog";
-import { CreateCallDialog } from "@/components/calls/CreateCallDialog";
+import CreateLeadDialog from "@/components/files/sales/leads/CreateLeadDialog";
+import CreateAccountDialog from "@/components/files/sales/accounts/CreateAccountDialog";
+import CreateContactDialog from "@/components/files/sales/contacts/CreateContactDialog";
+import CreateDealDialog from "@/components/files/sales/deals/CreateDealDialog";
+import { CreateTaskDialog } from "@/components/files/activities/tasks/CreateTaskDialog";
+import { CreateMeetingDialog } from "@/components/files/activities/meetings/CreateMeetingDialog";
+import { CreateCallDialog } from "@/components/files/activities/calls/CreateCallDialog";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useData } from "@/contexts/DataContext";
 import { useToast } from "@/components/ui/use-toast";
