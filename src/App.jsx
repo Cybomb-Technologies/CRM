@@ -40,6 +40,9 @@ import SolutionsPage from "@/pages/files/support/SolutionsPage";
 import SalesInboxPage from "@/pages/files/integrations/SalesInboxPage";
 import SocialPage from "./pages/files/integrations/SocialPage";
 import VisitsPage from "@/pages/files/integrations/VisitsPage";
+import CreateInvoice from "@/pages/CreateInvoice";
+import Vendors from "@/pages/Vendors";
+import CreateVendor from "@/pages/CreateVendor";
 
 function App() {
   const { user } = useAuth();
@@ -93,7 +96,10 @@ function App() {
               path="create-purchase-order"
               element={<CreatePurchaseOrder />}
             />
-            <Route path="invoives" element={<Invoices />} />{" "}
+            <Route path="invoices" element={<Invoices />} />{" "}
+            <Route path="create-invoice" element={<CreateInvoice/>}/>
+            <Route path="vendors" element={<Vendors/>}/>
+            <Route path="create-vendor" element={<CreateVendor/>}/>
             <Route path="documents" element={<DocumentPage />} />
             <Route path="campaigns/*" element={<CampaignsPage />} />
             <Route path="/forecasts" element={<Forecasts />} />
