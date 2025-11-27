@@ -1,13 +1,4 @@
 // src/components/layout/Sidebar.jsx
-//
-// Single-file Sidebar containing LEFT mini icon bar + RIGHT dynamic panel.
-// Each mini icon shows its own right-side panel (Modules, Reports, Analytics,
-// Dashboards, My Requests, Marketplace, Search Records, Ask Zia).
-//
-// Dependencies: react, react-router-dom (NavLink), framer-motion, lucide-react,
-// tailwindcss for styling.
-//
-// Copy-paste this entire file into: src/components/layout/Sidebar.jsx
 
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
@@ -42,7 +33,7 @@ import {
   Zap,
   CheckCircle,
   Lightbulb,
-  Inbox, // ADD THIS
+  Inbox,
   MapPin,
 } from "lucide-react";
 
@@ -75,7 +66,7 @@ const modulesPanelData = {
       header: "Activities",
       key: "activities",
       items: [
-        { name: "Tasks", path: "/tasks", icon: CheckCircle }, // Use appropriate icon
+        { name: "Tasks", path: "/tasks", icon: CheckCircle },
         { name: "Meetings", path: "/meetings", icon: Calendar },
         { name: "Calls", path: "/calls", icon: Phone },
       ],
@@ -86,7 +77,6 @@ const modulesPanelData = {
       items: [
         { name: "Products", path: "/products", icon: Package },
         { name: "Price Books", path: "/price-books", icon: FileText },
-
         { name: "Quotes", path: "/quotes", icon: FileText },
         { name: "Sales Orders", path: "/sales-orders", icon: FileText },
         { name: "Purchase Orders", path: "/purchase-orders", icon: FileText },
@@ -94,7 +84,6 @@ const modulesPanelData = {
         { name: "Vendors", path: "/vendors", icon: Building2 },
       ],
     },
-
     {
       header: "Support",
       key: "support",
@@ -122,52 +111,32 @@ const reportsPanelData = {
       header: null,
       items: [
         { name: "All Reports", path: "/reports/all", icon: File },
-        { name: "Analytics", path: "/reports/analytics", icon: Activity },
+        { name: "My Reports", path: "/reports/my-reports", icon: FileText },
         { name: "Favorites", path: "/reports/favorites", icon: Star },
         { name: "Recently Viewed", path: "/reports/recent", icon: Grid },
-        {
-          name: "Scheduled Reports",
-          path: "/reports/scheduled",
-          icon: Calendar,
-        },
-        {
-          name: "Recently Deleted",
-          path: "/reports/deleted",
-          icon: TrashStub(),
-        },
+        { name: "Scheduled Reports", path: "/reports/scheduled", icon: Calendar },
+        { name: "Recently Deleted", path: "/reports/deleted", icon: TrashStub() },
       ],
     },
     {
       header: "By Module",
       key: "by-module",
       items: [
-        {
-          name: "Account and Contact Reports",
-          path: "/reports/accounts",
-          icon: Building2,
-        },
+        { name: "Account and Contact R...", path: "/reports/accounts", icon: Building2 },
         { name: "Deal Reports", path: "/reports/deals", icon: Target },
         { name: "Lead Reports", path: "/reports/leads", icon: Users },
         { name: "Campaign Reports", path: "/reports/campaigns", icon: Target },
-        {
-          name: "Case and Solution Reports",
-          path: "/reports/cases",
-          icon: FileText,
-        },
+        { name: "Case and Solution Repo...", path: "/reports/cases", icon: FileText },
         { name: "Product Reports", path: "/reports/products", icon: Package },
         { name: "Vendor Reports", path: "/reports/vendors", icon: Building2 },
         { name: "Quote Reports", path: "/reports/quotes", icon: FileText },
-        {
-          name: "Sales Order Reports",
-          path: "/reports/sales-orders",
-          icon: FileText,
-        },
-        {
-          name: "Purchase Order Reports",
-          path: "/reports/purchase-orders",
-          icon: FileText,
-        },
+        { name: "Sales Order Reports", path: "/reports/sales-orders", icon: FileText },
+        { name: "Purchase Order Reports", path: "/reports/purchase-orders", icon: FileText },
         { name: "Invoice Reports", path: "/reports/invoices", icon: FileText },
+        // ADDED FROM IMAGE CONTENT
+        { name: "Sales Metrics Reports", path: "/reports/sales-metrics", icon: Activity },
+        { name: "Email Reports", path: "/reports/email", icon: Inbox },
+        { name: "Meeting Reports", path: "/reports/meetings", icon: Calendar },
       ],
     },
   ],
@@ -267,7 +236,6 @@ const searchPanelData = {
     {
       header: null,
       items: [
-        // For demonstration: quick links
         { name: "Search People", path: "/search/people", icon: Users },
         { name: "Search Deals", path: "/search/deals", icon: Target },
         { name: "Search Accounts", path: "/search/accounts", icon: Building2 },
@@ -293,7 +261,6 @@ const ziaPanelData = {
 
 /* ---------- small icon helpers (inline fallback icons) ---------- */
 function TrashStub() {
-  // simple JS object to be used like an icon component in lists (lucide is preferred)
   return (props) => (
     <svg {...props} viewBox="0 0 24 24" className="w-4 h-4">
       <path
@@ -317,7 +284,6 @@ function ClockStub() {
 /* ---------- Sidebar Component ---------- */
 
 export default function Sidebar({ open, setOpen }) {
-  // activeMini controls which panel shows on the right
   const [activeMini, setActiveMini] = useState("modules");
   const [activeItem, setActiveItem] = useState("/home");
   const [expanded, setExpanded] = useState({
@@ -331,7 +297,6 @@ export default function Sidebar({ open, setOpen }) {
 
   if (!open) return null;
 
-  // map id -> data for panels
   const panels = {
     modules: modulesPanelData,
     reports: reportsPanelData,
@@ -343,7 +308,6 @@ export default function Sidebar({ open, setOpen }) {
     zia: ziaPanelData,
   };
 
-  // mini icons ordered to match screenshots
   const miniIcons = [
     { id: "modules", icon: Folder, label: "Modules" },
     { id: "reports", icon: PieChart, label: "Reports" },
@@ -353,21 +317,18 @@ export default function Sidebar({ open, setOpen }) {
     { id: "marketplace", icon: Layers, label: "Marketplace" },
     { id: "search", icon: Search, label: "Search Records" },
     { id: "zia", icon: Sparkles, label: "Ask Zia" },
-    // extras shown in the mini bar (create, calendar, notifications, settings)
     { id: "create", icon: Plus, label: "Create" },
     { id: "calendar", icon: Calendar, label: "Calendar" },
     { id: "notifications", icon: Bell, label: "Notifications" },
     { id: "settings", icon: Settings, label: "Settings" },
   ];
 
-  // panel animation variants
   const panelVariants = {
     hidden: { opacity: 0, x: -12 },
     visible: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -12 },
   };
 
-  // small helper to render group header button with collapse behavior
   const GroupHeader = ({ header, keyName }) => {
     if (!header) return null;
     return (
@@ -388,7 +349,6 @@ export default function Sidebar({ open, setOpen }) {
     );
   };
 
-  // right panel render
   const RightPanel = ({ panelKey, panelData }) => {
     if (!panelData) return null;
 
@@ -406,8 +366,6 @@ export default function Sidebar({ open, setOpen }) {
         <div className="p-4 border-b border-white/10">
           <div className="flex items-start justify-between">
             <h2 className="text-lg font-semibold">{panelData.title}</h2>
-
-            {/* quick mini-actions on header (only for some panels) */}
             <div className="flex items-center gap-2">
               {panelKey === "reports" && (
                 <button className="text-gray-300 text-sm px-2 py-1 rounded hover:bg-white/5">
@@ -424,7 +382,7 @@ export default function Sidebar({ open, setOpen }) {
             </div>
           </div>
 
-          {/* search inside header */}
+          {/* Search inside header */}
           <div className="relative mt-3">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -449,7 +407,6 @@ export default function Sidebar({ open, setOpen }) {
               />
 
               <AnimatePresence initial={false}>
-                {/* only show items if no header (always show) or expanded */}
                 {(group.header === null || expanded[group.key || `g${gi}`]) && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
@@ -459,7 +416,6 @@ export default function Sidebar({ open, setOpen }) {
                   >
                     {group.items.map((item, idx) => {
                       const Icon = item.icon;
-                      // some items might provide a raw component (like stub)
                       const renderedIcon =
                         typeof Icon === "function" ? (
                           <Icon className="w-4 h-4 mr-3" />
@@ -538,13 +494,8 @@ export default function Sidebar({ open, setOpen }) {
                   <button
                     key={m.id}
                     onClick={() => {
-                      // for 'create' or 'notifications' you may want custom behavior; for now, switch panel
                       setActiveMini(m.id);
-                      // if the mini is one that doesn't have a panel (create/calendar/notifications/settings),
-                      // we keep showing the most relevant one or open a compact modal. Here we'll map:
-                      // create -> modules (open create menu), calendar -> modules, notifications -> modules, settings -> modules
                       if (!panels[m.id]) {
-                        // keep current or set to modules as fallback
                         setActiveMini(m.id);
                       }
                     }}
@@ -576,8 +527,6 @@ export default function Sidebar({ open, setOpen }) {
           <div className="flex">
             <AnimatePresence mode="wait">
               {(() => {
-                // if clicked mini corresponds to a known panel, show that; else map to a sensible default:
-                // 'create' -> modules, 'calendar' -> modules, 'notifications' -> modules, 'settings' -> modules
                 const mapToPanel = (id) =>
                   [
                     "modules",
