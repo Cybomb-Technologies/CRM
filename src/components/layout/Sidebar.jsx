@@ -145,13 +145,25 @@ const reportsPanelData = {
 const analyticsPanelData = {
   title: "Analytics",
   groups: [
+    // {
+    //   header: null,
+    //   items: [
+    //     { name: "Tables", path: "/analytics/tables", icon: Grid },
+    //     { name: "Charts", path: "/analytics/charts", icon: BarChart3 },
+    //     { name: "Pivot Tables", path: "/analytics/pivots", icon: File },
+    //     { name: "KPI Widgets", path: "/analytics/kpis", icon: Zap },
+    //   ],
+    // },
     {
-      header: null,
+      header: "Dashboards",
+      key: "dashboards",
       items: [
-        { name: "Tables", path: "/analytics/tables", icon: Grid },
-        { name: "Charts", path: "/analytics/charts", icon: BarChart3 },
-        { name: "Pivot Tables", path: "/analytics/pivots", icon: File },
-        { name: "KPI Widgets", path: "/analytics/kpis", icon: Zap },
+        { name: "Org Overview", path: "/analytics/org", icon: Activity },
+        { name: "Lead Analytics", path: "/analytics/lead-analytics", icon: Users },
+        { name: "Deal Insights", path: "/analytics/deal-insights", icon: Target },
+        { name: "Marketing Metrics", path: "/analytics/marketing-metrics", icon: FileText },
+        { name: "Sales Trend", path: "/analytics/sales-trend", icon: TrendingUp },
+        { name: "Activity Stats", path: "/analytics/activity-stats", icon: Calendar },
       ],
     },
   ],
