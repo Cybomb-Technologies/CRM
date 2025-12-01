@@ -1,87 +1,97 @@
-// src/components/leads/LeadForm.jsx
-import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+// src/components/files/sales/leads/LeadForm.jsx
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { User, Building, Mail, Phone, Globe, MapPin, Upload } from 'lucide-react';
-import { useData } from '@/contexts/DataContext';
-import { useToast } from '@/components/ui/use-toast';
-import { useAuth } from '@/contexts/AuthContext';
+} from "@/components/ui/select";
+import {
+  User,
+  Building,
+  Mail,
+  Phone,
+  Globe,
+  MapPin,
+  Upload,
+} from "lucide-react";
+import { leadsService } from "./leadsService";
+import { useToast } from "@/components/ui/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LeadForm = ({ onSuccess, onCancel, initialData }) => {
-  const { addDataItem, updateDataItem } = useData();
   const { user } = useAuth();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     // Lead Information
-    leadOwner: '',
-    firstName: '',
-    title: '',
-    phone: '',
-    mobile: '',
-    leadSource: '',
-    industry: '',
-    company: '',
-    lastName: '',
-    email: '',
-    fax: '',
-    website: '',
-    leadStatus: 'New',
-    numberOfEmployees: '',
-    annualRevenue: '',
+    leadOwner: "",
+    firstName: "",
+    title: "",
+    phone: "",
+    mobile: "",
+    leadSource: "",
+    industry: "",
+    company: "",
+    lastName: "",
+    email: "",
+    fax: "",
+    website: "",
+    leadStatus: "New",
+    numberOfEmployees: "",
+    annualRevenue: "",
     emailOptOut: false,
-    rating: '',
-    skypeID: '',
-    secondaryEmail: '',
-    twitter: '',
-    
+    rating: "",
+    skypeID: "",
+    secondaryEmail: "",
+    twitter: "",
+
     // Address Information
-    country: '',
-    streetAddress: '',
-    city: '',
-    state: '',
-    zipCode: '',
-    latitude: '',
-    longitude: '',
-    
+    country: "",
+    streetAddress: "",
+    city: "",
+    state: "",
+    zipCode: "",
+    latitude: "",
+    longitude: "",
+
     // Description
-    description: '',
-    
+    description: "",
+
     // Image
-    image: null
+    image: null,
+    removeImage: false,
   });
 
   // Initialize form with initialData when editing and set logged-in user as owner for new leads
   useEffect(() => {
     if (initialData) {
       // For editing, use the existing data
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        ...initialData
+        ...initialData,
+        // Ensure image is properly handled
+        image: initialData.imageUrl || initialData.image || null,
       }));
     } else {
       // For new leads, automatically set the logged-in user as owner
       if (user) {
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          leadOwner: user.id || user.email // Use user ID or email as identifier
+          leadOwner: user.id || user.email, // Use user ID or email as identifier
         }));
       }
     }
   }, [initialData, user]);
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   // Image upload validation
@@ -89,33 +99,44 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
     const file = e.target.files[0];
     if (file) {
       // Validate file type and size
-      if (!file.type.startsWith('image/')) {
+      if (!file.type.startsWith("image/")) {
         toast({
           title: "Invalid File",
           description: "Please upload an image file.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
-      
-      if (file.size > 5 * 1024 * 1024) { // 5MB limit
+
+      if (file.size > 5 * 1024 * 1024) {
+        // 5MB limit
         toast({
           title: "File Too Large",
           description: "Please upload an image smaller than 5MB.",
-          variant: "destructive"
+          variant: "destructive",
         });
         return;
       }
-      
-      handleChange('image', file);
+
+      handleChange("image", file);
+      handleChange("removeImage", false);
     }
   };
 
   // Get image URL for display
-  const getImageUrl = (image) => {
-    if (!image) return null;
-    if (typeof image === 'string') return image;
-    if (image instanceof File || image instanceof Blob) return URL.createObjectURL(image);
+  const getImageUrl = () => {
+    if (!formData.image) return null;
+
+    if (typeof formData.image === "string") {
+      // It's already a URL (from existing data)
+      return formData.image;
+    }
+
+    if (formData.image instanceof File) {
+      // It's a new file, create object URL
+      return URL.createObjectURL(formData.image);
+    }
+
     return null;
   };
 
@@ -129,72 +150,57 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
         toast({
           title: "Validation Error",
           description: "Company and Last Name are required fields.",
-          variant: "destructive"
+          variant: "destructive",
         });
         setLoading(false);
         return;
       }
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      // Convert image to base64 for storage if it's a File object
-      let imageToStore = formData.image;
-      if (formData.image instanceof File) {
-        // In a real app, you would upload to a server
-        // For demo purposes, we'll create a data URL
-        const reader = new FileReader();
-        imageToStore = await new Promise((resolve) => {
-          reader.onload = () => resolve(reader.result);
-          reader.readAsDataURL(formData.image);
-        });
-      }
-      
       // Ensure lead owner is set to current user if not already set
-      const finalLeadOwner = formData.leadOwner || (user ? user.id || user.email : '');
-      
+      const finalLeadOwner =
+        formData.leadOwner || (user ? user.id || user.email : "System");
+
+      // Prepare data for API
+      const leadData = {
+        ...formData,
+        leadOwner: finalLeadOwner,
+        // Keep the image file for upload
+        image: formData.image instanceof File ? formData.image : null,
+        // Set removeImage if explicitly removing an existing image
+        removeImage: formData.removeImage && !formData.image,
+      };
+
+      let result;
       if (initialData) {
         // Update existing lead
-        const updatedLead = {
-          ...initialData,
-          ...formData,
-          leadOwner: finalLeadOwner,
-          image: imageToStore,
-          updatedAt: new Date().toISOString()
-        };
-        updateDataItem('leads', updatedLead.id, updatedLead);
-        onSuccess(updatedLead);
+        result = await leadsService.updateLead(
+          initialData.id || initialData._id,
+          leadData
+        );
       } else {
-        // Create new lead - automatically set current user as owner
-        const newLead = {
-          id: Date.now().toString(),
-          ...formData,
-          leadOwner: finalLeadOwner, // Ensure owner is set
-          image: imageToStore,
-          isConverted: false,
-          isLocked: false,
-          isJunk: false,
-          isUnread: true,
-          isUnsubscribed: false,
-          isQualified: formData.leadStatus === 'Qualified',
-          createdBy: user ? user.id || user.email : '', // Track who created the lead
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        };
-        addDataItem('leads', newLead);
-        onSuccess(newLead);
+        // Create new lead
+        result = await leadsService.createLead(leadData);
       }
-      
-      toast({
-        title: initialData ? "Success" : "Success",
-        description: initialData ? "Lead updated successfully" : "Lead created successfully",
-      });
 
+      if (result.success) {
+        onSuccess(result.data);
+        toast({
+          title: initialData ? "Success" : "Success",
+          description: initialData
+            ? "Lead updated successfully"
+            : "Lead created successfully",
+        });
+      } else {
+        throw new Error(result.message);
+      }
     } catch (error) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
-        description: initialData ? "Failed to update lead" : "Failed to create lead",
-        variant: "destructive"
+        description:
+          error.message ||
+          (initialData ? "Failed to update lead" : "Failed to create lead"),
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
@@ -206,64 +212,119 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
     if (!loading) {
       // Reset form for new entry, but keep the logged-in user as owner
       setFormData({
-        leadOwner: user ? user.id || user.email : '', // Reset with current user
-        firstName: '',
-        title: '',
-        phone: '',
-        mobile: '',
-        leadSource: '',
-        industry: '',
-        company: '',
-        lastName: '',
-        email: '',
-        fax: '',
-        website: '',
-        leadStatus: 'New',
-        numberOfEmployees: '',
-        annualRevenue: '',
+        leadOwner: user ? user.id || user.email : "", // Reset with current user
+        firstName: "",
+        title: "",
+        phone: "",
+        mobile: "",
+        leadSource: "",
+        industry: "",
+        company: "",
+        lastName: "",
+        email: "",
+        fax: "",
+        website: "",
+        leadStatus: "New",
+        numberOfEmployees: "",
+        annualRevenue: "",
         emailOptOut: false,
-        rating: '',
-        skypeID: '',
-        secondaryEmail: '',
-        twitter: '',
-        country: '',
-        streetAddress: '',
-        city: '',
-        state: '',
-        zipCode: '',
-        latitude: '',
-        longitude: '',
-        description: '',
-        image: null
+        rating: "",
+        skypeID: "",
+        secondaryEmail: "",
+        twitter: "",
+        country: "",
+        streetAddress: "",
+        city: "",
+        state: "",
+        zipCode: "",
+        latitude: "",
+        longitude: "",
+        description: "",
+        image: null,
+        removeImage: false,
       });
     }
   };
 
+  const handleRemoveImage = () => {
+    if (initialData && formData.image) {
+      // For existing lead with image, mark for removal
+      handleChange("image", null);
+      handleChange("removeImage", true);
+    } else {
+      // For new lead or lead without image
+      handleChange("image", null);
+      handleChange("removeImage", false);
+    }
+  };
+
   const leadSources = [
-    'None', 'Advertisement', 'Cold Call', 'Employee Referral', 
-    'External Referral', 'Online Store', 'Partner', 'Public Relations',
-    'Sales Email', 'Seminar', 'Trade Show', 'Web Download', 'Web Research'
+    "None",
+    "Advertisement",
+    "Cold Call",
+    "Employee Referral",
+    "External Referral",
+    "Online Store",
+    "Partner",
+    "Public Relations",
+    "Sales Email",
+    "Seminar",
+    "Trade Show",
+    "Web Download",
+    "Web Research",
   ];
 
   const industries = [
-    'None', 'Agriculture', 'Apparel', 'Banking', 'Biotechnology',
-    'Chemicals', 'Communications', 'Construction', 'Consulting',
-    'Education', 'Electronics', 'Energy', 'Engineering', 'Entertainment',
-    'Environmental', 'Finance', 'Food & Beverage', 'Government',
-    'Healthcare', 'Hospitality', 'Insurance', 'Machinery',
-    'Manufacturing', 'Media', 'Not For Profit', 'Recreation',
-    'Retail', 'Shipping', 'Technology', 'Telecommunications',
-    'Transportation', 'Utilities', 'Other'
+    "None",
+    "Agriculture",
+    "Apparel",
+    "Banking",
+    "Biotechnology",
+    "Chemicals",
+    "Communications",
+    "Construction",
+    "Consulting",
+    "Education",
+    "Electronics",
+    "Energy",
+    "Engineering",
+    "Entertainment",
+    "Environmental",
+    "Finance",
+    "Food & Beverage",
+    "Government",
+    "Healthcare",
+    "Hospitality",
+    "Insurance",
+    "Machinery",
+    "Manufacturing",
+    "Media",
+    "Not For Profit",
+    "Recreation",
+    "Retail",
+    "Shipping",
+    "Technology",
+    "Telecommunications",
+    "Transportation",
+    "Utilities",
+    "Other",
   ];
 
-  const ratings = ['None', 'Acquired', 'Active', 'Market Failed', 'Project Cancelled', 'Shut Down'];
+  const ratings = [
+    "None",
+    "Acquired",
+    "Active",
+    "Market Failed",
+    "Project Cancelled",
+    "Shut Down",
+  ];
 
-  const imageUrl = getImageUrl(formData.image);
+  const imageUrl = getImageUrl();
 
   // Get current user display name for the owner field
   const getCurrentUserDisplay = () => {
-    if (!user) return 'Select Owner';
-    return user.name || user.email || 'Current User';
+    if (!user) return "Select Owner";
+    return user.name || user.email || "Current User";
   };
 
   return (
@@ -272,11 +333,11 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
         {/* Lead Image */}
         <div className="lg:col-span-1">
           <div className="flex flex-col items-center space-y-4">
-            <div className="w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center">
+            <div className="w-32 h-32 bg-gray-200 dark:bg-gray-700 rounded-full flex items-center justify-center overflow-hidden">
               {imageUrl ? (
-                <img 
-                  src={imageUrl} 
-                  alt="Lead" 
+                <img
+                  src={imageUrl}
+                  alt="Lead"
                   className="w-32 h-32 rounded-full object-cover"
                 />
               ) : (
@@ -287,7 +348,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
               type="button"
               variant="outline"
               className="relative"
-              onClick={() => document.getElementById('lead-image').click()}
+              onClick={() => document.getElementById("lead-image").click()}
             >
               <Upload className="w-4 h-4 mr-2" />
               Upload Image
@@ -299,12 +360,12 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                 onChange={handleImageUpload}
               />
             </Button>
-            {formData.image && (
+            {imageUrl && (
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                onClick={() => handleChange('image', null)}
+                onClick={handleRemoveImage}
                 className="text-red-600"
               >
                 Remove Image
@@ -321,7 +382,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
               <User className="w-5 h-5 mr-2" />
               Lead Information
             </h3>
-            
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {/* Left Column */}
               <div className="space-y-4">
@@ -329,12 +390,11 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Lead Owner</label>
                   <div className="p-2 bg-blue-50 border border-blue-200 rounded-md text-sm text-blue-800">
                     <strong>{getCurrentUserDisplay()}</strong>
-                    
                   </div>
                   <input
                     type="hidden"
                     value={formData.leadOwner}
-                    onChange={(e) => handleChange('leadOwner', e.target.value)}
+                    onChange={(e) => handleChange("leadOwner", e.target.value)}
                   />
                 </div>
 
@@ -342,7 +402,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">First Name</label>
                   <Input
                     value={formData.firstName}
-                    onChange={(e) => handleChange('firstName', e.target.value)}
+                    onChange={(e) => handleChange("firstName", e.target.value)}
                     placeholder="First Name"
                   />
                 </div>
@@ -351,7 +411,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Title</label>
                   <Input
                     value={formData.title}
-                    onChange={(e) => handleChange('title', e.target.value)}
+                    onChange={(e) => handleChange("title", e.target.value)}
                     placeholder="Title"
                   />
                 </div>
@@ -360,7 +420,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Phone</label>
                   <Input
                     value={formData.phone}
-                    onChange={(e) => handleChange('phone', e.target.value)}
+                    onChange={(e) => handleChange("phone", e.target.value)}
                     placeholder="Phone"
                   />
                 </div>
@@ -369,20 +429,25 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Mobile</label>
                   <Input
                     value={formData.mobile}
-                    onChange={(e) => handleChange('mobile', e.target.value)}
+                    onChange={(e) => handleChange("mobile", e.target.value)}
                     placeholder="Mobile"
                   />
                 </div>
 
                 <div>
                   <label className="text-sm font-medium">Lead Source</label>
-                  <Select value={formData.leadSource} onValueChange={(value) => handleChange('leadSource', value)}>
+                  <Select
+                    value={formData.leadSource}
+                    onValueChange={(value) => handleChange("leadSource", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Source" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
-                      {leadSources.map(source => (
-                        <SelectItem key={source} value={source}>{source}</SelectItem>
+                      {leadSources.map((source) => (
+                        <SelectItem key={source} value={source}>
+                          {source}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -390,13 +455,18 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
 
                 <div>
                   <label className="text-sm font-medium">Industry</label>
-                  <Select value={formData.industry} onValueChange={(value) => handleChange('industry', value)}>
+                  <Select
+                    value={formData.industry}
+                    onValueChange={(value) => handleChange("industry", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Industry" />
                     </SelectTrigger>
                     <SelectContent className="max-h-60 overflow-y-auto">
-                      {industries.map(industry => (
-                        <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                      {industries.map((industry) => (
+                        <SelectItem key={industry} value={industry}>
+                          {industry}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -409,7 +479,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Company *</label>
                   <Input
                     value={formData.company}
-                    onChange={(e) => handleChange('company', e.target.value)}
+                    onChange={(e) => handleChange("company", e.target.value)}
                     placeholder="Company"
                     required
                   />
@@ -419,7 +489,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Last Name *</label>
                   <Input
                     value={formData.lastName}
-                    onChange={(e) => handleChange('lastName', e.target.value)}
+                    onChange={(e) => handleChange("lastName", e.target.value)}
                     placeholder="Last Name"
                     required
                   />
@@ -430,7 +500,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <Input
                     type="email"
                     value={formData.email}
-                    onChange={(e) => handleChange('email', e.target.value)}
+                    onChange={(e) => handleChange("email", e.target.value)}
                     placeholder="Email"
                   />
                 </div>
@@ -439,7 +509,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Fax</label>
                   <Input
                     value={formData.fax}
-                    onChange={(e) => handleChange('fax', e.target.value)}
+                    onChange={(e) => handleChange("fax", e.target.value)}
                     placeholder="Fax"
                   />
                 </div>
@@ -448,14 +518,17 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Website</label>
                   <Input
                     value={formData.website}
-                    onChange={(e) => handleChange('website', e.target.value)}
+                    onChange={(e) => handleChange("website", e.target.value)}
                     placeholder="Website"
                   />
                 </div>
 
                 <div>
                   <label className="text-sm font-medium">Lead Status</label>
-                  <Select value={formData.leadStatus} onValueChange={(value) => handleChange('leadStatus', value)}>
+                  <Select
+                    value={formData.leadStatus}
+                    onValueChange={(value) => handleChange("leadStatus", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -469,11 +542,15 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                 </div>
 
                 <div>
-                  <label className="text-sm font-medium">No. of Employees</label>
+                  <label className="text-sm font-medium">
+                    No. of Employees
+                  </label>
                   <Input
                     type="number"
                     value={formData.numberOfEmployees}
-                    onChange={(e) => handleChange('numberOfEmployees', e.target.value)}
+                    onChange={(e) =>
+                      handleChange("numberOfEmployees", e.target.value)
+                    }
                     placeholder="Number of Employees"
                   />
                 </div>
@@ -486,10 +563,14 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                 <div>
                   <label className="text-sm font-medium">Annual Revenue</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">Rs.</span>
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      Rs.
+                    </span>
                     <Input
                       value={formData.annualRevenue}
-                      onChange={(e) => handleChange('annualRevenue', e.target.value)}
+                      onChange={(e) =>
+                        handleChange("annualRevenue", e.target.value)
+                      }
                       placeholder="Annual Revenue"
                       className="pl-12"
                     />
@@ -499,7 +580,9 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                 <div className="flex items-center space-x-2">
                   <Checkbox
                     checked={formData.emailOptOut}
-                    onCheckedChange={(checked) => handleChange('emailOptOut', checked)}
+                    onCheckedChange={(checked) =>
+                      handleChange("emailOptOut", checked)
+                    }
                   />
                   <label className="text-sm font-medium">Email Opt Out</label>
                 </div>
@@ -508,13 +591,18 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
               <div className="space-y-4">
                 <div>
                   <label className="text-sm font-medium">Rating</label>
-                  <Select value={formData.rating} onValueChange={(value) => handleChange('rating', value)}>
+                  <Select
+                    value={formData.rating}
+                    onValueChange={(value) => handleChange("rating", value)}
+                  >
                     <SelectTrigger>
                       <SelectValue placeholder="Select Rating" />
                     </SelectTrigger>
                     <SelectContent>
-                      {ratings.map(rating => (
-                        <SelectItem key={rating} value={rating}>{rating}</SelectItem>
+                      {ratings.map((rating) => (
+                        <SelectItem key={rating} value={rating}>
+                          {rating}
+                        </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
@@ -524,7 +612,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <label className="text-sm font-medium">Skype ID</label>
                   <Input
                     value={formData.skypeID}
-                    onChange={(e) => handleChange('skypeID', e.target.value)}
+                    onChange={(e) => handleChange("skypeID", e.target.value)}
                     placeholder="Skype ID"
                   />
                 </div>
@@ -534,7 +622,9 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                   <Input
                     type="email"
                     value={formData.secondaryEmail}
-                    onChange={(e) => handleChange('secondaryEmail', e.target.value)}
+                    onChange={(e) =>
+                      handleChange("secondaryEmail", e.target.value)
+                    }
                     placeholder="Secondary Email"
                   />
                 </div>
@@ -542,10 +632,12 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
                 <div>
                   <label className="text-sm font-medium">Twitter</label>
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">@</span>
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                      @
+                    </span>
                     <Input
                       value={formData.twitter}
-                      onChange={(e) => handleChange('twitter', e.target.value)}
+                      onChange={(e) => handleChange("twitter", e.target.value)}
                       placeholder="Twitter"
                       className="pl-8"
                     />
@@ -563,11 +655,14 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
           <MapPin className="w-5 h-5 mr-2" />
           Address Information
         </h3>
-        
+
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="text-sm font-medium">Country / Region</label>
-            <Select value={formData.country} onValueChange={(value) => handleChange('country', value)}>
+            <Select
+              value={formData.country}
+              onValueChange={(value) => handleChange("country", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select Country" />
               </SelectTrigger>
@@ -583,7 +678,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
             <label className="text-sm font-medium">Street Address</label>
             <Input
               value={formData.streetAddress}
-              onChange={(e) => handleChange('streetAddress', e.target.value)}
+              onChange={(e) => handleChange("streetAddress", e.target.value)}
               placeholder="Street Address"
             />
           </div>
@@ -592,14 +687,17 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
             <label className="text-sm font-medium">City</label>
             <Input
               value={formData.city}
-              onChange={(e) => handleChange('city', e.target.value)}
+              onChange={(e) => handleChange("city", e.target.value)}
               placeholder="City"
             />
           </div>
 
           <div>
             <label className="text-sm font-medium">State / Province</label>
-            <Select value={formData.state} onValueChange={(value) => handleChange('state', value)}>
+            <Select
+              value={formData.state}
+              onValueChange={(value) => handleChange("state", value)}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select State" />
               </SelectTrigger>
@@ -615,7 +713,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
             <label className="text-sm font-medium">Zip / Postal Code</label>
             <Input
               value={formData.zipCode}
-              onChange={(e) => handleChange('zipCode', e.target.value)}
+              onChange={(e) => handleChange("zipCode", e.target.value)}
               placeholder="Zip Code"
             />
           </div>
@@ -625,7 +723,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
               <label className="text-sm font-medium">Latitude</label>
               <Input
                 value={formData.latitude}
-                onChange={(e) => handleChange('latitude', e.target.value)}
+                onChange={(e) => handleChange("latitude", e.target.value)}
                 placeholder="Latitude"
               />
             </div>
@@ -633,7 +731,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
               <label className="text-sm font-medium">Longitude</label>
               <Input
                 value={formData.longitude}
-                onChange={(e) => handleChange('longitude', e.target.value)}
+                onChange={(e) => handleChange("longitude", e.target.value)}
                 placeholder="Longitude"
               />
             </div>
@@ -649,7 +747,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
         <h3 className="text-lg font-semibold mb-4">Description</h3>
         <Textarea
           value={formData.description}
-          onChange={(e) => handleChange('description', e.target.value)}
+          onChange={(e) => handleChange("description", e.target.value)}
           placeholder="Enter description..."
           rows={4}
         />
@@ -678,7 +776,7 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
           disabled={loading}
           className="bg-blue-600 hover:bg-blue-700"
         >
-          {loading ? 'Saving...' : (initialData ? 'Update' : 'Save')}
+          {loading ? "Saving..." : initialData ? "Update" : "Save"}
         </Button>
       </div>
     </form>

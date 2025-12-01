@@ -132,7 +132,10 @@ function App() {
             <Route path="quotes" element={<Quotes />} />
             <Route path="create-quote" element={<CreateQuote />} />
             <Route path="purchase-orders" element={<PurchaseOrders />} />
-            <Route path="create-purchase-order" element={<CreatePurchaseOrder />} />
+            <Route
+              path="create-purchase-order"
+              element={<CreatePurchaseOrder />}
+            />
 
             {/* Activities Routes */}
             <Route path="tasks" element={<TasksPage />} />
@@ -153,51 +156,78 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="workflows" element={<WorkflowsPage />} />
-            <Route path="workflows/builder/:id" element={<WorkflowBuilderPage />} />
+            <Route
+              path="workflows/builder/:id"
+              element={<WorkflowBuilderPage />}
+            />
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="vendors" element={<Vendors />} />
             <Route path="create-vendor" element={<CreateVendor />} />
 
-            <Route path="use-invoice-form" element={<useInvoiceForm/>}/>
-            <Route path="use-po-form" element={<usePOForm/>}/>
-            <Route path="use-po-storage" element={<usePOStorage/>}/>
-            <Route path="use-quote-form" element={<useQuoteForm/>}/>
-            <Route path="use-quote-storage" element={<useQuoteStorage/>}/>
+            <Route path="use-invoice-form" element={<useInvoiceForm />} />
+            <Route path="use-po-form" element={<usePOForm />} />
+            <Route path="use-po-storage" element={<usePOStorage />} />
+            <Route path="use-quote-form" element={<useQuoteForm />} />
+            <Route path="use-quote-storage" element={<useQuoteStorage />} />
 
-            <Route path="reports" element={<ReportsPage/>}/>
+            <Route path="reports" element={<ReportsPage />} />
             <Route path="/reports" element={<ReportsPage />} />
-<Route path="/reports/:folder" element={<ReportsPage />} />
-<Route path="/reports/all" element={<AllReportsPage />} />
-<Route path="/reports/favorites" element={<FavoritesPage />} />
-<Route path="/reports/recent" element={<RecentlyViewedPage />} />
-<Route path="/reports/scheduled" element={<ScheduledReportsPage/>}/>
-<Route path="/reports/deleted" element={<RecentlyDeletedPage/>}/>
-<Route path="/reports/accounts" element={<AccountReportsPage/>}/>
-<Route path="/reports/deals" element={<DealReportsPage/>}/>
-<Route path="/reports/leads" element={<LeadReportsPage/>}/>
-<Route path="/reports/campaigns" element={<CampaignReportsPage/>}/>
-<Route path="/reports/cases" element={<CaseSolutionReportsPage/>}/> 
-<Route path="/reports/products" element={<ProductReportsPage/>}/>
-<Route path="/reports/vendors" element={<VendorReportsPage/>}/>
-<Route path="/reports/quotes" element={<QuoteReportsPage/>}/>
-<Route path="/reports/sales-orders" element={<SalesOrderReportsPage/>}/>
-<Route path="/reports/purchase-orders" element={<PurchaseOrderReportsPage/>}/>
-<Route path="/reports/invoices" element={<InvoiceReportsPage/>}/>
-<Route path="/reports/sales-metrics" element={<SalesMetricsReportsPage/>}/>
-<Route path="/reports/email" element={<EmailReportsPage/>}/>
-<Route path="/reports/meetings" element={<MeetingReportsPage/>}/>
+            <Route path="/reports/:folder" element={<ReportsPage />} />
+            <Route path="/reports/all" element={<AllReportsPage />} />
+            <Route path="/reports/favorites" element={<FavoritesPage />} />
+            <Route path="/reports/recent" element={<RecentlyViewedPage />} />
+            <Route
+              path="/reports/scheduled"
+              element={<ScheduledReportsPage />}
+            />
+            <Route path="/reports/deleted" element={<RecentlyDeletedPage />} />
+            <Route path="/reports/accounts" element={<AccountReportsPage />} />
+            <Route path="/reports/deals" element={<DealReportsPage />} />
+            <Route path="/reports/leads" element={<LeadReportsPage />} />
+            <Route
+              path="/reports/campaigns"
+              element={<CampaignReportsPage />}
+            />
+            <Route
+              path="/reports/cases"
+              element={<CaseSolutionReportsPage />}
+            />
+            <Route path="/reports/products" element={<ProductReportsPage />} />
+            <Route path="/reports/vendors" element={<VendorReportsPage />} />
+            <Route path="/reports/quotes" element={<QuoteReportsPage />} />
+            <Route
+              path="/reports/sales-orders"
+              element={<SalesOrderReportsPage />}
+            />
+            <Route
+              path="/reports/purchase-orders"
+              element={<PurchaseOrderReportsPage />}
+            />
+            <Route path="/reports/invoices" element={<InvoiceReportsPage />} />
+            <Route
+              path="/reports/sales-metrics"
+              element={<SalesMetricsReportsPage />}
+            />
+            <Route path="/reports/email" element={<EmailReportsPage />} />
+            <Route path="/reports/meetings" element={<MeetingReportsPage />} />
 
-<Route path="/reports" element={<AllReportsPage />} />
-{/* <Route path="/reports/all" element={<AllReportsPage />} /> */}
-<Route path="/reports/:folder" element={<AllReportsPage />} />
-{/* // In your App.js or routing file */}
-<Route path="/reports/my-reports" element={<MyReportsPage />} />
-<Route path="/reports/my-reports/:folder" element={<MyReportsPage />} />
+            <Route path="/reports" element={<AllReportsPage />} />
+            {/* <Route path="/reports/all" element={<AllReportsPage />} /> */}
+            <Route path="/reports/:folder" element={<AllReportsPage />} />
+            {/* // In your App.js or routing file */}
+            <Route path="/reports/my-reports" element={<MyReportsPage />} />
+            <Route
+              path="/reports/my-reports/:folder"
+              element={<MyReportsPage />}
+            />
 
-<Route path="/reports/favorites" element={<FavoritesPage />} />
-<Route path="/reports/favorites/:folder" element={<FavoritesPage />} />
+            <Route path="/reports/favorites" element={<FavoritesPage />} />
+            <Route
+              path="/reports/favorites/:folder"
+              element={<FavoritesPage />}
+            />
           </Route>
 
           {/* Fallback Route */}

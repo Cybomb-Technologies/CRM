@@ -1,57 +1,92 @@
-// Mock data for calls
-export const mockCalls = [
-  {
-    id: 1,
-    title: "Follow-up call with John Smith",
-    description: "Discuss product demo feedback and address concerns",
-    scheduledTime: "2024-01-14T15:30:00",
-    status: "completed",
-    priority: "medium",
-    callType: "outbound",
-    relatedTo: { type: "contact", id: "contact-1", name: "John Smith" },
-    assignedTo: "You",
-    createdBy: "You",
-    createdAt: "2024-01-08T14:00:00",
-    updatedAt: "2024-01-14T16:00:00",
-    duration: 15,
-    outcome: "Positive feedback, scheduled follow-up meeting",
-    phoneNumber: "+1 (555) 123-4567",
+const API_URL = import.meta.env.VITE_API_URL;
+
+// API service functions
+export const callAPI = {
+  getCalls: async (filters = {}) => {
+    const queryParams = new URLSearchParams();
+
+    if (filters.search) queryParams.append("search", filters.search);
+    if (filters.status && filters.status !== "all")
+      queryParams.append("status", filters.status);
+    if (filters.priority && filters.priority !== "all")
+      queryParams.append("priority", filters.priority);
+    if (filters.callType && filters.callType !== "all")
+      queryParams.append("callType", filters.callType);
+
+    const response = await fetch(`${API_URL}/calls?${queryParams}`);
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+
+    return data.data;
   },
-  {
-    id: 2,
-    title: "Sales consultation call",
-    description: "Discuss pricing and implementation timeline",
-    scheduledTime: "2024-01-17T11:00:00",
-    status: "scheduled",
-    priority: "high",
-    callType: "inbound",
-    relatedTo: { type: "lead", id: "lead-2", name: "Sarah Johnson" },
-    assignedTo: "You",
-    createdBy: "You",
-    createdAt: "2024-01-12T10:00:00",
-    updatedAt: "2024-01-12T10:00:00",
-    duration: 30,
-    outcome: "",
-    phoneNumber: "+1 (555) 987-6543",
+
+  createCall: async (callData) => {
+    const response = await fetch(`${API_URL}/calls`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(callData),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+
+    return data.data;
   },
-  {
-    id: 3,
-    title: "Customer support call",
-    description: "Help with technical issue and provide solution",
-    scheduledTime: "2024-01-13T09:00:00",
-    status: "completed",
-    priority: "medium",
-    callType: "inbound",
-    relatedTo: { type: "account", id: "account-3", name: "Global Solutions" },
-    assignedTo: "You",
-    createdBy: "Support Team",
-    createdAt: "2024-01-12T16:00:00",
-    updatedAt: "2024-01-13T09:45:00",
-    duration: 45,
-    outcome: "Issue resolved, customer satisfied",
-    phoneNumber: "+1 (555) 456-7890",
+
+  updateCall: async (callId, callData) => {
+    const response = await fetch(`${API_URL}/calls/${callId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(callData),
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+
+    return data.data;
   },
-];
+
+  deleteCall: async (callId) => {
+    const response = await fetch(`${API_URL}/calls/${callId}`, {
+      method: "DELETE",
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+
+    return data;
+  },
+
+  completeCall: async (callId) => {
+    const response = await fetch(`${API_URL}/calls/${callId}/complete`, {
+      method: "PATCH",
+    });
+
+    const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.message);
+    }
+
+    return data.data;
+  },
+};
 
 // Helper functions
 export const getPriorityColor = (priority) => {
@@ -67,11 +102,27 @@ export const getPriorityColor = (priority) => {
   }
 };
 
+export const getStatusColor = (status) => {
+  switch (status) {
+    case "completed":
+      return "bg-green-100 text-green-800 border-green-200";
+    case "scheduled":
+      return "bg-blue-100 text-blue-800 border-blue-200";
+    case "missed":
+      return "bg-red-100 text-red-800 border-red-200";
+    case "cancelled":
+      return "bg-gray-100 text-gray-800 border-gray-200";
+    default:
+      return "bg-gray-100 text-gray-800 border-gray-200";
+  }
+};
+
 export const statusOptions = [
   { value: "all", label: "All Statuses" },
   { value: "scheduled", label: "Scheduled" },
   { value: "completed", label: "Completed" },
   { value: "missed", label: "Missed" },
+  { value: "cancelled", label: "Cancelled" },
 ];
 
 export const priorityOptions = [
@@ -86,3 +137,22 @@ export const callTypeOptions = [
   { value: "inbound", label: "Inbound" },
   { value: "outbound", label: "Outbound" },
 ];
+
+export const getStatusIcon = (status) => {
+  switch (status) {
+    case "completed":
+      return "✅";
+    case "scheduled":
+      return "📅";
+    case "missed":
+      return "❌";
+    case "cancelled":
+      return "🚫";
+    default:
+      return "📞";
+  }
+};
+
+export const getCallTypeIcon = (callType) => {
+  return callType === "inbound" ? "📥" : "📤";
+};
