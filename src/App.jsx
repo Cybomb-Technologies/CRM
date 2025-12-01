@@ -134,16 +134,21 @@ function App() {
             <Route path="forecasts" element={<Forecasts />} />
 
             {/* Inventory Routes */}
-            <Route path="/invoices" element={<InvoiceReportsPage/>} />
+            <Route path="/invoices" element={<InvoiceReportsPage />} />
             <Route path="/create-invoice" element={<CreateInvoice />} />
-            <Route path="/quotes" element={< QuoteReportsPage/>} />
+            <Route path="/quotes" element={<QuoteReportsPage />} />
             <Route path="/create-quote" element={<CreateQuote />} />
-            <Route path="/purchase-orders" element={<PurchaseOrderReportsPage/>} />
-            <Route path="/create-purchase-order" element={<CreatePurchaseOrder />} />
-            <Route path="/price-books" element={<ProductReportsPage/>}/>
-            <Route path="/vendors" element={<VendorReportsPage/>}/>
-            <Route path="/sales-orders" element={<SalesOrderReportsPage/>}/>
-
+            <Route
+              path="/purchase-orders"
+              element={<PurchaseOrderReportsPage />}
+            />
+            <Route
+              path="/create-purchase-order"
+              element={<CreatePurchaseOrder />}
+            />
+            <Route path="/price-books" element={<ProductReportsPage />} />
+            <Route path="/vendors" element={<VendorReportsPage />} />
+            <Route path="/sales-orders" element={<SalesOrderReportsPage />} />
 
             {/* Activities Routes */}
             <Route path="tasks" element={<TasksPage />} />
@@ -164,14 +169,17 @@ function App() {
             <Route path="products" element={<ProductsPage />} />
             <Route path="reports" element={<ReportsPage />} />
             <Route path="workflows" element={<WorkflowsPage />} />
-            <Route path="workflows/builder/:id" element={<WorkflowBuilderPage />} />
+            <Route
+              path="workflows/builder/:id"
+              element={<WorkflowBuilderPage />}
+            />
             <Route path="workflows/builder" element={<WorkflowBuilderPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="vendors" element={<Vendors />} />
             <Route path="create-vendor" element={<CreateVendor />} />
 
-            <Route path="use-invoice-form" element={<useInvoiceForm/>}/>
+            <Route path="use-invoice-form" element={<useInvoiceForm />} />
             {/* <Route path="use-po-form" element={<usePOForm/>}/>
             <Route path="use-po-storage" element={<usePOStorage/>}/>
             <Route path="use-quote-form" element={<useQuoteForm/>}/>
@@ -180,35 +188,60 @@ function App() {
             {/* <Route path="reports" element={<ReportsPage/>}/>
             <Route path="/reports" element={<ReportsPage />} />
 <Route path="/reports/:folder" element={<ReportsPage />} /> */}
-<Route path="/reports/all" element={<AllReportsPage />} />
-<Route path="/reports/favorites" element={<FavoritesPage />} />
-<Route path="/reports/recent" element={<RecentlyViewedPage />} />
-<Route path="/reports/scheduled" element={<ScheduledReportsPage/>}/>
-<Route path="/reports/deleted" element={<RecentlyDeletedPage/>}/>
-<Route path="/reports/accounts" element={<AccountReportsPage/>}/>
-<Route path="/reports/deals" element={<DealReportsPage/>}/>
-<Route path="/reports/leads" element={<LeadReportsPage/>}/>
-<Route path="/reports/campaigns" element={<CampaignReportsPage/>}/>
-<Route path="/reports/cases" element={<CaseSolutionReportsPage/>}/> 
-<Route path="/reports/products" element={<ProductReportsPage/>}/>
-<Route path="/reports/vendors" element={<VendorReportsPage/>}/>
-<Route path="/reports/quotes" element={<QuoteReportsPage/>}/>
-<Route path="/reports/sales-orders" element={<SalesOrderReportsPage/>}/>
-<Route path="/reports/purchase-orders" element={<PurchaseOrderReportsPage/>}/>
-<Route path="/reports/invoices" element={<InvoiceReportsPage/>}/>
-<Route path="/reports/sales-metrics" element={<SalesMetricsReportsPage/>}/>
-<Route path="/reports/email" element={<EmailReportsPage/>}/>
-<Route path="/reports/meetings" element={<MeetingReportsPage/>}/>
+            <Route path="/reports/all" element={<AllReportsPage />} />
+            <Route path="/reports/favorites" element={<FavoritesPage />} />
+            <Route path="/reports/recent" element={<RecentlyViewedPage />} />
+            <Route
+              path="/reports/scheduled"
+              element={<ScheduledReportsPage />}
+            />
+            <Route path="/reports/deleted" element={<RecentlyDeletedPage />} />
+            <Route path="/reports/accounts" element={<AccountReportsPage />} />
+            <Route path="/reports/deals" element={<DealReportsPage />} />
+            <Route path="/reports/leads" element={<LeadReportsPage />} />
+            <Route
+              path="/reports/campaigns"
+              element={<CampaignReportsPage />}
+            />
+            <Route
+              path="/reports/cases"
+              element={<CaseSolutionReportsPage />}
+            />
+            <Route path="/reports/products" element={<ProductReportsPage />} />
+            <Route path="/reports/vendors" element={<VendorReportsPage />} />
+            <Route path="/reports/quotes" element={<QuoteReportsPage />} />
+            <Route
+              path="/reports/sales-orders"
+              element={<SalesOrderReportsPage />}
+            />
+            <Route
+              path="/reports/purchase-orders"
+              element={<PurchaseOrderReportsPage />}
+            />
+            <Route path="/reports/invoices" element={<InvoiceReportsPage />} />
+            <Route
+              path="/reports/sales-metrics"
+              element={<SalesMetricsReportsPage />}
+            />
+            <Route path="/reports/email" element={<EmailReportsPage />} />
+            <Route path="/reports/meetings" element={<MeetingReportsPage />} />
 
-              <Route path="/" element={<OrgOverviewPage />} />
-              <Route path="/analytics/org" element={<OrgOverviewPage />} />
-              <Route path="/analytics/lead-analytics" element={<LeadAnalytics/>}/>
-              <Route path="/analytics/deal-insights" element={<DealInsights/>}/>
-              <Route path="/analytics/marketing-metrics" element={<MarketingMetrics/>}/>
-              <Route path="/analytics/sales-trend" element={<SalesTrend/>}/>
-              <Route path="/analytics/activity-stats" element={<ActivityStats/>}/>
-
-
+            <Route path="/" element={<OrgOverviewPage />} />
+            <Route path="/analytics/org" element={<OrgOverviewPage />} />
+            <Route
+              path="/analytics/lead-analytics"
+              element={<LeadAnalytics />}
+            />
+            <Route path="/analytics/deal-insights" element={<DealInsights />} />
+            <Route
+              path="/analytics/marketing-metrics"
+              element={<MarketingMetrics />}
+            />
+            <Route path="/analytics/sales-trend" element={<SalesTrend />} />
+            <Route
+              path="/analytics/activity-stats"
+              element={<ActivityStats />}
+            />
           </Route>
 
           {/* Fallback Route */}

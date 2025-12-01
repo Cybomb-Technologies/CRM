@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,7 @@ import { CallForm } from "./CallForm";
 import { callAPI } from "./utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-export function CreateCallDialog({ open, onOpenChange, onCallCreated }) {
+export function EditCallDialog({ call, open, onOpenChange, onCallUpdated }) {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
@@ -29,6 +29,30 @@ export function CreateCallDialog({ open, onOpenChange, onCallCreated }) {
     assignedTo: user?.name || "You",
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (call && open) {
+      // Format date for datetime-local input
+      const scheduledTime = new Date(call.scheduledTime);
+      const formattedTime = scheduledTime.toISOString().slice(0, 16);
+
+      setFormData({
+        title: call.title || "",
+        description: call.description || "",
+        scheduledTime: formattedTime,
+        duration: call.duration || 30,
+        priority: call.priority || "medium",
+        status: call.status || "scheduled",
+        callType: call.callType || "outbound",
+        phoneNumber: call.phoneNumber || "",
+        outcome: call.outcome || "",
+        notes: call.notes || "",
+        relatedTo: call.relatedTo?.name || "",
+        relatedToType: call.relatedTo?.type || "deal",
+        assignedTo: call.assignedTo || user?.name || "You",
+      });
+    }
+  }, [call, open, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -59,40 +83,22 @@ export function CreateCallDialog({ open, onOpenChange, onCallCreated }) {
         notes: formData.notes,
         relatedTo: {
           type: formData.relatedToType,
-          id: `temp-${Date.now()}`,
+          id: call.relatedTo?.id || `temp-${Date.now()}`,
           name: formData.relatedTo || "Unnamed",
         },
         assignedTo: formData.assignedTo,
-        createdBy: user?.id || "current-user",
       };
 
-      await callAPI.createCall(callData);
-
-      // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        scheduledTime: "",
-        duration: 30,
-        priority: "medium",
-        status: "scheduled",
-        callType: "outbound",
-        phoneNumber: "",
-        outcome: "",
-        notes: "",
-        relatedTo: "",
-        relatedToType: "deal",
-        assignedTo: user?.name || "You",
-      });
+      await callAPI.updateCall(call._id, callData);
 
       onOpenChange(false);
 
-      if (onCallCreated) {
-        onCallCreated();
+      if (onCallUpdated) {
+        onCallUpdated();
       }
     } catch (error) {
-      console.error("Error creating call:", error);
-      alert(`Error creating call: ${error.message}`);
+      console.error("Error updating call:", error);
+      alert(`Error updating call: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -106,9 +112,9 @@ export function CreateCallDialog({ open, onOpenChange, onCallCreated }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Schedule New Call</DialogTitle>
+          <DialogTitle>Edit Call</DialogTitle>
           <DialogDescription>
-            Schedule a new phone call with clients or contacts.
+            Update the call details and save changes.
           </DialogDescription>
         </DialogHeader>
 
@@ -129,7 +135,7 @@ export function CreateCallDialog({ open, onOpenChange, onCallCreated }) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Scheduling..." : "Schedule Call"}
+              {loading ? "Updating..." : "Update Call"}
             </Button>
           </div>
         </form>

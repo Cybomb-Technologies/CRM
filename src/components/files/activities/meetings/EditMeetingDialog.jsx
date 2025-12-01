@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,7 +11,12 @@ import { MeetingForm } from "./MeetingForm";
 import { meetingAPI } from "./utils";
 import { useAuth } from "@/contexts/AuthContext";
 
-export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
+export function EditMeetingDialog({
+  meeting,
+  open,
+  onOpenChange,
+  onMeetingUpdated,
+}) {
   const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
@@ -30,6 +35,34 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
     hostName: user?.name || "You", // Changed from assignedTo to hostName
   });
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (meeting && open) {
+      // Format dates for datetime-local input
+      const startTime = new Date(meeting.startTime);
+      const endTime = new Date(meeting.endTime);
+
+      const formattedStartTime = startTime.toISOString().slice(0, 16);
+      const formattedEndTime = endTime.toISOString().slice(0, 16);
+
+      setFormData({
+        title: meeting.title || "",
+        description: meeting.description || "",
+        startTime: formattedStartTime,
+        endTime: formattedEndTime,
+        location: meeting.location || "",
+        duration: meeting.duration || 60,
+        priority: meeting.priority || "medium",
+        status: meeting.status || "scheduled",
+        venueType: meeting.venueType || "in-office", // New field
+        meetingLink: meeting.meetingLink || "",
+        attendees: meeting.attendees || [],
+        relatedTo: meeting.relatedTo?.name || "",
+        relatedToType: meeting.relatedTo?.type || "deal",
+        hostName: meeting.hostName || user?.name || "You", // Changed from assignedTo to hostName
+      });
+    }
+  }, [meeting, open, user]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,41 +94,22 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
         attendees: formData.attendees,
         relatedTo: {
           type: formData.relatedToType,
-          id: `temp-${Date.now()}`,
+          id: meeting.relatedTo?.id || `temp-${Date.now()}`,
           name: formData.relatedTo || "Unnamed",
         },
         hostName: formData.hostName, // Changed from assignedTo to hostName
-        createdBy: user?.id || "current-user",
       };
 
-      await meetingAPI.createMeeting(meetingData);
-
-      // Reset form
-      setFormData({
-        title: "",
-        description: "",
-        startTime: "",
-        endTime: "",
-        location: "",
-        duration: 60,
-        priority: "medium",
-        status: "scheduled",
-        venueType: "in-office", // New field
-        meetingLink: "",
-        attendees: [],
-        relatedTo: "",
-        relatedToType: "deal",
-        hostName: user?.name || "You", // Changed from assignedTo to hostName
-      });
+      await meetingAPI.updateMeeting(meeting._id, meetingData);
 
       onOpenChange(false);
 
-      if (onMeetingCreated) {
-        onMeetingCreated();
+      if (onMeetingUpdated) {
+        onMeetingUpdated();
       }
     } catch (error) {
-      console.error("Error creating meeting:", error);
-      alert(`Error creating meeting: ${error.message}`);
+      console.error("Error updating meeting:", error);
+      alert(`Error updating meeting: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -109,9 +123,9 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Schedule New Meeting</DialogTitle>
+          <DialogTitle>Edit Meeting</DialogTitle>
           <DialogDescription>
-            Schedule a new meeting with clients or team members.
+            Update the meeting details and save changes.
           </DialogDescription>
         </DialogHeader>
 
@@ -132,7 +146,7 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
               Cancel
             </Button>
             <Button type="submit" disabled={loading}>
-              {loading ? "Scheduling..." : "Schedule Meeting"}
+              {loading ? "Updating..." : "Update Meeting"}
             </Button>
           </div>
         </form>

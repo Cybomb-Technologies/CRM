@@ -1,12 +1,12 @@
-// src/components/leads/CreateLeadDialog.jsx
-import React from 'react';
+// src/components/files/sales/leads/CreateLeadDialog.jsx
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import LeadForm from './LeadForm';
+} from "@/components/ui/dialog";
+import LeadForm from "./LeadForm";
 
 const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
   const handleSuccess = (lead) => {
@@ -20,7 +20,7 @@ const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
         <DialogHeader>
           <DialogTitle>Create New Lead</DialogTitle>
         </DialogHeader>
-        <LeadForm 
+        <LeadForm
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
         />
