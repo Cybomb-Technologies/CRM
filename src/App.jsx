@@ -85,6 +85,13 @@ import SalesMetricsReportsPage from "./components/reports/SalesMetricsReportsPag
 import EmailReportsPage from "./components/reports/EmailReportspage";
 import MeetingReportsPage from "./components/reports/MeetingReportspage";
 
+import OrgOverviewPage from "./components/analytics/OrgOverview";
+import LeadAnalytics from "./components/analytics/LeadAnalytics";
+import DealInsights from "./components/analytics/DealInsights";
+import MarketingMetrics from "./components/analytics/MarketingMetrics";
+import SalesTrend from "./components/analytics/SalesTrend";
+import ActivityStats from "./components/analytics/ActivityStats";
+
 function App() {
   const { user } = useAuth();
 
@@ -127,15 +134,21 @@ function App() {
             <Route path="forecasts" element={<Forecasts />} />
 
             {/* Inventory Routes */}
-            <Route path="invoices" element={<Invoices />} />
-            <Route path="create-invoice" element={<CreateInvoice />} />
-            <Route path="quotes" element={<Quotes />} />
-            <Route path="create-quote" element={<CreateQuote />} />
-            <Route path="purchase-orders" element={<PurchaseOrders />} />
+            <Route path="/invoices" element={<InvoiceReportsPage />} />
+            <Route path="/create-invoice" element={<CreateInvoice />} />
+            <Route path="/quotes" element={<QuoteReportsPage />} />
+            <Route path="/create-quote" element={<CreateQuote />} />
             <Route
-              path="create-purchase-order"
+              path="/purchase-orders"
+              element={<PurchaseOrderReportsPage />}
+            />
+            <Route
+              path="/create-purchase-order"
               element={<CreatePurchaseOrder />}
             />
+            <Route path="/price-books" element={<ProductReportsPage />} />
+            <Route path="/vendors" element={<VendorReportsPage />} />
+            <Route path="/sales-orders" element={<SalesOrderReportsPage />} />
 
             {/* Activities Routes */}
             <Route path="tasks" element={<TasksPage />} />
@@ -167,14 +180,14 @@ function App() {
             <Route path="create-vendor" element={<CreateVendor />} />
 
             <Route path="use-invoice-form" element={<useInvoiceForm />} />
-            <Route path="use-po-form" element={<usePOForm />} />
-            <Route path="use-po-storage" element={<usePOStorage />} />
-            <Route path="use-quote-form" element={<useQuoteForm />} />
-            <Route path="use-quote-storage" element={<useQuoteStorage />} />
+            {/* <Route path="use-po-form" element={<usePOForm/>}/>
+            <Route path="use-po-storage" element={<usePOStorage/>}/>
+            <Route path="use-quote-form" element={<useQuoteForm/>}/>
+            <Route path="use-quote-storage" element={<useQuoteStorage/>}/> */}
 
-            <Route path="reports" element={<ReportsPage />} />
+            {/* <Route path="reports" element={<ReportsPage/>}/>
             <Route path="/reports" element={<ReportsPage />} />
-            <Route path="/reports/:folder" element={<ReportsPage />} />
+<Route path="/reports/:folder" element={<ReportsPage />} /> */}
             <Route path="/reports/all" element={<AllReportsPage />} />
             <Route path="/reports/favorites" element={<FavoritesPage />} />
             <Route path="/reports/recent" element={<RecentlyViewedPage />} />
@@ -213,20 +226,21 @@ function App() {
             <Route path="/reports/email" element={<EmailReportsPage />} />
             <Route path="/reports/meetings" element={<MeetingReportsPage />} />
 
-            <Route path="/reports" element={<AllReportsPage />} />
-            {/* <Route path="/reports/all" element={<AllReportsPage />} /> */}
-            <Route path="/reports/:folder" element={<AllReportsPage />} />
-            {/* // In your App.js or routing file */}
-            <Route path="/reports/my-reports" element={<MyReportsPage />} />
+            <Route path="/" element={<OrgOverviewPage />} />
+            <Route path="/analytics/org" element={<OrgOverviewPage />} />
             <Route
-              path="/reports/my-reports/:folder"
-              element={<MyReportsPage />}
+              path="/analytics/lead-analytics"
+              element={<LeadAnalytics />}
             />
-
-            <Route path="/reports/favorites" element={<FavoritesPage />} />
+            <Route path="/analytics/deal-insights" element={<DealInsights />} />
             <Route
-              path="/reports/favorites/:folder"
-              element={<FavoritesPage />}
+              path="/analytics/marketing-metrics"
+              element={<MarketingMetrics />}
+            />
+            <Route path="/analytics/sales-trend" element={<SalesTrend />} />
+            <Route
+              path="/analytics/activity-stats"
+              element={<ActivityStats />}
             />
           </Route>
 
