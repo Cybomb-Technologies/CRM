@@ -36,9 +36,10 @@ const meetingSchema = new mongoose.Schema({
     enum: ["scheduled", "in-progress", "completed", "cancelled"],
     default: "scheduled",
   },
-  isOnline: {
-    type: Boolean,
-    default: false,
+  venueType: {
+    type: String,
+    enum: ["in-office", "client-location", "online"],
+    default: "in-office",
   },
   meetingLink: {
     type: String,
@@ -70,9 +71,9 @@ const meetingSchema = new mongoose.Schema({
       required: true,
     },
   },
-  assignedTo: {
+  hostName: {
     type: String,
-    required: [true, "Assigned to is required"],
+    required: [true, "Host name is required"],
   },
   createdBy: {
     type: String,
