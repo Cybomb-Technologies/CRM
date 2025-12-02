@@ -269,14 +269,14 @@ export function MeetingCard({
                   Start Meeting
                 </DropdownMenuItem>
 
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   onClick={() => handleStatusChange("scheduled")}
                   disabled={meeting.status === "scheduled"}
                   className="flex items-center"
                 >
                   <PauseCircle className="w-4 h-4 mr-2 text-orange-600" />
                   Reschedule
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
 
                 <DropdownMenuItem
                   onClick={handleComplete}

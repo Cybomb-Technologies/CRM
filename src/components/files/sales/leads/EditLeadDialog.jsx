@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import LeadForm from "./LeadForm";
 
@@ -19,6 +20,9 @@ const EditLeadDialog = ({ open, onOpenChange, onLeadUpdated, initialData }) => {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Lead</DialogTitle>
+          <DialogDescription>
+            Update the lead information below.
+          </DialogDescription>
         </DialogHeader>
         <LeadForm
           onSuccess={handleSuccess}

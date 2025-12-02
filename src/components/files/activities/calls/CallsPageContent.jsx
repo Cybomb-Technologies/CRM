@@ -22,10 +22,10 @@ export function CallsPageContent() {
           </p>
         </div>
         <div className="flex space-x-2">
-          <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
+          {/* <Button variant="outline" onClick={() => setIsCreateDialogOpen(true)}>
             <Phone className="w-4 h-4 mr-2" />
             Log Call
-          </Button>
+          </Button> */}
           <Button onClick={() => setIsCreateDialogOpen(true)}>
             <Plus className="w-4 h-4 mr-2" />
             Schedule Call

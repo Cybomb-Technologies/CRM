@@ -75,6 +75,11 @@ exports.createMeeting = async (req, res) => {
       createdBy: req.user?.id || "system", // Using actual user ID from auth middleware
     };
 
+    // Ensure hostName is set, fallback to assignedTo for backward compatibility
+    if (!meetingData.hostName && meetingData.assignedTo) {
+      meetingData.hostName = meetingData.assignedTo;
+    }
+
     const meeting = await Meeting.create(meetingData);
 
     res.status(201).json({
@@ -94,7 +99,15 @@ exports.createMeeting = async (req, res) => {
 // Update meeting
 exports.updateMeeting = async (req, res) => {
   try {
-    const meeting = await Meeting.findByIdAndUpdate(req.params.id, req.body, {
+    // Handle field name mapping for backward compatibility
+    const updateData = { ...req.body };
+
+    // If hostName is not provided but assignedTo is, use assignedTo
+    if (!updateData.hostName && updateData.assignedTo) {
+      updateData.hostName = updateData.assignedTo;
+    }
+
+    const meeting = await Meeting.findByIdAndUpdate(req.params.id, updateData, {
       new: true,
       runValidators: true,
     });

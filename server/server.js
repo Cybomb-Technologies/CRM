@@ -13,7 +13,7 @@ mongoose
 
 // ✅ FIXED CORS middleware with OPTIONS handling
 app.use((req, res, next) => {
-  const allowedOrigin = "http://localhost:3000";
+  const allowedOrigin = "http://localhost:3001";
   const requestOrigin = req.headers.origin;
 
   console.log(`📨 ${req.method} request from:`, requestOrigin);
@@ -62,5 +62,5 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
   console.log(`📊 Using MongoDB: ${MONGODB_URI}`);
-  console.log(`🌐 Allowing requests from: http://localhost:3000`);
+  console.log(`🌐 Allowing requests from: http://localhost:3001`);
 });

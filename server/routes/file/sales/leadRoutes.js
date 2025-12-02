@@ -1,5 +1,7 @@
+// server/routes/file/sales/leadRoutes.js
 const express = require("express");
 const router = express.Router();
+
 const {
   getLeads,
   getLead,
@@ -15,10 +17,7 @@ const {
   manageLeadTags,
   deduplicateLeads,
   addLeadsToCampaign,
-} = require("../../../controllers/file/sales/leadController");
-
-// Remove auth middleware for now to match tasks pattern
-// router.use(auth);
+} = require("../../../controllers/file/sales/leads/leadController");
 
 // Lead CRUD routes
 router.get("/", getLeads);

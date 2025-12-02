@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription, // ADD THIS
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -99,6 +100,11 @@ const ViewLeadDialog = ({ open, onOpenChange, lead }) => {
               )}
             </div>
           </DialogTitle>
+          <DialogDescription>
+            {" "}
+            {/* ADD THIS */}
+            View detailed information about this lead.
+          </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-6">

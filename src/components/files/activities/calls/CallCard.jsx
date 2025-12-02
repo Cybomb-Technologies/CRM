@@ -235,14 +235,14 @@ export function CallCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
                 {/* Status Actions */}
-                <DropdownMenuItem
+                {/* <DropdownMenuItem
                   onClick={() => handleStatusChange("scheduled")}
                   disabled={call.status === "scheduled"}
                   className="flex items-center"
                 >
                   <PauseCircle className="w-4 h-4 mr-2 text-orange-600" />
                   Reschedule
-                </DropdownMenuItem>
+                </DropdownMenuItem> */}
 
                 <DropdownMenuItem
                   onClick={handleComplete}

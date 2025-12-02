@@ -1,4 +1,4 @@
-const API_BASE_URL = "http://localhost:5000/api";
+const API_URL = import.meta.env.VITE_API_URL;
 
 // Helper function for API calls
 const apiRequest = async (endpoint, options = {}) => {
@@ -10,7 +10,7 @@ const apiRequest = async (endpoint, options = {}) => {
   };
 
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, config);
+    const response = await fetch(`${API_URL}${endpoint}`, config);
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
@@ -27,7 +27,7 @@ const apiRequest = async (endpoint, options = {}) => {
 // Helper function for file uploads
 const apiRequestWithFile = async (endpoint, formData, method = "POST") => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_URL}${endpoint}`, {
       method: method,
       body: formData,
       // Don't set Content-Type header for FormData, browser will set it automatically with boundary
