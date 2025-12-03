@@ -1,12 +1,12 @@
 // src/components/contacts/CreateContactDialog.jsx
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import ContactForm from './ContactForm';
+} from "@/components/ui/dialog";
+import ContactForm from "./ContactForm";
 
 const CreateContactDialog = ({ open, onOpenChange, onContactCreated }) => {
   const handleSuccess = (contact) => {
@@ -20,7 +20,7 @@ const CreateContactDialog = ({ open, onOpenChange, onContactCreated }) => {
         <DialogHeader>
           <DialogTitle>Create New Contact</DialogTitle>
         </DialogHeader>
-        <ContactForm 
+        <ContactForm
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
         />

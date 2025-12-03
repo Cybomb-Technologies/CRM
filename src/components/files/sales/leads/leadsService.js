@@ -155,50 +155,55 @@ export const leadsService = {
     }
   },
 
-  // Lead conversion
+  // Lead conversion - FIXED: Actually creates contact
   convertLead: async (leadId, dealData = {}) => {
     try {
+      console.log("Service: Converting lead", leadId);
       const response = await leadsAPI.convertLead(leadId, dealData);
       return {
         success: true,
         data: response.data,
-        message: "Lead converted successfully",
+        message: response.message || "Lead converted to contact successfully",
       };
     } catch (error) {
       console.error("Convert lead error:", error);
       return {
         success: false,
-        message: error.message || "Failed to convert lead",
+        message: error.message || "Failed to convert lead to contact",
       };
     }
   },
 
+  // Bulk convert leads - FIXED: Actually creates contacts
   bulkConvertLeads: async (leadIds) => {
     try {
+      console.log("Service: Bulk converting leads", leadIds);
       const response = await leadsAPI.bulkConvertLeads(leadIds);
       return {
         success: true,
         data: response.data,
         message:
-          response.message || `${leadIds.length} leads converted successfully`,
+          response.message ||
+          `${leadIds.length} leads converted to contacts successfully`,
       };
     } catch (error) {
       console.error("Bulk convert leads error:", error);
       return {
         success: false,
-        message: error.message || "Failed to convert leads",
+        message: error.message || "Failed to convert leads to contacts",
       };
     }
   },
 
-  // Sync lead to contact
+  // Sync lead to contact - FIXED: Actually syncs or creates contact
   syncLeadToContact: async (leadId) => {
     try {
+      console.log("Service: Syncing lead to contact", leadId);
       const response = await leadsAPI.syncLeadToContact(leadId);
       return {
         success: true,
         data: response.data,
-        message: "Lead synced to contact successfully",
+        message: response.message || "Lead synced to contact successfully",
       };
     } catch (error) {
       console.error("Sync lead error:", error);

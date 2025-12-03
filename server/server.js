@@ -27,7 +27,7 @@ app.use((req, res, next) => {
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     );
-    return res.status(200).send(); // ✅ Return 200 for OPTIONS
+    return res.status(200).send();
   }
 
   // Set CORS headers for actual requests
@@ -48,6 +48,7 @@ app.use("/api/tasks", require("./routes/file/activities/taskRoutes"));
 app.use("/api/meetings", require("./routes/file/activities/meetingRoutes"));
 app.use("/api/calls", require("./routes/file/activities/callRoutes"));
 app.use("/api/leads", require("./routes/file/sales/leadRoutes"));
+app.use("/api/contacts", require("./routes/file/sales/contactRoutes"));
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
