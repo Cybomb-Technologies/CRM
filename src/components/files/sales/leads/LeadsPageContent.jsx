@@ -156,19 +156,69 @@ const LeadsPageContent = () => {
     setViewDialogOpen(true);
   }, []);
 
+  // FIXED: Actually convert lead to contact
   const handleLeadConvert = useCallback(
     async (lead) => {
-      const result = await leadsService.convertLead(lead.id || lead._id);
-      if (result.success) {
-        toast({
-          title: "Lead Converted",
-          description: `${lead.firstName} ${lead.lastName} has been converted to contact.`,
-        });
-        fetchLeads();
-      } else {
+      try {
+        console.log("Converting lead to contact:", lead.id || lead._id);
+
+        const result = await leadsService.convertLead(lead.id || lead._id);
+        if (result.success) {
+          toast({
+            title: "Lead Converted",
+            description: `${lead.firstName} ${
+              lead.lastName
+            } has been converted to contact. Contact ID: ${
+              result.data?.contact?.id || "Created"
+            }`,
+          });
+          fetchLeads(); // Refresh to show converted status
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to convert lead",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Convert lead error:", error);
         toast({
           title: "Error",
-          description: result.message,
+          description: "Failed to convert lead. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast, fetchLeads]
+  );
+
+  // NEW: Handle sync to contact (for already converted leads)
+  const handleLeadSync = useCallback(
+    async (lead) => {
+      try {
+        console.log("Syncing lead to contact:", lead.id || lead._id);
+
+        const result = await leadsService.syncLeadToContact(
+          lead.id || lead._id
+        );
+        if (result.success) {
+          toast({
+            title: "Contact Synced",
+            description: `${lead.firstName} ${lead.lastName}'s contact has been updated with the latest lead data.`,
+          });
+          fetchLeads(); // Refresh to show updated status
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to sync lead to contact",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Sync lead error:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to sync lead to contact",
           variant: "destructive",
         });
       }
@@ -217,16 +267,29 @@ const LeadsPageContent = () => {
     [toast, fetchLeads]
   );
 
+  // FIXED: Actually bulk convert leads to contacts
   const handleBulkConvert = useCallback(
     async (leadIds) => {
-      const result = await leadsService.bulkConvertLeads(leadIds);
-      setSelectedLeads([]);
-      toast({
-        title: result.success ? "Success" : "Error",
-        description: result.message,
-        variant: result.success ? "default" : "destructive",
-      });
-      fetchLeads();
+      try {
+        console.log("Bulk converting leads:", leadIds);
+
+        const result = await leadsService.bulkConvertLeads(leadIds);
+        setSelectedLeads([]);
+        toast({
+          title: result.success ? "Success" : "Error",
+          description:
+            result.message || `${leadIds.length} leads converted to contacts`,
+          variant: result.success ? "default" : "destructive",
+        });
+        fetchLeads(); // Refresh to show converted status
+      } catch (error) {
+        console.error("Bulk convert error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to convert leads. Please try again.",
+          variant: "destructive",
+        });
+      }
     },
     [toast, fetchLeads]
   );
@@ -399,7 +462,7 @@ const LeadsPageContent = () => {
           leads={leads} // Add this line to pass leads data
           onBulkDelete={handleBulkDelete}
           onBulkUpdate={handleBulkUpdate}
-          onBulkConvert={handleBulkConvert}
+          onBulkConvert={handleBulkConvert} // FIXED: Now actually converts
           onManageTags={handleManageTags}
           onMassEmail={handleMassEmail}
           onExport={handleExport}
@@ -419,7 +482,7 @@ const LeadsPageContent = () => {
           onLeadEdit={handleLeadEdit}
           onLeadDelete={handleLeadDelete}
           onLeadView={handleViewLead}
-          onLeadConvert={handleLeadConvert}
+          onLeadConvert={handleLeadConvert} // For unconverted leads
           onLeadEmail={handleLeadEmail}
         />
       </div>

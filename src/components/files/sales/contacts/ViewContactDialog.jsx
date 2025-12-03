@@ -1,16 +1,38 @@
 // src/components/contacts/ViewContactDialog.jsx
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { User, Building, Mail, Phone, MapPin, Calendar, UserCheck } from 'lucide-react';
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import {
+  User,
+  Building,
+  Mail,
+  Phone,
+  MapPin,
+  Calendar,
+  UserCheck,
+} from "lucide-react";
 
 const ViewContactDialog = ({ open, onOpenChange, contact }) => {
   if (!contact) return null;
+
+  // Helper function to safely format dates
+  const formatDate = (dateString) => {
+    if (!dateString) return "Not available";
+    try {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    } catch {
+      return dateString;
+    }
+  };
+
+  // Get contact ID (handles both MongoDB _id and local id)
+  const contactId = contact._id || contact.id;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -26,7 +48,7 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
             )}
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Header Section */}
           <div className="flex items-start gap-4 pb-6 border-b">
@@ -39,6 +61,7 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
               </h2>
               <p className="text-gray-600">{contact.title}</p>
               <p className="text-gray-600">{contact.accountName}</p>
+              <p className="text-sm text-gray-500 mt-1">ID: {contactId}</p>
             </div>
           </div>
 
@@ -49,15 +72,15 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
                 <User className="w-5 h-5 mr-2" />
                 Contact Information
               </h3>
-              
+
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
                   <Mail className="w-4 h-4 text-gray-400" />
-                  <span>{contact.email}</span>
+                  <span>{contact.email || "Not provided"}</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-4 h-4 text-gray-400" />
-                  <span>{contact.phone}</span>
+                  <span>{contact.phone || "Not provided"}</span>
                 </div>
                 {contact.mobile && (
                   <div className="flex items-center gap-2">
@@ -66,10 +89,12 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
                   </div>
                 )}
                 <div>
-                  <strong>Department:</strong> {contact.department || 'Not specified'}
+                  <strong>Department:</strong>{" "}
+                  {contact.department || "Not specified"}
                 </div>
                 <div>
-                  <strong>Lead Source:</strong> {contact.leadSource || 'Not specified'}
+                  <strong>Lead Source:</strong>{" "}
+                  {contact.leadSource || "Not specified"}
                 </div>
               </div>
             </div>
@@ -79,16 +104,19 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
                 <Building className="w-5 h-5 mr-2" />
                 Account Information
               </h3>
-              
+
               <div className="space-y-3">
                 <div>
-                  <strong>Account:</strong> {contact.accountName || 'No Account'}
+                  <strong>Account:</strong>{" "}
+                  {contact.accountName || "No Account"}
                 </div>
                 <div>
-                  <strong>Reports To:</strong> {contact.reportsTo || 'Not specified'}
+                  <strong>Reports To:</strong>{" "}
+                  {contact.reportsTo || "Not specified"}
                 </div>
                 <div>
-                  <strong>Assistant:</strong> {contact.assistant || 'Not specified'}
+                  <strong>Assistant:</strong>{" "}
+                  {contact.assistant || "Not specified"}
                 </div>
                 {contact.assistantPhone && (
                   <div>
@@ -96,35 +124,60 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
                   </div>
                 )}
                 <div>
-                  <strong>Email Opt Out:</strong> {contact.emailOptOut ? 'Yes' : 'No'}
+                  <strong>Email Opt Out:</strong>{" "}
+                  {contact.emailOptOut ? "Yes" : "No"}
                 </div>
               </div>
             </div>
           </div>
 
           {/* Address Information */}
-          {contact.mailingAddress && contact.mailingAddress.street && (
-            <div className="space-y-4">
-              <h3 className="text-lg font-semibold flex items-center">
-                <MapPin className="w-5 h-5 mr-2" />
-                Mailing Address
-              </h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div><strong>Street:</strong> {contact.mailingAddress.street}</div>
-                <div><strong>City:</strong> {contact.mailingAddress.city}</div>
-                <div><strong>State:</strong> {contact.mailingAddress.state}</div>
-                <div><strong>Zip Code:</strong> {contact.mailingAddress.zipCode}</div>
-                <div><strong>Country:</strong> {contact.mailingAddress.country}</div>
+          {contact.mailingAddress &&
+            (contact.mailingAddress.street || contact.mailingAddress.city) && (
+              <div className="space-y-4">
+                <h3 className="text-lg font-semibold flex items-center">
+                  <MapPin className="w-5 h-5 mr-2" />
+                  Mailing Address
+                </h3>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {contact.mailingAddress.street && (
+                    <div>
+                      <strong>Street:</strong> {contact.mailingAddress.street}
+                    </div>
+                  )}
+                  {contact.mailingAddress.city && (
+                    <div>
+                      <strong>City:</strong> {contact.mailingAddress.city}
+                    </div>
+                  )}
+                  {contact.mailingAddress.state && (
+                    <div>
+                      <strong>State:</strong> {contact.mailingAddress.state}
+                    </div>
+                  )}
+                  {contact.mailingAddress.zipCode && (
+                    <div>
+                      <strong>Zip Code:</strong>{" "}
+                      {contact.mailingAddress.zipCode}
+                    </div>
+                  )}
+                  {contact.mailingAddress.country && (
+                    <div>
+                      <strong>Country:</strong> {contact.mailingAddress.country}
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           {/* Description */}
           {contact.description && (
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Description</h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{contact.description}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {contact.description}
+              </p>
             </div>
           )}
 
@@ -140,21 +193,25 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
                   <strong>Converted from Lead:</strong> Yes
                 </div>
                 <div>
-                  <strong>Conversion Date:</strong> {new Date(contact.leadConversionDate).toLocaleString()}
+                  <strong>Conversion Date:</strong>{" "}
+                  {formatDate(contact.leadConversionDate)}
                 </div>
                 <div className="md:col-span-2">
                   <strong>Original Lead ID:</strong> {contact.convertedFromLead}
                 </div>
                 {contact.lastSyncedFromLead && (
                   <div className="md:col-span-2">
-                    <strong>Last Synced:</strong> {new Date(contact.lastSyncedFromLead).toLocaleString()}
+                    <strong>Last Synced:</strong>{" "}
+                    {formatDate(contact.lastSyncedFromLead)}
                   </div>
                 )}
               </div>
               <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
                 <p className="text-sm text-yellow-700">
-                  <strong>Note:</strong> This contact was created from a lead. Changes to the original lead will not affect this contact. 
-                  To update this contact with the latest lead data, use the "Sync to Contact" button in the lead view.
+                  <strong>Note:</strong> This contact was created from a lead.
+                  Changes to the original lead will not affect this contact. To
+                  update this contact with the latest lead data, use the "Sync
+                  to Contact" button in the lead view.
                 </p>
               </div>
             </div>
@@ -167,8 +224,23 @@ const ViewContactDialog = ({ open, onOpenChange, contact }) => {
                 <Calendar className="w-4 h-4 mr-2" />
                 System Information
               </h4>
-              <div><strong>Created:</strong> {new Date(contact.createdAt).toLocaleString()}</div>
-              <div><strong>Last Updated:</strong> {new Date(contact.updatedAt).toLocaleString()}</div>
+              <div>
+                <strong>Created:</strong> {formatDate(contact.createdAt)}
+              </div>
+              <div>
+                <strong>Last Updated:</strong> {formatDate(contact.updatedAt)}
+              </div>
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-semibold">Database Information</h4>
+              <div>
+                <strong>Contact ID:</strong> {contactId}
+              </div>
+              {contact.accountId && (
+                <div>
+                  <strong>Account ID:</strong> {contact.accountId}
+                </div>
+              )}
             </div>
           </div>
         </div>

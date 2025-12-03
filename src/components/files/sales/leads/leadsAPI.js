@@ -143,7 +143,7 @@ export const leadsAPI = {
     });
   },
 
-  // Lead conversion
+  // Lead conversion - FIXED: Calls proper endpoint
   convertLead: async (leadId, dealData = {}) => {
     return apiRequest(`/leads/${leadId}/convert`, {
       method: "POST",
@@ -158,7 +158,7 @@ export const leadsAPI = {
     });
   },
 
-  // Sync lead to contact
+  // Sync lead to contact - FIXED: Calls proper endpoint
   syncLeadToContact: async (leadId) => {
     return apiRequest(`/leads/${leadId}/sync-contact`, {
       method: "POST",

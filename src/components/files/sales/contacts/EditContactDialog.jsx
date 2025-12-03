@@ -1,16 +1,27 @@
 // src/components/contacts/EditContactDialog.jsx
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import ContactForm from './ContactForm';
+} from "@/components/ui/dialog";
+import ContactForm from "./ContactForm";
 
-const EditContactDialog = ({ open, onOpenChange, onContactUpdated, initialData }) => {
+const EditContactDialog = ({
+  open,
+  onOpenChange,
+  onContactUpdated,
+  initialData,
+}) => {
   const handleSuccess = (updatedContact) => {
-    onContactUpdated(updatedContact);
+    // Ensure we pass the original ID back
+    const contactWithId = {
+      ...updatedContact,
+      id: initialData?.id || initialData?._id,
+      _id: initialData?._id || initialData?.id,
+    };
+    onContactUpdated(contactWithId);
     onOpenChange(false);
   };
 
@@ -20,7 +31,7 @@ const EditContactDialog = ({ open, onOpenChange, onContactUpdated, initialData }
         <DialogHeader>
           <DialogTitle>Edit Contact</DialogTitle>
         </DialogHeader>
-        <ContactForm 
+        <ContactForm
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
           initialData={initialData}

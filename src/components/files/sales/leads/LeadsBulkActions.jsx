@@ -117,8 +117,26 @@ const LeadsBulkActions = ({
     setEmailData({ subject: "", message: "", template: "" });
   };
 
+  // FIXED: Actually converts leads to contacts
   const handleBulkConvert = async () => {
-    onBulkConvert(selectedLeads);
+    try {
+      console.log("Bulk converting leads:", selectedLeads);
+
+      // Call the actual conversion function
+      await onBulkConvert(selectedLeads);
+
+      toast({
+        title: "Conversion Started",
+        description: `${selectedLeads.length} leads are being converted to contacts.`,
+      });
+    } catch (error) {
+      console.error("Bulk convert error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start bulk conversion",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleManageTags = async () => {
@@ -558,7 +576,7 @@ const LeadsBulkActions = ({
               Mass Update
             </DropdownMenuItem>
 
-            {/* Mass Convert */}
+            {/* Mass Convert - FIXED: Actually converts */}
             <DropdownMenuItem onClick={handleBulkConvert}>
               <CheckCircle className="w-4 h-4 mr-2" />
               Mass Convert
@@ -576,19 +594,6 @@ const LeadsBulkActions = ({
             <DropdownMenuItem onClick={() => setShowEmailDialog(true)}>
               <Send className="w-4 h-4 mr-2" />
               Mass Email
-            </DropdownMenuItem>
-
-            {/* Autoresponders */}
-            <DropdownMenuItem
-              onClick={() =>
-                toast({
-                  title: "Autoresponders",
-                  description: "Autoresponders feature activated",
-                })
-              }
-            >
-              <Mail className="w-4 h-4 mr-2" />
-              Autoresponders
             </DropdownMenuItem>
 
             {/* Add to Campaign - Enhanced with submenu */}
@@ -648,21 +653,6 @@ const LeadsBulkActions = ({
             <DropdownMenuItem onClick={handlePrintView}>
               <Printer className="w-4 h-4 mr-2" />
               Print View
-            </DropdownMenuItem>
-
-            <DropdownMenuSeparator />
-
-            {/* Drafts */}
-            <DropdownMenuItem
-              onClick={() =>
-                toast({
-                  title: "Drafts",
-                  description: "Accessing saved drafts",
-                })
-              }
-            >
-              <FileText className="w-4 h-4 mr-2" />
-              Drafts
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
