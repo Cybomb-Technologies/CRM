@@ -1,5 +1,6 @@
 // server/controllers/file/sales/leads/conversion.js
 const Lead = require("../../../../models/file/sales/Lead");
+const Contact = require("../../../../models/file/sales/Contact"); // ADD THIS
 
 // Convert lead to contact
 const convertLead = async (req, res) => {
@@ -20,10 +21,50 @@ const convertLead = async (req, res) => {
       });
     }
 
-    // Update lead as converted
+    // ACTUALLY CREATE CONTACT FROM LEAD DATA
+    const contactData = {
+      // Map lead fields to contact fields
+      firstName: lead.firstName,
+      lastName: lead.lastName,
+      title: lead.title,
+      department: "None", // Default value
+      email: lead.email,
+      phone: lead.phone,
+      mobile: lead.mobile,
+      leadSource: lead.leadSource,
+      emailOptOut: lead.emailOptOut,
+      company: lead.company, // Will be mapped to accountName
+
+      // Address information
+      mailingAddress: {
+        street: lead.streetAddress || "",
+        city: lead.city || "",
+        state: lead.state || "",
+        zipCode: lead.zipCode || "",
+        country: lead.country || "",
+      },
+
+      // Description
+      description: lead.description || "",
+
+      // Lead conversion tracking
+      convertedFromLead: lead._id.toString(),
+      leadConversionDate: new Date(),
+      lastSyncedFromLead: new Date(),
+
+      // System fields
+      createdBy: lead.createdBy || "System",
+      accountName: lead.company, // Company becomes account name
+    };
+
+    // Create the contact in database
+    const contact = new Contact(contactData);
+    await contact.save();
+
+    // Update lead as converted with the actual contact ID
     lead.isConverted = true;
     lead.conversionDate = new Date();
-    lead.convertedToContactId = `contact_${Date.now()}`;
+    lead.convertedToContactId = contact._id.toString();
     lead.convertedToAccountId = `account_${Date.now()}`;
     await lead.save();
 
@@ -37,13 +78,17 @@ const convertLead = async (req, res) => {
 
     res.json({
       success: true,
-      message: "Lead converted successfully",
+      message: "Lead converted successfully and contact created",
       data: {
         lead: leadObj,
         contact: {
-          id: lead.convertedToContactId,
-          name: `${lead.firstName} ${lead.lastName}`,
-          email: lead.email,
+          id: contact._id,
+          _id: contact._id,
+          name: `${contact.firstName} ${contact.lastName}`,
+          email: contact.email,
+          phone: contact.phone,
+          accountName: contact.accountName,
+          convertedFromLead: contact.convertedFromLead,
         },
         account: {
           id: lead.convertedToAccountId,
@@ -56,6 +101,7 @@ const convertLead = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while converting lead",
+      error: error.message,
     });
   }
 };
@@ -72,18 +118,86 @@ const syncLeadToContact = async (req, res) => {
       });
     }
 
-    if (!lead.isConverted) {
-      return res.status(400).json({
-        success: false,
-        message: "Lead must be converted first",
-      });
+    // Check if contact already exists for this lead
+    let contact = await Contact.findOne({
+      convertedFromLead: lead._id.toString(),
+    });
+
+    if (contact) {
+      // Update existing contact with latest lead data
+      contact.firstName = lead.firstName;
+      contact.lastName = lead.lastName;
+      contact.title = lead.title;
+      contact.email = lead.email;
+      contact.phone = lead.phone;
+      contact.mobile = lead.mobile;
+      contact.leadSource = lead.leadSource;
+      contact.emailOptOut = lead.emailOptOut;
+      contact.accountName = lead.company;
+      contact.mailingAddress = {
+        street: lead.streetAddress || "",
+        city: lead.city || "",
+        state: lead.state || "",
+        zipCode: lead.zipCode || "",
+        country: lead.country || "",
+      };
+      contact.description = lead.description || "";
+      contact.lastSyncedFromLead = new Date();
+      contact.updatedBy = "System";
+      contact.updatedAt = new Date();
+
+      await contact.save();
+    } else {
+      // Create new contact if doesn't exist (similar to convertLead)
+      const contactData = {
+        firstName: lead.firstName,
+        lastName: lead.lastName,
+        title: lead.title,
+        department: "None",
+        email: lead.email,
+        phone: lead.phone,
+        mobile: lead.mobile,
+        leadSource: lead.leadSource,
+        emailOptOut: lead.emailOptOut,
+        mailingAddress: {
+          street: lead.streetAddress || "",
+          city: lead.city || "",
+          state: lead.state || "",
+          zipCode: lead.zipCode || "",
+          country: lead.country || "",
+        },
+        description: lead.description || "",
+        convertedFromLead: lead._id.toString(),
+        leadConversionDate: new Date(),
+        lastSyncedFromLead: new Date(),
+        createdBy: lead.createdBy || "System",
+        accountName: lead.company,
+      };
+
+      contact = new Contact(contactData);
+      await contact.save();
+
+      // Mark lead as converted
+      lead.isConverted = true;
+      lead.conversionDate = new Date();
+      lead.convertedToContactId = contact._id.toString();
+      lead.convertedToAccountId = `account_${Date.now()}`;
+      await lead.save();
     }
 
     res.json({
       success: true,
-      message: "Lead data synced to contact successfully",
+      message: contact
+        ? "Contact updated with lead data"
+        : "Contact created from lead data",
       data: {
         lead,
+        contact: {
+          id: contact._id,
+          name: `${contact.firstName} ${contact.lastName}`,
+          email: contact.email,
+          phone: contact.phone,
+        },
         lastSynced: new Date(),
       },
     });
@@ -92,6 +206,7 @@ const syncLeadToContact = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Server error while syncing lead",
+      error: error.message,
     });
   }
 };

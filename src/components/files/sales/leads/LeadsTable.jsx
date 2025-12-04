@@ -88,18 +88,47 @@ const LeadsTable = ({
     }
   };
 
+  // FIXED: Properly handle sync vs convert
   const handleSyncToContact = async (lead) => {
-    const result = await leadsService.syncLeadToContact(lead.id || lead._id);
+    try {
+      console.log("Syncing lead to contact:", lead.id || lead._id);
 
-    if (result.success) {
+      if (!lead.isConverted) {
+        // If lead is not converted yet, convert it first
+        toast({
+          title: "Converting Lead",
+          description: "Lead is being converted to contact first...",
+        });
+
+        // Call the convert function
+        if (onLeadConvert) {
+          await onLeadConvert(lead);
+        }
+        return;
+      }
+
+      // If lead is already converted, sync it
+      const result = await leadsService.syncLeadToContact(lead.id || lead._id);
+
+      if (result.success) {
+        toast({
+          title: "Sync Successful",
+          description: "Contact updated with latest lead data.",
+        });
+        // Refresh the table to show updated status
+        // Note: We don't call onLeadConvert here as it's already converted
+      } else {
+        toast({
+          title: "Sync Failed",
+          description: result.message || "Failed to sync lead to contact",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Sync error:", error);
       toast({
-        title: "Sync Successful",
-        description: result.message,
-      });
-    } else {
-      toast({
-        title: "Sync Failed",
-        description: result.message,
+        title: "Error",
+        description: error.message || "Failed to sync lead to contact",
         variant: "destructive",
       });
     }
