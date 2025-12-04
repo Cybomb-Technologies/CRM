@@ -27,6 +27,7 @@ app.use((req, res, next) => {
       "Access-Control-Allow-Methods",
       "GET, POST, PUT, PATCH, DELETE, OPTIONS"
     );
+    res.header("Access-Control-Allow-Credentials", "true"); // ← ADD THIS
     return res.status(200).send();
   }
 
@@ -35,6 +36,7 @@ app.use((req, res, next) => {
     res.header("Access-Control-Allow-Origin", allowedOrigin);
     res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
     res.header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE");
+    res.header("Access-Control-Allow-Credentials", "true"); // ← ADD THIS
   }
 
   next();
@@ -49,6 +51,7 @@ app.use("/api/meetings", require("./routes/file/activities/meetingRoutes"));
 app.use("/api/calls", require("./routes/file/activities/callRoutes"));
 app.use("/api/leads", require("./routes/file/sales/leadRoutes"));
 app.use("/api/contacts", require("./routes/file/sales/contactRoutes"));
+app.use("/api/accounts", require("./routes/file/sales/accountRoutes"));
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {
