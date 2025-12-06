@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,15 +8,43 @@ import {
   User,
   Building,
   Target,
-  Phone,
   PhoneIncoming,
   PhoneOutgoing,
   Edit,
   Trash2,
   MoreVertical,
+  CheckCircle2,
+  PlayCircle,
+  PauseCircle,
+  XCircle,
+  Copy,
+  Volume2,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  getPriorityColor,
+  getStatusColor,
+  getStatusIcon,
+  getCallTypeIcon,
+  callAPI,
+} from "./utils";
 
-export function CallCard({ call, onEdit, onComplete, onDelete }) {
+export function CallCard({
+  call,
+  onEdit,
+  onComplete,
+  onDelete,
+  onStatusChange,
+}) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -30,32 +58,6 @@ export function CallCard({ call, onEdit, onComplete, onDelete }) {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
-
-  const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "high":
-        return "destructive";
-      case "medium":
-        return "default";
-      case "low":
-        return "secondary";
-      default:
-        return "default";
-    }
-  };
-
-  const getStatusColor = (status) => {
-    switch (status) {
-      case "completed":
-        return "bg-green-100 text-green-800";
-      case "scheduled":
-        return "bg-blue-100 text-blue-800";
-      case "missed":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
   };
 
   const getRelatedToIcon = (type) => {
@@ -81,8 +83,57 @@ export function CallCard({ call, onEdit, onComplete, onDelete }) {
     );
   };
 
+  const handleComplete = async () => {
+    try {
+      setIsCompleting(true);
+      await callAPI.completeCall(call._id);
+      if (onComplete) onComplete(call);
+    } catch (error) {
+      console.error("Error completing call:", error);
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  const handleStatusChange = async (newStatus) => {
+    try {
+      await callAPI.updateCall(call._id, { status: newStatus });
+      if (onStatusChange) onStatusChange(call, newStatus);
+    } catch (error) {
+      console.error("Error updating call status:", error);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      const { _id, createdAt, updatedAt, ...callData } = call;
+      const duplicatedCall = {
+        ...callData,
+        title: `${call.title} (Copy)`,
+        status: "scheduled",
+      };
+      await callAPI.createCall(duplicatedCall);
+      // Refresh will be handled by parent component
+    } catch (error) {
+      console.error("Error duplicating call:", error);
+    }
+  };
+
+  const isOverdue =
+    new Date(call.scheduledTime) < new Date() && call.status !== "completed";
+
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card
+      className={`hover:shadow-md transition-shadow border-l-4 ${
+        isOverdue
+          ? "border-l-red-500"
+          : call.priority === "high"
+          ? "border-l-red-400"
+          : call.priority === "medium"
+          ? "border-l-orange-400"
+          : "border-l-green-400"
+      }`}
+    >
       <CardContent className="p-4">
         <div className="flex items-start justify-between">
           <div className="flex items-start space-x-3 flex-1">
@@ -91,18 +142,29 @@ export function CallCard({ call, onEdit, onComplete, onDelete }) {
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-2 mb-2">
-                <h3 className="font-semibold text-lg">{call.title}</h3>
+                <h3 className="font-semibold text-lg flex items-center">
+                  <span className="mr-2">{getStatusIcon(call.status)}</span>
+                  {call.title}
+                </h3>
                 <Badge variant={getPriorityColor(call.priority)}>
                   {call.priority}
                 </Badge>
                 <span
-                  className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                  className={`px-2 py-1 rounded-full text-xs font-medium border ${getStatusColor(
                     call.status
                   )}`}
                 >
                   {call.status}
                 </span>
-                <Badge variant="outline">{call.callType}</Badge>
+                <Badge variant="outline">
+                  <span className="mr-1">{getCallTypeIcon(call.callType)}</span>
+                  {call.callType}
+                </Badge>
+                {isOverdue && (
+                  <Badge variant="destructive" className="animate-pulse">
+                    Overdue
+                  </Badge>
+                )}
               </div>
 
               <p className="text-gray-600 mb-3">{call.description}</p>
@@ -143,6 +205,15 @@ export function CallCard({ call, onEdit, onComplete, onDelete }) {
                   <strong>Outcome:</strong> {call.outcome}
                 </div>
               )}
+
+              {call.callRecording && (
+                <div className="mt-2">
+                  <Button variant="outline" size="sm">
+                    <Volume2 className="w-4 h-4 mr-2" />
+                    Play Recording
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -151,28 +222,85 @@ export function CallCard({ call, onEdit, onComplete, onDelete }) {
               variant="ghost"
               size="sm"
               onClick={() => onEdit && onEdit(call)}
+              className="hover:bg-blue-50 hover:text-blue-600"
             >
               <Edit className="w-4 h-4" />
             </Button>
-            {call.status !== "completed" && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => onComplete && onComplete(call)}
-              >
-                Complete
-              </Button>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDelete && onDelete(call)}
-            >
-              <Trash2 className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+
+            <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {/* Status Actions */}
+                {/* <DropdownMenuItem
+                  onClick={() => handleStatusChange("scheduled")}
+                  disabled={call.status === "scheduled"}
+                  className="flex items-center"
+                >
+                  <PauseCircle className="w-4 h-4 mr-2 text-orange-600" />
+                  Reschedule
+                </DropdownMenuItem> */}
+
+                <DropdownMenuItem
+                  onClick={handleComplete}
+                  disabled={call.status === "completed" || isCompleting}
+                  className="flex items-center"
+                >
+                  <CheckCircle2 className="w-4 h-4 mr-2 text-green-600" />
+                  {isCompleting ? "Completing..." : "Mark Complete"}
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleStatusChange("missed")}
+                  disabled={call.status === "missed"}
+                  className="flex items-center"
+                >
+                  <XCircle className="w-4 h-4 mr-2 text-red-600" />
+                  Mark as Missed
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => handleStatusChange("cancelled")}
+                  disabled={call.status === "cancelled"}
+                  className="flex items-center"
+                >
+                  <XCircle className="w-4 h-4 mr-2 text-gray-600" />
+                  Cancel Call
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                {/* Other Actions */}
+                <DropdownMenuItem
+                  onClick={() => onEdit && onEdit(call)}
+                  className="flex items-center"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Edit Call
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={handleDuplicate}
+                  className="flex items-center"
+                >
+                  <Copy className="w-4 h-4 mr-2" />
+                  Duplicate Call
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator />
+
+                <DropdownMenuItem
+                  onClick={() => onDelete && onDelete(call)}
+                  className="flex items-center text-red-600 focus:text-red-600"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete Call
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardContent>

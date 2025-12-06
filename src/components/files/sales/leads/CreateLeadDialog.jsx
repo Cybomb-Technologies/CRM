@@ -1,12 +1,13 @@
-// src/components/leads/CreateLeadDialog.jsx
-import React from 'react';
+// src/components/files/sales/leads/CreateLeadDialog.jsx
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import LeadForm from './LeadForm';
+  DialogDescription,
+} from "@/components/ui/dialog";
+import LeadForm from "./LeadForm";
 
 const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
   const handleSuccess = (lead) => {
@@ -19,8 +20,11 @@ const CreateLeadDialog = ({ open, onOpenChange, onLeadCreated }) => {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Lead</DialogTitle>
+          <DialogDescription>
+            Fill in the details below to create a new lead.
+          </DialogDescription>
         </DialogHeader>
-        <LeadForm 
+        <LeadForm
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
         />

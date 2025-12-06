@@ -8,40 +8,94 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { CallForm } from "./CallForm";
+import { callAPI } from "./utils";
+import { useAuth } from "@/contexts/AuthContext";
 
-export function CreateCallDialog({ open, onOpenChange }) {
+export function CreateCallDialog({ open, onOpenChange, onCallCreated }) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     scheduledTime: "",
+    duration: 30,
     priority: "medium",
     status: "scheduled",
-    relatedTo: "",
-    relatedToType: "deal",
-    duration: "",
     callType: "outbound",
     phoneNumber: "",
     outcome: "",
+    notes: "",
+    relatedTo: "",
+    relatedToType: "deal",
+    assignedTo: user?.name || "You",
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Creating call:", formData);
-    onOpenChange(false);
-    // Reset form
-    setFormData({
-      title: "",
-      description: "",
-      scheduledTime: "",
-      priority: "medium",
-      status: "scheduled",
-      relatedTo: "",
-      relatedToType: "deal",
-      duration: "",
-      callType: "outbound",
-      phoneNumber: "",
-      outcome: "",
-    });
+
+    if (!formData.title.trim()) {
+      alert("Call title is required");
+      return;
+    }
+
+    if (!formData.scheduledTime) {
+      alert("Scheduled time is required");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const callData = {
+        title: formData.title,
+        description: formData.description,
+        scheduledTime: formData.scheduledTime,
+        duration: formData.duration,
+        priority: formData.priority,
+        status: formData.status,
+        callType: formData.callType,
+        phoneNumber: formData.phoneNumber,
+        outcome: formData.outcome,
+        notes: formData.notes,
+        relatedTo: {
+          type: formData.relatedToType,
+          id: `temp-${Date.now()}`,
+          name: formData.relatedTo || "Unnamed",
+        },
+        assignedTo: formData.assignedTo,
+        createdBy: user?.id || "current-user",
+      };
+
+      await callAPI.createCall(callData);
+
+      // Reset form
+      setFormData({
+        title: "",
+        description: "",
+        scheduledTime: "",
+        duration: 30,
+        priority: "medium",
+        status: "scheduled",
+        callType: "outbound",
+        phoneNumber: "",
+        outcome: "",
+        notes: "",
+        relatedTo: "",
+        relatedToType: "deal",
+        assignedTo: user?.name || "You",
+      });
+
+      onOpenChange(false);
+
+      if (onCallCreated) {
+        onCallCreated();
+      }
+    } catch (error) {
+      console.error("Error creating call:", error);
+      alert(`Error creating call: ${error.message}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -59,17 +113,24 @@ export function CreateCallDialog({ open, onOpenChange }) {
         </DialogHeader>
 
         <form onSubmit={handleSubmit}>
-          <CallForm formData={formData} onInputChange={handleInputChange} />
+          <CallForm
+            formData={formData}
+            onInputChange={handleInputChange}
+            currentUser={user}
+          />
 
           <div className="flex justify-end space-x-2 pt-6 mt-6 border-t">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
+              disabled={loading}
             >
               Cancel
             </Button>
-            <Button type="submit">Schedule Call</Button>
+            <Button type="submit" disabled={loading}>
+              {loading ? "Scheduling..." : "Schedule Call"}
+            </Button>
           </div>
         </form>
       </DialogContent>

@@ -1,12 +1,13 @@
-// src/components/leads/EditLeadDialog.jsx
-import React from 'react';
+// src/components/files/sales/leads/EditLeadDialog.jsx
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import LeadForm from './LeadForm';
+  DialogDescription,
+} from "@/components/ui/dialog";
+import LeadForm from "./LeadForm";
 
 const EditLeadDialog = ({ open, onOpenChange, onLeadUpdated, initialData }) => {
   const handleSuccess = (updatedLead) => {
@@ -19,8 +20,11 @@ const EditLeadDialog = ({ open, onOpenChange, onLeadUpdated, initialData }) => {
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Lead</DialogTitle>
+          <DialogDescription>
+            Update the lead information below.
+          </DialogDescription>
         </DialogHeader>
-        <LeadForm 
+        <LeadForm
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
           initialData={initialData}
