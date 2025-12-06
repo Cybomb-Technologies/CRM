@@ -8,9 +8,14 @@ const createLead = require("./createLead");
 const readLead = require("./readLead");
 const updateLead = require("./updateLead");
 const deleteLead = require("./deleteLead");
-const bulkOperations = require("./bulkOperations");
-const conversion = require("./conversion");
 const advancedOperations = require("./advancedOperations");
+
+// Import NEW split modules
+const leadToContactConversion = require("./leadToContactConversion");
+const leadToAccountConversion = require("./leadToAccountConversion");
+const leadApproval = require("./leadApproval");
+const bulkLeadConversion = require("./bulkLeadConversion");
+const bulkLeadOperations = require("./bulkLeadOperations");
 
 // Configure multer for file uploads (Keep this in main file as it's shared)
 const storage = multer.diskStorage({
@@ -55,15 +60,21 @@ module.exports = {
   updateLead: [upload.single("image"), updateLead.updateLead],
   deleteLead: deleteLead.deleteLead,
 
-  bulkUpdateLeads: bulkOperations.bulkUpdateLeads,
-  bulkDeleteLeads: bulkOperations.bulkDeleteLeads,
-  bulkConvertLeads: bulkOperations.bulkConvertLeads,
-  manageLeadTags: bulkOperations.manageLeadTags,
+  // Bulk operations from new split modules
+  bulkUpdateLeads: bulkLeadOperations.bulkUpdateLeads,
+  bulkDeleteLeads: bulkLeadOperations.bulkDeleteLeads,
+  bulkConvertLeads: bulkLeadConversion.bulkConvertLeads,
+  bulkConvertLeadsToAccount: bulkLeadConversion.bulkConvertLeadsToAccount,
+  manageLeadTags: bulkLeadOperations.manageLeadTags,
 
-  convertLead: conversion.convertLead,
-  syncLeadToContact: conversion.syncLeadToContact,
-  approveLeads: conversion.approveLeads,
+  // Conversion operations from new split modules
+  convertLead: leadToContactConversion.convertLead,
+  convertLeadToAccount: leadToAccountConversion.convertLeadToAccount,
+  syncLeadToContact: leadToContactConversion.syncLeadToContact,
+  syncLeadToAccount: leadToAccountConversion.syncLeadToAccount,
+  approveLeads: leadApproval.approveLeads,
 
+  // Advanced operations (unchanged)
   deduplicateLeads: advancedOperations.deduplicateLeads,
   addLeadsToCampaign: advancedOperations.addLeadsToCampaign,
 

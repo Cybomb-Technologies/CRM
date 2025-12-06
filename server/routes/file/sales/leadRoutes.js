@@ -1,44 +1,37 @@
 // server/routes/file/sales/leadRoutes.js
 const express = require("express");
 const router = express.Router();
+const leadController = require("../../../controllers/file/sales/leads/leadController");
 
-const {
-  getLeads,
-  getLead,
-  createLead,
-  updateLead,
-  deleteLead,
-  bulkUpdateLeads,
-  bulkDeleteLeads,
-  convertLead,
-  bulkConvertLeads,
-  syncLeadToContact,
-  approveLeads,
-  manageLeadTags,
-  deduplicateLeads,
-  addLeadsToCampaign,
-} = require("../../../controllers/file/sales/leads/leadController");
+// GET Routes
+router.get("/", leadController.getLeads);
+router.get("/:id", leadController.getLead);
 
-// Lead CRUD routes
-router.get("/", getLeads);
-router.get("/:id", getLead);
-router.post("/", createLead);
-router.put("/:id", updateLead);
-router.delete("/:id", deleteLead);
+// POST Routes
+router.post("/", leadController.createLead);
+router.post("/bulk-update", leadController.bulkUpdateLeads);
+router.post("/bulk-delete", leadController.bulkDeleteLeads);
+router.post("/bulk-convert", leadController.bulkConvertLeads);
+router.post(
+  "/bulk-convert-to-account",
+  leadController.bulkConvertLeadsToAccount
+); // NEW
+router.post("/manage-tags", leadController.manageLeadTags);
+router.post("/approve", leadController.approveLeads);
+router.post("/deduplicate", leadController.deduplicateLeads);
+router.post("/add-to-campaign", leadController.addLeadsToCampaign);
 
-// Bulk operations
-router.post("/bulk-update", bulkUpdateLeads);
-router.post("/bulk-delete", bulkDeleteLeads);
-router.post("/bulk-convert", bulkConvertLeads);
+// PUT Routes
+router.put("/:id", leadController.updateLead);
+// router.put("/bulk-update", leadController.bulkUpdateLeads);
 
-// Lead conversion
-router.post("/:id/convert", convertLead);
-router.post("/:id/sync-contact", syncLeadToContact);
+// DELETE Routes
+router.delete("/:id", leadController.deleteLead);
 
-// Additional operations
-router.post("/approve", approveLeads);
-router.post("/manage-tags", manageLeadTags);
-router.post("/deduplicate", deduplicateLeads);
-router.post("/add-to-campaign", addLeadsToCampaign);
+// Conversion Routes
+router.post("/:id/convert", leadController.convertLead);
+router.post("/:id/convert-to-account", leadController.convertLeadToAccount); // NEW
+router.post("/:id/sync-contact", leadController.syncLeadToContact);
+router.post("/:id/sync-account", leadController.syncLeadToAccount); // NEW
 
 module.exports = router;

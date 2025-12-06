@@ -1,14 +1,19 @@
 // src/components/accounts/EditAccountDialog.jsx
-import React from 'react';
+import React from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import AccountForm from './AccountForm';
+} from "@/components/ui/dialog";
+import AccountForm from "./AccountForm";
 
-const EditAccountDialog = ({ open, onOpenChange, onAccountUpdated, initialData }) => {
+const EditAccountDialog = ({
+  open,
+  onOpenChange,
+  onAccountUpdated,
+  initialData,
+}) => {
   const handleSuccess = (updatedAccount) => {
     onAccountUpdated(updatedAccount);
     onOpenChange(false);
@@ -20,7 +25,7 @@ const EditAccountDialog = ({ open, onOpenChange, onAccountUpdated, initialData }
         <DialogHeader>
           <DialogTitle>Edit Account</DialogTitle>
         </DialogHeader>
-        <AccountForm 
+        <AccountForm
           onSuccess={handleSuccess}
           onCancel={() => onOpenChange(false)}
           initialData={initialData}
