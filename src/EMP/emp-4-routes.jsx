@@ -13,13 +13,14 @@ import CaseSolutionReportsPage from "@/components/reports/Case&SolutionReportspa
 import ProductReportsPage from "@/components/reports/ProductReportsPage";
 import VendorReportsPage from "@/components/reports/VendorReportspage";
 import QuoteReportsPage from "@/components/reports/QuoteReportspage";
-import InvoiceReportsPage from "@/components/reports/InvoiceReportspage";
-import CreateInvoice from "@/pages/files/inventory/CreateInvoice";
-import CreateQuote from "@/pages/files/inventory/CreateQuote";
-import PurchaseOrderReportsPage from "@/components/reports/PurchaseOrderReportspage";
-import CreatePurchaseOrder from "@/pages/files/inventory/CreatePurchaseOrder";
-import SalesOrderReportsPage from "@/components/reports/SalesOrderReportspage";
+import Invoices from "@/pages/files/inventory/Invoices";
+// import CreateInvoice from "@/pages/files/inventory/CreateInvoice";
+import QuotesPage from "@/pages/files/inventory/QuotesPage";
+// import PurchaseOrderForm from "@/components/inventory/purchaseorders/PurchaseOrderForm";
+import PurchaseOrdersPage from "@/pages/files/inventory/PurchaseOrdersPage";
 import OrgOverviewPage from "@/components/analytics/OrgOverview";
+import SalesOrdersPage from "@/pages/files/inventory/SalesOrdersPage";
+import PriceBooksPage from "@/pages/files/inventory/PriceBooksPage";
 
 const Emp4Routes = (
   <>
@@ -39,15 +40,15 @@ const Emp4Routes = (
     <Route path="/reports/quotes" element={<QuoteReportsPage />} />
 
     {/* Inventory Report Routes */}
-    <Route path="/invoices" element={<InvoiceReportsPage />} />
-    <Route path="/create-invoice" element={<CreateInvoice />} />
-    <Route path="/quotes" element={<QuoteReportsPage />} />
-    <Route path="/create-quote" element={<CreateQuote />} />
-    <Route path="/purchase-orders" element={<PurchaseOrderReportsPage />} />
-    <Route path="/create-purchase-order" element={<CreatePurchaseOrder />} />
-    <Route path="/price-books" element={<ProductReportsPage />} />
+    <Route path="/invoices" element={<Invoices />} />
+    {/* <Route path="/create-invoice" element={<CreateInvoice />} /> */}
+    <Route path="/quotes" element={<QuotesPage />} />
+    {/* <Route path="/create-quote" element={<CreateQuote />} /> */}
+    <Route path="/purchase-orders" element={<PurchaseOrdersPage />} />
+  {/* <Route path="/create-purchase-order" element={<CreatePurchaseOrderForm />} /> */}
+    <Route path="/price-books" element={<PriceBooksPage />} />
     <Route path="/vendors" element={<VendorReportsPage />} />
-    <Route path="/sales-orders" element={<SalesOrderReportsPage />} />
+    <Route path="/sales-orders" element={<SalesOrdersPage />} />
 
     {/* Analytics Route */}
     <Route path="/" element={<OrgOverviewPage />} />

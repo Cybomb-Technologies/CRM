@@ -4,8 +4,8 @@ import SalesInboxPage from "@/pages/files/integrations/SalesInboxPage";
 import SocialPage from "@/pages/files/integrations/SocialPage";
 import VisitsPage from "@/pages/files/integrations/VisitsPage";
 import TicketsPage from "@/pages/TicketsPage";
-import ProductsPage from "@/pages/ProductsPage";
-import ReportsPage from "@/pages/ReportsPage";
+import ProductsPage from "@/pages/files/inventory/ProductsPage";
+import ReportsPage from "@/pages/reports/ReportsPage";
 import WorkflowsPage from "@/pages/WorkflowsPage";
 import WorkflowBuilderPage from "@/pages/WorkflowBuilderPage";
 import SettingsPage from "@/pages/SettingsPage";
@@ -33,8 +33,8 @@ const Emp3Routes = (
     <Route path="/create-vendor" element={<CreateVendor />} />
 
     {/* Reports Routes */}
-    <Route path="/reports" element={<ReportsPage />} />
-    <Route path="/reports/:folder" element={<ReportsPage />} />
+    {/* <Route path="/reports" element={<ReportsPage />} />
+    <Route path="/reports/:folder" element={<ReportsPage />} /> */}
 
     {/* Hook/Test Routes */}
     <Route path="/use-invoice-form" element={<useInvoiceForm />} />
