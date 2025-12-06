@@ -12,9 +12,10 @@ import {
   UserCheck,
   Ban,
   Lock,
-  Star,
   UserPlus,
   RefreshCw,
+  Building2,
+  User,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -22,8 +23,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { leadsService } from "./leadsService";
-import { useToast } from "@/components/ui/use-toast";
 
 const LeadsTable = ({
   leads,
@@ -34,10 +33,11 @@ const LeadsTable = ({
   onLeadDelete,
   onLeadView,
   onLeadConvert,
+  onLeadConvertToAccount,
+  onLeadSync,
+  onLeadSyncToAccount,
   onLeadEmail,
 }) => {
-  const { toast } = useToast();
-
   if (loading) {
     return (
       <div className="p-8 text-center">
@@ -88,52 +88,6 @@ const LeadsTable = ({
     }
   };
 
-  // FIXED: Properly handle sync vs convert
-  const handleSyncToContact = async (lead) => {
-    try {
-      console.log("Syncing lead to contact:", lead.id || lead._id);
-
-      if (!lead.isConverted) {
-        // If lead is not converted yet, convert it first
-        toast({
-          title: "Converting Lead",
-          description: "Lead is being converted to contact first...",
-        });
-
-        // Call the convert function
-        if (onLeadConvert) {
-          await onLeadConvert(lead);
-        }
-        return;
-      }
-
-      // If lead is already converted, sync it
-      const result = await leadsService.syncLeadToContact(lead.id || lead._id);
-
-      if (result.success) {
-        toast({
-          title: "Sync Successful",
-          description: "Contact updated with latest lead data.",
-        });
-        // Refresh the table to show updated status
-        // Note: We don't call onLeadConvert here as it's already converted
-      } else {
-        toast({
-          title: "Sync Failed",
-          description: result.message || "Failed to sync lead to contact",
-          variant: "destructive",
-        });
-      }
-    } catch (error) {
-      console.error("Sync error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to sync lead to contact",
-        variant: "destructive",
-      });
-    }
-  };
-
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
@@ -177,157 +131,256 @@ const LeadsTable = ({
           </tr>
         </thead>
         <tbody>
-          {leads.map((lead) => (
-            <tr
-              key={lead.id || lead._id}
-              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-            >
-              <td className="p-4">
-                <Checkbox
-                  checked={selectedLeads.includes(lead.id || lead._id)}
-                  onCheckedChange={(checked) =>
-                    handleSelectLead(lead.id || lead._id, checked)
-                  }
-                />
-              </td>
-              <td className="p-4 font-medium text-gray-900 dark:text-white">
-                <div className="flex items-center gap-2">
-                  {lead.firstName} {lead.lastName}
-                  {lead.isUnread && (
-                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                  )}
-                  {lead.isConverted && (
-                    <Badge
-                      variant="outline"
-                      className="text-xs bg-green-50 text-green-700 border-green-200"
-                    >
-                      Converted
-                    </Badge>
-                  )}
-                </div>
-              </td>
-              <td className="p-4 text-gray-600 dark:text-gray-400">
-                {lead.company}
-              </td>
-              <td className="p-4 text-gray-600 dark:text-gray-400">
-                {lead.email}
-              </td>
-              <td className="p-4 text-gray-600 dark:text-gray-400">
-                {lead.phone}
-              </td>
-              <td className="p-4">
-                <span
-                  className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
-                    lead.leadStatus
-                  )}`}
-                >
-                  {lead.leadStatus}
-                </span>
-              </td>
-              <td className="p-4 text-gray-600 dark:text-gray-400">
-                {lead.leadSource}
-              </td>
-              <td className="p-4">
-                <div className="flex gap-1">
-                  {lead.isConverted && (
-                    <UserCheck
-                      className="w-4 h-4 text-green-600"
-                      title="Converted"
-                    />
-                  )}
-                  {lead.isLocked && (
-                    <Lock className="w-4 h-4 text-orange-600" title="Locked" />
-                  )}
-                  {lead.isJunk && (
-                    <Ban className="w-4 h-4 text-red-600" title="Junk" />
-                  )}
-                  {lead.isUnsubscribed && (
-                    <Mail
-                      className="w-4 h-4 text-gray-600"
-                      title="Unsubscribed"
-                    />
-                  )}
-                </div>
-              </td>
-              <td className="p-4 text-gray-600 dark:text-gray-400">
-                {new Date(lead.createdAt).toLocaleDateString()}
-              </td>
-              <td className="p-4 text-right">
-                <div className="flex items-center justify-end gap-1">
-                  {!lead.isConverted ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onLeadConvert && onLeadConvert(lead)}
-                      className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50"
-                      title="Convert to Contact"
-                    >
-                      <UserPlus className="w-4 h-4" />
-                    </Button>
-                  ) : (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSyncToContact(lead)}
-                      className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
-                      title="Sync to Contact"
-                    >
-                      <RefreshCw className="w-4 h-4" />
-                    </Button>
-                  )}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <MoreVertical className="w-4 h-4" />
+          {leads.map((lead) => {
+            const leadId = lead.id || lead._id;
+            const isConverted = lead.isConverted;
+            const isConvertedToContact = Boolean(lead.convertedToContactId);
+            const isConvertedToAccount = Boolean(lead.convertedToAccountId);
+
+            return (
+              <tr
+                key={leadId}
+                className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+              >
+                <td className="p-4">
+                  <Checkbox
+                    checked={selectedLeads.includes(leadId)}
+                    onCheckedChange={(checked) =>
+                      handleSelectLead(leadId, checked)
+                    }
+                  />
+                </td>
+                <td className="p-4 font-medium text-gray-900 dark:text-white">
+                  <div className="flex items-center gap-2">
+                    {lead.firstName} {lead.lastName}
+                    {/* {lead.isUnread && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    )} */}
+                    {/* SHOW CONTACT BADGE IF CONVERTED TO CONTACT */}
+                    {isConvertedToContact && (
+                      <Badge
+                        variant="outline"
+                        className="text-xs bg-blue-50 text-blue-700 border-blue-200"
+                      >
+                        <User className="w-3 h-3 mr-1" />
+                        Contact
+                      </Badge>
+                    )}
+                    {/* SHOW ACCOUNT BADGE IF CONVERTED TO ACCOUNT */}
+                    {isConvertedToAccount && (
+                      <Badge
+                        variant="outline"
+                        className="text-xs bg-purple-50 text-purple-700 border-purple-200"
+                      >
+                        <Building2 className="w-3 h-3 mr-1" />
+                        Account
+                      </Badge>
+                    )}
+                    {/* REMOVED: Generic "Converted" badge - replaced with specific badges above */}
+                  </div>
+                </td>
+                <td className="p-4 text-gray-600 dark:text-gray-400">
+                  {lead.company}
+                </td>
+                <td className="p-4 text-gray-600 dark:text-gray-400">
+                  {lead.email}
+                </td>
+                <td className="p-4 text-gray-600 dark:text-gray-400">
+                  {lead.phone}
+                </td>
+                <td className="p-4">
+                  <span
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(
+                      lead.leadStatus
+                    )}`}
+                  >
+                    {lead.leadStatus}
+                  </span>
+                </td>
+                <td className="p-4 text-gray-600 dark:text-gray-400">
+                  {lead.leadSource}
+                </td>
+                <td className="p-4">
+                  <div className="flex gap-1">
+                    {/* SHOW CONTACT ICON IF CONVERTED TO CONTACT */}
+                    {isConvertedToContact && (
+                      <User className="w-4 h-4 text-blue-600" title="Contact" />
+                    )}
+                    {/* SHOW ACCOUNT ICON IF CONVERTED TO ACCOUNT */}
+                    {isConvertedToAccount && (
+                      <Building2
+                        className="w-4 h-4 text-purple-600"
+                        title="Account"
+                      />
+                    )}
+                    {lead.isLocked && (
+                      <Lock
+                        className="w-4 h-4 text-orange-600"
+                        title="Locked"
+                      />
+                    )}
+                    {lead.isJunk && (
+                      <Ban className="w-4 h-4 text-red-600" title="Junk" />
+                    )}
+                    {lead.isUnsubscribed && (
+                      <Mail
+                        className="w-4 h-4 text-gray-600"
+                        title="Unsubscribed"
+                      />
+                    )}
+                  </div>
+                </td>
+                <td className="p-4 text-gray-600 dark:text-gray-400">
+                  {new Date(lead.createdAt).toLocaleDateString()}
+                </td>
+                <td className="p-4 text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    {/* Convert to Contact Button - Show if NOT converted to contact */}
+                    {!isConvertedToContact && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onLeadConvert && onLeadConvert(lead)}
+                        className="h-8 px-2 text-green-600 border-green-200 hover:bg-green-50"
+                        title="Convert to Contact"
+                      >
+                        <UserPlus className="w-4 h-4" />
                       </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem
-                        onClick={() => onLeadView && onLeadView(lead)}
+                    )}
+
+                    {/* Convert to Account Button - Show if NOT converted to account */}
+                    {!isConvertedToAccount && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          onLeadConvertToAccount && onLeadConvertToAccount(lead)
+                        }
+                        className="h-8 px-2 text-purple-600 border-purple-200 hover:bg-purple-50"
+                        title="Convert to Account"
                       >
-                        <Eye className="w-4 h-4 mr-2" />
-                        View
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onLeadEdit && onLeadEdit(lead)}
+                        <Building2 className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    {/* Show Sync to Contact ONLY if converted to contact */}
+                    {isConvertedToContact && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => onLeadSync && onLeadSync(lead)}
+                        className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                        title="Sync to Contact"
                       >
-                        <Edit className="w-4 h-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => onLeadEmail && onLeadEmail(lead)}
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    {/* Show Sync to Account ONLY if converted to account */}
+                    {isConvertedToAccount && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() =>
+                          onLeadSyncToAccount && onLeadSyncToAccount(lead)
+                        }
+                        className="h-8 px-2 text-blue-600 border-blue-200 hover:bg-blue-50"
+                        title="Sync to Account"
                       >
-                        <Mail className="w-4 h-4 mr-2" />
-                        Send Email
-                      </DropdownMenuItem>
-                      {!lead.isConverted ? (
-                        <DropdownMenuItem
-                          onClick={() => onLeadConvert && onLeadConvert(lead)}
+                        <RefreshCw className="w-4 h-4" />
+                      </Button>
+                    )}
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0"
                         >
-                          <UserPlus className="w-4 h-4 mr-2" />
-                          Convert to Contact
-                        </DropdownMenuItem>
-                      ) : (
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
                         <DropdownMenuItem
-                          onClick={() => handleSyncToContact(lead)}
+                          onClick={() => onLeadView && onLeadView(lead)}
                         >
-                          <RefreshCw className="w-4 h-4 mr-2" />
-                          Sync to Contact
+                          <Eye className="w-4 h-4 mr-2" />
+                          View
                         </DropdownMenuItem>
-                      )}
-                      <DropdownMenuItem
-                        onClick={() => onLeadDelete && onLeadDelete(lead)}
-                        className="text-red-600"
-                      >
-                        <Trash2 className="w-4 h-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </td>
-            </tr>
-          ))}
+                        <DropdownMenuItem
+                          onClick={() => onLeadEdit && onLeadEdit(lead)}
+                        >
+                          <Edit className="w-4 h-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onLeadEmail && onLeadEmail(lead)}
+                        >
+                          <Mail className="w-4 h-4 mr-2" />
+                          Send Email
+                        </DropdownMenuItem>
+
+                        {/* Conversion Options */}
+                        {/* Convert to Contact - Show if NOT converted to contact */}
+                        {!isConvertedToContact && (
+                          <DropdownMenuItem
+                            onClick={() => onLeadConvert && onLeadConvert(lead)}
+                          >
+                            <UserPlus className="w-4 h-4 mr-2" />
+                            Convert to Contact
+                          </DropdownMenuItem>
+                        )}
+
+                        {/* Convert to Account - Show if NOT converted to account */}
+                        {!isConvertedToAccount && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              onLeadConvertToAccount &&
+                              onLeadConvertToAccount(lead)
+                            }
+                          >
+                            <Building2 className="w-4 h-4 mr-2" />
+                            Convert to Account
+                          </DropdownMenuItem>
+                        )}
+
+                        {/* Show Sync to Contact ONLY if converted to contact */}
+                        {isConvertedToContact && (
+                          <DropdownMenuItem
+                            onClick={() => onLeadSync && onLeadSync(lead)}
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Sync to Contact
+                          </DropdownMenuItem>
+                        )}
+
+                        {/* Show Sync to Account ONLY if converted to account */}
+                        {isConvertedToAccount && (
+                          <DropdownMenuItem
+                            onClick={() =>
+                              onLeadSyncToAccount && onLeadSyncToAccount(lead)
+                            }
+                          >
+                            <RefreshCw className="w-4 h-4 mr-2" />
+                            Sync to Account
+                          </DropdownMenuItem>
+                        )}
+
+                        <DropdownMenuItem
+                          onClick={() => onLeadDelete && onLeadDelete(lead)}
+                          className="text-red-600"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>

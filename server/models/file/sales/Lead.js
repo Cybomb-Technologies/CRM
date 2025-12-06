@@ -71,7 +71,7 @@ const leadSchema = new mongoose.Schema(
       contentType: String,
       filename: String,
     },
-    imageUrl: String, // Alternative: store URL if using file system
+    imageUrl: String,
 
     // Flags and Status
     isConverted: {
@@ -103,12 +103,16 @@ const leadSchema = new mongoose.Schema(
       default: false,
     },
 
-    // Conversion Information
+    // Contact Conversion Information
     convertedToContactId: String,
-    convertedToAccountId: String,
+    convertedToAccountId: String, // For account conversion
     conversionDate: Date,
     approvedAt: Date,
     approvedBy: String,
+
+    // Account Conversion Tracking
+    accountConversionDate: Date, // When lead was converted to account
+    lastSyncedToAccount: Date, // When lead data was last synced to account
 
     // Tags
     tags: [String],
@@ -129,6 +133,7 @@ leadSchema.index({ email: 1 });
 leadSchema.index({ company: 1 });
 leadSchema.index({ leadStatus: 1 });
 leadSchema.index({ isConverted: 1 });
+leadSchema.index({ convertedToAccountId: 1 });
 
 // Virtual for getting image URL
 leadSchema.virtual("imagePath").get(function () {

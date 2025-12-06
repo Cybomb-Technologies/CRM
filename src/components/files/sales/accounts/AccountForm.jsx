@@ -1,3 +1,4 @@
+// src/components/files/sales/accounts/AccountForm.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -75,7 +76,7 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
         ...prev,
         ...cleanData,
         employees: cleanData.employees?.toString() || "",
-        annualRevenue: cleanData.annualRevenue?.toString() || "",
+        annualRevenue: cleanData.annualRevenue?.toString() || "0",
         billingAddress: cleanData.billingAddress || {
           street: "",
           city: "",
@@ -142,9 +143,9 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
         email: formData.email?.trim() || "",
         industry: formData.industry?.trim() || "",
         type: formData.type,
-        employees: formData.employees ? parseInt(formData.employees) : 0,
+        employees: formData.employees ? parseInt(formData.employees, 10) : 0,
         annualRevenue: formData.annualRevenue
-          ? parseFloat(formData.annualRevenue)
+          ? parseFloat(formData.annualRevenue.replace(/[^\d.]/g, "")) || 0
           : 0,
         contacts: initialData?.contacts || 0,
         description: formData.description?.trim() || "",
@@ -159,7 +160,13 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
       delete apiData.createdAt;
       delete apiData.updatedAt;
 
-      console.log("Creating account with data:", apiData);
+      console.log("Creating/updating account with data:", apiData);
+      console.log(
+        "Annual revenue being sent:",
+        apiData.annualRevenue,
+        "Type:",
+        typeof apiData.annualRevenue
+      );
 
       let response;
 
@@ -215,6 +222,20 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
       setIsSubmitting(false);
       setLoading(false);
     }
+  };
+
+  // Handle annual revenue input with formatting
+  const handleAnnualRevenueChange = (value) => {
+    // Remove non-numeric characters except decimal point
+    const cleanedValue = value.replace(/[^\d.]/g, "");
+    handleChange("annualRevenue", cleanedValue);
+  };
+
+  // Format annual revenue for display
+  const formatAnnualRevenue = (value) => {
+    if (!value) return "0";
+    const numValue = parseFloat(value) || 0;
+    return numValue.toLocaleString("en-IN");
   };
 
   const industries = [
@@ -362,23 +383,21 @@ const AccountForm = ({ onSuccess, onCancel, initialData }) => {
             </div>
 
             <div>
-              <label className="text-sm font-medium">Annual Revenue</label>
+              <label className="text-sm font-medium">Annual Revenue (₹)</label>
               <div className="relative">
                 <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
                   ₹
                 </span>
                 <Input
-                  type="number"
                   value={formData.annualRevenue}
-                  onChange={(e) =>
-                    handleChange("annualRevenue", e.target.value)
-                  }
-                  placeholder="Annual Revenue"
+                  onChange={(e) => handleAnnualRevenueChange(e.target.value)}
+                  placeholder="0"
                   className="pl-8"
                   disabled={loading}
-                  min="0"
-                  step="1000"
                 />
+                <div className="text-xs text-gray-500 mt-1">
+                  Current value: ₹{formatAnnualRevenue(formData.annualRevenue)}
+                </div>
               </div>
             </div>
           </div>

@@ -156,7 +156,7 @@ const LeadsPageContent = () => {
     setViewDialogOpen(true);
   }, []);
 
-  // FIXED: Actually convert lead to contact
+  // Convert lead to contact
   const handleLeadConvert = useCallback(
     async (lead) => {
       try {
@@ -192,7 +192,45 @@ const LeadsPageContent = () => {
     [toast, fetchLeads]
   );
 
-  // NEW: Handle sync to contact (for already converted leads)
+  // NEW: Convert lead to account
+  const handleLeadConvertToAccount = useCallback(
+    async (lead) => {
+      try {
+        console.log("Converting lead to account:", lead.id || lead._id);
+
+        const result = await leadsService.convertLeadToAccount(
+          lead.id || lead._id
+        );
+        if (result.success) {
+          toast({
+            title: "Lead Converted to Account",
+            description: `${lead.firstName} ${
+              lead.lastName
+            } has been converted to account. Account: ${
+              result.data?.account?.name || "Created"
+            }`,
+          });
+          fetchLeads(); // Refresh to show converted status
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to convert lead to account",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Convert lead to account error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to convert lead to account. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast, fetchLeads]
+  );
+
+  // Sync lead to contact
   const handleLeadSync = useCallback(
     async (lead) => {
       try {
@@ -219,6 +257,40 @@ const LeadsPageContent = () => {
         toast({
           title: "Error",
           description: error.message || "Failed to sync lead to contact",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast, fetchLeads]
+  );
+
+  // NEW: Sync lead to account
+  const handleLeadSyncToAccount = useCallback(
+    async (lead) => {
+      try {
+        console.log("Syncing lead to account:", lead.id || lead._id);
+
+        const result = await leadsService.syncLeadToAccount(
+          lead.id || lead._id
+        );
+        if (result.success) {
+          toast({
+            title: "Account Synced",
+            description: `${lead.firstName} ${lead.lastName}'s account has been updated with the latest lead data.`,
+          });
+          fetchLeads(); // Refresh to show updated status
+        } else {
+          toast({
+            title: "Error",
+            description: result.message || "Failed to sync lead to account",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Sync lead to account error:", error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to sync lead to account",
           variant: "destructive",
         });
       }
@@ -267,11 +339,11 @@ const LeadsPageContent = () => {
     [toast, fetchLeads]
   );
 
-  // FIXED: Actually bulk convert leads to contacts
+  // Bulk convert leads to contacts
   const handleBulkConvert = useCallback(
     async (leadIds) => {
       try {
-        console.log("Bulk converting leads:", leadIds);
+        console.log("Bulk converting leads to contacts:", leadIds);
 
         const result = await leadsService.bulkConvertLeads(leadIds);
         setSelectedLeads([]);
@@ -287,6 +359,33 @@ const LeadsPageContent = () => {
         toast({
           title: "Error",
           description: "Failed to convert leads. Please try again.",
+          variant: "destructive",
+        });
+      }
+    },
+    [toast, fetchLeads]
+  );
+
+  // NEW: Bulk convert leads to accounts
+  const handleBulkConvertToAccount = useCallback(
+    async (leadIds) => {
+      try {
+        console.log("Bulk converting leads to accounts:", leadIds);
+
+        const result = await leadsService.bulkConvertLeadsToAccount(leadIds);
+        setSelectedLeads([]);
+        toast({
+          title: result.success ? "Success" : "Error",
+          description:
+            result.message || `${leadIds.length} leads converted to accounts`,
+          variant: result.success ? "default" : "destructive",
+        });
+        fetchLeads(); // Refresh to show converted status
+      } catch (error) {
+        console.error("Bulk convert to account error:", error);
+        toast({
+          title: "Error",
+          description: "Failed to convert leads to accounts. Please try again.",
           variant: "destructive",
         });
       }
@@ -459,10 +558,11 @@ const LeadsPageContent = () => {
       {selectedLeads.length > 0 && (
         <LeadsBulkActions
           selectedLeads={selectedLeads}
-          leads={leads} // Add this line to pass leads data
+          leads={leads}
           onBulkDelete={handleBulkDelete}
           onBulkUpdate={handleBulkUpdate}
-          onBulkConvert={handleBulkConvert} // FIXED: Now actually converts
+          onBulkConvert={handleBulkConvert}
+          onBulkConvertToAccount={handleBulkConvertToAccount}
           onManageTags={handleManageTags}
           onMassEmail={handleMassEmail}
           onExport={handleExport}
@@ -482,7 +582,10 @@ const LeadsPageContent = () => {
           onLeadEdit={handleLeadEdit}
           onLeadDelete={handleLeadDelete}
           onLeadView={handleViewLead}
-          onLeadConvert={handleLeadConvert} // For unconverted leads
+          onLeadConvert={handleLeadConvert}
+          onLeadConvertToAccount={handleLeadConvertToAccount}
+          onLeadSync={handleLeadSync}
+          onLeadSyncToAccount={handleLeadSyncToAccount}
           onLeadEmail={handleLeadEmail}
         />
       </div>

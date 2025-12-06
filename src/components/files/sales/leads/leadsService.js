@@ -155,10 +155,10 @@ export const leadsService = {
     }
   },
 
-  // Lead conversion - FIXED: Actually creates contact
+  // Lead conversion to contact
   convertLead: async (leadId, dealData = {}) => {
     try {
-      console.log("Service: Converting lead", leadId);
+      console.log("Service: Converting lead to contact", leadId);
       const response = await leadsAPI.convertLead(leadId, dealData);
       return {
         success: true,
@@ -174,10 +174,29 @@ export const leadsService = {
     }
   },
 
-  // Bulk convert leads - FIXED: Actually creates contacts
+  // NEW: Lead conversion to account
+  convertLeadToAccount: async (leadId) => {
+    try {
+      console.log("Service: Converting lead to account", leadId);
+      const response = await leadsAPI.convertLeadToAccount(leadId);
+      return {
+        success: true,
+        data: response.data,
+        message: response.message || "Lead converted to account successfully",
+      };
+    } catch (error) {
+      console.error("Convert lead to account error:", error);
+      return {
+        success: false,
+        message: error.message || "Failed to convert lead to account",
+      };
+    }
+  },
+
+  // Bulk convert leads to contacts
   bulkConvertLeads: async (leadIds) => {
     try {
-      console.log("Service: Bulk converting leads", leadIds);
+      console.log("Service: Bulk converting leads to contacts", leadIds);
       const response = await leadsAPI.bulkConvertLeads(leadIds);
       return {
         success: true,
@@ -195,7 +214,28 @@ export const leadsService = {
     }
   },
 
-  // Sync lead to contact - FIXED: Actually syncs or creates contact
+  // NEW: Bulk convert leads to accounts
+  bulkConvertLeadsToAccount: async (leadIds) => {
+    try {
+      console.log("Service: Bulk converting leads to accounts", leadIds);
+      const response = await leadsAPI.bulkConvertLeadsToAccount(leadIds);
+      return {
+        success: true,
+        data: response.data,
+        message:
+          response.message ||
+          `${leadIds.length} leads converted to accounts successfully`,
+      };
+    } catch (error) {
+      console.error("Bulk convert leads to account error:", error);
+      return {
+        success: false,
+        message: error.message || "Failed to convert leads to accounts",
+      };
+    }
+  },
+
+  // Sync lead to contact
   syncLeadToContact: async (leadId) => {
     try {
       console.log("Service: Syncing lead to contact", leadId);
@@ -210,6 +250,25 @@ export const leadsService = {
       return {
         success: false,
         message: error.message || "Failed to sync lead to contact",
+      };
+    }
+  },
+
+  // NEW: Sync lead to account
+  syncLeadToAccount: async (leadId) => {
+    try {
+      console.log("Service: Syncing lead to account", leadId);
+      const response = await leadsAPI.syncLeadToAccount(leadId);
+      return {
+        success: true,
+        data: response.data,
+        message: response.message || "Lead synced to account successfully",
+      };
+    } catch (error) {
+      console.error("Sync lead to account error:", error);
+      return {
+        success: false,
+        message: error.message || "Failed to sync lead to account",
       };
     }
   },

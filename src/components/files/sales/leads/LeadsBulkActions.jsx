@@ -49,6 +49,7 @@ import {
   CheckSquare,
   Square,
   ChevronRight,
+  Building2,
 } from "lucide-react";
 import { leadsService } from "./leadsService";
 import { useToast } from "@/components/ui/use-toast";
@@ -58,13 +59,14 @@ const LeadsBulkActions = ({
   onBulkDelete,
   onBulkUpdate,
   onBulkConvert,
+  onBulkConvertToAccount,
   onManageTags,
   onMassEmail,
   onExport,
   onAddToCampaign,
   onApproveLeads,
   onDeduplicateLeads,
-  leads, // Add leads prop to access lead data
+  leads,
 }) => {
   const { toast } = useToast();
 
@@ -77,6 +79,8 @@ const LeadsBulkActions = ({
   const [showScriptDialog, setShowScriptDialog] = useState(false);
   const [showApproveDialog, setShowApproveDialog] = useState(false);
   const [showDeduplicateDialog, setShowDeduplicateDialog] = useState(false);
+  const [showConvertAccountDialog, setShowConvertAccountDialog] =
+    useState(false);
 
   const [updateData, setUpdateData] = useState({
     status: "",
@@ -117,14 +121,11 @@ const LeadsBulkActions = ({
     setEmailData({ subject: "", message: "", template: "" });
   };
 
-  // FIXED: Actually converts leads to contacts
+  // Handle bulk convert to contact
   const handleBulkConvert = async () => {
     try {
-      console.log("Bulk converting leads:", selectedLeads);
-
-      // Call the actual conversion function
+      console.log("Bulk converting leads to contacts:", selectedLeads);
       await onBulkConvert(selectedLeads);
-
       toast({
         title: "Conversion Started",
         description: `${selectedLeads.length} leads are being converted to contacts.`,
@@ -134,6 +135,27 @@ const LeadsBulkActions = ({
       toast({
         title: "Error",
         description: "Failed to start bulk conversion",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle bulk convert to account
+  const handleBulkConvertToAccount = async () => {
+    try {
+      console.log("Bulk converting leads to accounts:", selectedLeads);
+
+      await onBulkConvertToAccount(selectedLeads);
+      toast({
+        title: "Conversion Started",
+        description: `${selectedLeads.length} leads are being converted to accounts.`,
+      });
+      setShowConvertAccountDialog(false);
+    } catch (error) {
+      console.error("Bulk convert to account error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to start bulk conversion to accounts",
         variant: "destructive",
       });
     }
@@ -166,7 +188,6 @@ const LeadsBulkActions = ({
   };
 
   const handleCreateClientScript = async () => {
-    // This would typically generate a script based on selected leads
     const script = `// Client script for ${
       selectedLeads.length
     } leads\n// Generated on ${new Date().toLocaleString()}`;
@@ -424,8 +445,8 @@ const LeadsBulkActions = ({
                     }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Qualified:</span> ${
-                      lead.isQualified ? "Yes" : "No"
+                    <span class="lead-info-label">Converted to Account:</span> ${
+                      lead.convertedToAccountId ? "Yes" : "No"
                     }
                   </div>
                 </div>
@@ -576,10 +597,16 @@ const LeadsBulkActions = ({
               Mass Update
             </DropdownMenuItem>
 
-            {/* Mass Convert - FIXED: Actually converts */}
+            {/* Mass Convert to Contact */}
             <DropdownMenuItem onClick={handleBulkConvert}>
               <CheckCircle className="w-4 h-4 mr-2" />
-              Mass Convert
+              Mass Convert to Contact
+            </DropdownMenuItem>
+
+            {/* Mass Convert to Account */}
+            <DropdownMenuItem onClick={() => setShowConvertAccountDialog(true)}>
+              <Building2 className="w-4 h-4 mr-2" />
+              Mass Convert to Account
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -763,7 +790,46 @@ const LeadsBulkActions = ({
         </DialogContent>
       </Dialog>
 
-      {/* Other dialogs remain similar but use the new service functions */}
+      {/* Mass Convert to Account Dialog */}
+      <Dialog
+        open={showConvertAccountDialog}
+        onOpenChange={setShowConvertAccountDialog}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Mass Convert to Account</DialogTitle>
+            <DialogDescription>
+              Convert {selectedLeads.length} selected leads to accounts
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p>
+              Are you sure you want to convert {selectedLeads.length} lead(s) to
+              accounts? This will create new accounts from the selected leads.
+            </p>
+            <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4">
+              <p className="text-sm text-yellow-800">
+                <strong>Note:</strong> Each lead will create a new account. The
+                lead's company name will be used as the account name. If a lead
+                is already converted to an account, it will be skipped.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowConvertAccountDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleBulkConvertToAccount}>
+              <Building2 className="w-4 h-4 mr-2" />
+              Convert to Accounts
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Mass Email Dialog */}
       <Dialog open={showEmailDialog} onOpenChange={setShowEmailDialog}>
         <DialogContent className="max-w-2xl">

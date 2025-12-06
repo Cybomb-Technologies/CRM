@@ -1,5 +1,5 @@
 // src/hooks/useLeadsFilter.js
-import { useMemo } from 'react';
+import { useMemo } from "react";
 
 export const useLeadsFilter = (leads, filters, currentView) => {
   return useMemo(() => {
@@ -7,57 +7,57 @@ export const useLeadsFilter = (leads, filters, currentView) => {
 
     // Apply view filters
     switch (currentView) {
-      case 'all':
+      case "all":
         break;
-      case 'locked':
-        filteredLeads = filteredLeads.filter(lead => lead.isLocked);
+      case "locked":
+        filteredLeads = filteredLeads.filter((lead) => lead.isLocked);
         break;
-      case 'converted':
-        filteredLeads = filteredLeads.filter(lead => lead.isConverted);
+      case "converted":
+        filteredLeads = filteredLeads.filter((lead) => lead.isConverted);
         break;
-      case 'junk':
-        filteredLeads = filteredLeads.filter(lead => lead.isJunk);
+      case "junk":
+        filteredLeads = filteredLeads.filter((lead) => lead.isJunk);
         break;
-      case 'my-converted':
-        filteredLeads = filteredLeads.filter(lead => lead.isConverted);
+      case "my-converted":
+        filteredLeads = filteredLeads.filter((lead) => lead.isConverted);
         break;
-      case 'my-leads':
+      case "my-leads":
         // Assuming current user logic here
-        filteredLeads = filteredLeads.filter(lead => !lead.isConverted);
+        filteredLeads = filteredLeads.filter((lead) => !lead.isConverted);
         break;
-      case 'not-qualified':
-        filteredLeads = filteredLeads.filter(lead => !lead.isQualified);
+      case "not-qualified":
+        filteredLeads = filteredLeads.filter((lead) => !lead.isQualified);
         break;
-      case 'open':
-        filteredLeads = filteredLeads.filter(lead => 
-          ['New', 'Contacted', 'Qualified'].includes(lead.leadStatus)
+      case "open":
+        filteredLeads = filteredLeads.filter((lead) =>
+          ["New", "Contacted", "Qualified"].includes(lead.leadStatus)
         );
         break;
-      case 'recently-created':
+      case "recently-created":
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        filteredLeads = filteredLeads.filter(lead => 
-          new Date(lead.createdAt) > oneWeekAgo
+        filteredLeads = filteredLeads.filter(
+          (lead) => new Date(lead.createdAt) > oneWeekAgo
         );
         break;
-      case 'recently-modified':
+      case "recently-modified":
         const twoDaysAgo = new Date();
         twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
-        filteredLeads = filteredLeads.filter(lead => 
-          new Date(lead.updatedAt) > twoDaysAgo
+        filteredLeads = filteredLeads.filter(
+          (lead) => new Date(lead.updatedAt) > twoDaysAgo
         );
         break;
-      case 'today':
+      case "today":
         const today = new Date().toDateString();
-        filteredLeads = filteredLeads.filter(lead => 
-          new Date(lead.createdAt).toDateString() === today
+        filteredLeads = filteredLeads.filter(
+          (lead) => new Date(lead.createdAt).toDateString() === today
         );
         break;
-      case 'unread':
-        filteredLeads = filteredLeads.filter(lead => lead.isUnread);
+      case "unread":
+        filteredLeads = filteredLeads.filter((lead) => lead.isUnread);
         break;
-      case 'unsubscribed':
-        filteredLeads = filteredLeads.filter(lead => lead.isUnsubscribed);
+      case "unsubscribed":
+        filteredLeads = filteredLeads.filter((lead) => lead.isUnsubscribed);
         break;
       default:
         break;
@@ -65,64 +65,76 @@ export const useLeadsFilter = (leads, filters, currentView) => {
 
     // Apply custom filters
     if (filters.status) {
-      filteredLeads = filteredLeads.filter(lead => lead.leadStatus === filters.status);
+      filteredLeads = filteredLeads.filter(
+        (lead) => lead.leadStatus === filters.status
+      );
     }
     if (filters.source) {
-      filteredLeads = filteredLeads.filter(lead => lead.leadSource === filters.source);
+      filteredLeads = filteredLeads.filter(
+        (lead) => lead.leadSource === filters.source
+      );
     }
     if (filters.industry) {
-      filteredLeads = filteredLeads.filter(lead => lead.industry === filters.industry);
+      filteredLeads = filteredLeads.filter(
+        (lead) => lead.industry === filters.industry
+      );
     }
     if (filters.dateRange) {
       const now = new Date();
       let startDate;
-      
+
       switch (filters.dateRange) {
-        case 'today':
+        case "today":
           startDate = new Date(now.setHours(0, 0, 0, 0));
           break;
-        case 'yesterday':
+        case "yesterday":
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - 1);
           startDate.setHours(0, 0, 0, 0);
           const endDate = new Date(startDate);
           endDate.setDate(endDate.getDate() + 1);
-          filteredLeads = filteredLeads.filter(lead => {
+          filteredLeads = filteredLeads.filter((lead) => {
             const leadDate = new Date(lead.createdAt);
             return leadDate >= startDate && leadDate < endDate;
           });
           break;
-        case 'this-week':
+        case "this-week":
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - startDate.getDay());
           startDate.setHours(0, 0, 0, 0);
           break;
-        case 'last-week':
+        case "last-week":
           startDate = new Date(now);
           startDate.setDate(startDate.getDate() - startDate.getDay() - 7);
           startDate.setHours(0, 0, 0, 0);
           const weekEnd = new Date(startDate);
           weekEnd.setDate(weekEnd.getDate() + 7);
-          filteredLeads = filteredLeads.filter(lead => {
+          filteredLeads = filteredLeads.filter((lead) => {
             const leadDate = new Date(lead.createdAt);
             return leadDate >= startDate && leadDate < weekEnd;
           });
           break;
-        case 'this-month':
+        case "this-month":
           startDate = new Date(now.getFullYear(), now.getMonth(), 1);
           break;
-        case 'last-month':
+        case "last-month":
           startDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
           const monthEnd = new Date(now.getFullYear(), now.getMonth(), 0);
-          filteredLeads = filteredLeads.filter(lead => {
+          filteredLeads = filteredLeads.filter((lead) => {
             const leadDate = new Date(lead.createdAt);
             return leadDate >= startDate && leadDate <= monthEnd;
           });
           break;
       }
-      
-      if (filters.dateRange !== 'yesterday' && filters.dateRange !== 'last-week' && filters.dateRange !== 'last-month') {
-        filteredLeads = filteredLeads.filter(lead => new Date(lead.createdAt) >= startDate);
+
+      if (
+        filters.dateRange !== "yesterday" &&
+        filters.dateRange !== "last-week" &&
+        filters.dateRange !== "last-month"
+      ) {
+        filteredLeads = filteredLeads.filter(
+          (lead) => new Date(lead.createdAt) >= startDate
+        );
       }
     }
 

@@ -1,26 +1,26 @@
 // src/components/leads/LeadsFilters.jsx
-import React from 'react';
-import { Button } from '@/components/ui/button';
+import React from "react";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 
 const LeadsFilters = ({ filters, onFiltersChange }) => {
   const handleFilterChange = (key, value) => {
-    onFiltersChange(prev => ({ ...prev, [key]: value }));
+    onFiltersChange((prev) => ({ ...prev, [key]: value }));
   };
 
   const clearFilters = () => {
     onFiltersChange({
-      status: '',
-      source: '',
-      industry: '',
-      tag: '',
-      dateRange: ''
+      status: "",
+      source: "",
+      industry: "",
+      tag: "",
+      dateRange: "",
     });
   };
 
@@ -28,7 +28,10 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
     <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mt-4 pt-4 border-t">
       <div>
         <label className="text-sm font-medium mb-2 block">Status</label>
-        <Select value={filters.status} onValueChange={(value) => handleFilterChange('status', value)}>
+        <Select
+          value={filters.status}
+          onValueChange={(value) => handleFilterChange("status", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All Statuses" />
           </SelectTrigger>
@@ -43,7 +46,10 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
 
       <div>
         <label className="text-sm font-medium mb-2 block">Source</label>
-        <Select value={filters.source} onValueChange={(value) => handleFilterChange('source', value)}>
+        <Select
+          value={filters.source}
+          onValueChange={(value) => handleFilterChange("source", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All Sources" />
           </SelectTrigger>
@@ -61,7 +67,10 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
 
       <div>
         <label className="text-sm font-medium mb-2 block">Industry</label>
-        <Select value={filters.industry} onValueChange={(value) => handleFilterChange('industry', value)}>
+        <Select
+          value={filters.industry}
+          onValueChange={(value) => handleFilterChange("industry", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All Industries" />
           </SelectTrigger>
@@ -78,7 +87,10 @@ const LeadsFilters = ({ filters, onFiltersChange }) => {
 
       <div>
         <label className="text-sm font-medium mb-2 block">Date Range</label>
-        <Select value={filters.dateRange} onValueChange={(value) => handleFilterChange('dateRange', value)}>
+        <Select
+          value={filters.dateRange}
+          onValueChange={(value) => handleFilterChange("dateRange", value)}
+        >
           <SelectTrigger>
             <SelectValue placeholder="All Time" />
           </SelectTrigger>
