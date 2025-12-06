@@ -151,8 +151,24 @@ export const leadsAPI = {
     });
   },
 
+  // NEW: Convert lead to account
+  convertLeadToAccount: async (leadId) => {
+    return apiRequest(`/leads/${leadId}/convert-to-account`, {
+      method: "POST",
+    });
+  },
+
+  // Bulk convert leads
   bulkConvertLeads: async (leadIds) => {
     return apiRequest("/leads/bulk-convert", {
+      method: "POST",
+      body: JSON.stringify({ leadIds }),
+    });
+  },
+
+  // NEW: Bulk convert leads to accounts
+  bulkConvertLeadsToAccount: async (leadIds) => {
+    return apiRequest("/leads/bulk-convert-to-account", {
       method: "POST",
       body: JSON.stringify({ leadIds }),
     });
@@ -161,6 +177,13 @@ export const leadsAPI = {
   // Sync lead to contact - FIXED: Calls proper endpoint
   syncLeadToContact: async (leadId) => {
     return apiRequest(`/leads/${leadId}/sync-contact`, {
+      method: "POST",
+    });
+  },
+
+  // NEW: Sync lead to account
+  syncLeadToAccount: async (leadId) => {
+    return apiRequest(`/leads/${leadId}/sync-account`, {
       method: "POST",
     });
   },
