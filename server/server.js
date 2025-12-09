@@ -52,6 +52,7 @@ app.use("/api/calls", require("./routes/file/activities/callRoutes"));
 app.use("/api/leads", require("./routes/file/sales/leadRoutes"));
 app.use("/api/contacts", require("./routes/file/sales/contactRoutes"));
 app.use("/api/accounts", require("./routes/file/sales/accountRoutes"));
+app.use("/api/deals", require("./routes/file/sales/dealRoutes"));
 
 // Health check endpoint
 app.get("/api/health", (req, res) => {

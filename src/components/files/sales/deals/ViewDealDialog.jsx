@@ -1,19 +1,19 @@
 // src/components/deals/ViewDealDialog.jsx
-import React from 'react';
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import { 
-  IndianRupee, 
-  Target, 
-  Calendar, 
-  User, 
-  Building, 
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  IndianRupee,
+  Target,
+  Calendar,
+  User,
+  Building,
   Mail,
   Phone,
   Globe,
@@ -21,36 +21,69 @@ import {
   TrendingUp,
   Plus,
   Users,
-  Edit
-} from 'lucide-react';
-import { useData } from '@/contexts/DataContext';
-import { useToast } from '@/components/ui/use-toast';
-import DealStageBadge from './DealStageBadge';
+  Edit,
+} from "lucide-react";
+import { useToast } from "@/components/ui/use-toast";
+import DealStageBadge from "./DealStageBadge";
+import dealsAPI from "./dealsAPI";
+import contactsAPI from "../contacts/contactsAPI";
 
 const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
-  const { getDealStages, data } = useData();
   const { toast } = useToast();
-  const dealStages = getDealStages();
+  const [dealStages, setDealStages] = useState({});
+  const [relatedContacts, setRelatedContacts] = useState([]);
+  const [activities, setActivities] = useState([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        // Fetch deal stages
+        const stages = await dealsAPI.getDealStages();
+        setDealStages(stages);
+
+        // Fetch related contacts
+        if (deal?.contactId) {
+          try {
+            const contact = await contactsAPI.getContactById(deal.contactId);
+            if (contact.success) {
+              setRelatedContacts([contact.contact]);
+            }
+          } catch (error) {
+            console.error("Error fetching contact:", error);
+          }
+        }
+
+        // Fetch activities (you would need to implement this)
+        setActivities([]);
+      } catch (error) {
+        console.error("Error fetching data:", error);
+      }
+    };
+
+    if (deal) {
+      fetchData();
+    }
+  }, [deal]);
 
   if (!deal) return null;
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   const getProbabilityColor = (probability) => {
-    if (probability >= 70) return 'bg-green-100 text-green-800';
-    if (probability >= 30) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (probability >= 70) return "bg-green-100 text-green-800";
+    if (probability >= 30) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
   };
 
   const calculateWeightedValue = () => {
-    return (deal.value || 0) * (deal.probability || 0) / 100;
+    return ((deal.value || 0) * (deal.probability || 0)) / 100;
   };
 
   const getDaysUntilClose = () => {
@@ -68,8 +101,7 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
       title: "Add Activity",
       description: "Opening activity creation form...",
     });
-    // In a real app, you would open an activity creation modal
-    console.log('Add activity for deal:', deal.id);
+    console.log("Add activity for deal:", deal._id || deal.id);
   };
 
   const handleViewRelatedContacts = () => {
@@ -78,13 +110,12 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
         title: "Related Contacts",
         description: `Showing contacts related to ${deal.company}`,
       });
-      // In a real app, you would navigate to contacts page with filter
-      console.log('View contacts for deal:', deal.id);
+      console.log("View contacts for deal:", deal._id || deal.id);
     } else {
       toast({
         title: "No Contacts",
         description: "No contacts are associated with this deal.",
-        variant: "destructive"
+        variant: "destructive",
       });
     }
   };
@@ -98,27 +129,11 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
         title: "Edit Deal",
         description: "Opening deal editor...",
       });
-      console.log('Edit deal:', deal.id);
+      console.log("Edit deal:", deal._id || deal.id);
     }
   };
 
-  const getRelatedContacts = () => {
-    if (!deal.contactId) return [];
-    return data.contacts?.filter(contact => 
-      contact.accountId === deal.accountId || contact.id === deal.contactId
-    ) || [];
-  };
-
-  const getRelatedActivities = () => {
-    return data.activities?.filter(activity => 
-      activity.relatedTo?.includes(`Deal: ${deal.id}`) || 
-      activity.relatedTo?.includes(deal.id)
-    ) || [];
-  };
-
   const daysUntilClose = getDaysUntilClose();
-  const relatedContacts = getRelatedContacts();
-  const relatedActivities = getRelatedActivities();
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -129,14 +144,17 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
             <div className="flex items-center gap-2">
               <DealStageBadge stage={deal.stage} />
               {deal.sourceLeadId && (
-                <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                <Badge
+                  variant="outline"
+                  className="bg-purple-50 text-purple-700 border-purple-200"
+                >
                   From Lead
                 </Badge>
               )}
             </div>
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6">
           {/* Header Section */}
           <div className="pb-6 border-b">
@@ -176,7 +194,9 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
             <div className="bg-green-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Target className="w-4 h-4 text-green-600" />
-                <span className="font-semibold text-green-900">Probability</span>
+                <span className="font-semibold text-green-900">
+                  Probability
+                </span>
               </div>
               <div className="text-2xl font-bold text-green-900">
                 {deal.probability || 0}%
@@ -186,7 +206,9 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
             <div className="bg-orange-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <TrendingUp className="w-4 h-4 text-orange-600" />
-                <span className="font-semibold text-orange-900">Weighted Value</span>
+                <span className="font-semibold text-orange-900">
+                  Weighted Value
+                </span>
               </div>
               <div className="text-2xl font-bold text-orange-900">
                 {formatCurrency(calculateWeightedValue())}
@@ -196,16 +218,30 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
             <div className="bg-purple-50 p-4 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
                 <Calendar className="w-4 h-4 text-purple-600" />
-                <span className="font-semibold text-purple-900">Close Date</span>
+                <span className="font-semibold text-purple-900">
+                  Close Date
+                </span>
               </div>
               <div className="text-lg font-bold text-purple-900">
-                {deal.closeDate ? new Date(deal.closeDate).toLocaleDateString() : 'Not set'}
+                {deal.closeDate
+                  ? new Date(deal.closeDate).toLocaleDateString()
+                  : "Not set"}
               </div>
               {daysUntilClose !== null && (
-                <div className={`text-sm ${daysUntilClose < 0 ? 'text-red-600' : daysUntilClose < 7 ? 'text-orange-600' : 'text-green-600'}`}>
-                  {daysUntilClose < 0 ? `${Math.abs(daysUntilClose)} days overdue` : 
-                   daysUntilClose === 0 ? 'Today' : 
-                   `${daysUntilClose} days left`}
+                <div
+                  className={`text-sm ${
+                    daysUntilClose < 0
+                      ? "text-red-600"
+                      : daysUntilClose < 7
+                      ? "text-orange-600"
+                      : "text-green-600"
+                  }`}
+                >
+                  {daysUntilClose < 0
+                    ? `${Math.abs(daysUntilClose)} days overdue`
+                    : daysUntilClose === 0
+                    ? "Today"
+                    : `${daysUntilClose} days left`}
                 </div>
               )}
             </div>
@@ -220,7 +256,7 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
               </Badge>
             </div>
             <div className="w-full bg-gray-200 rounded-full h-3">
-              <div 
+              <div
                 className="h-3 rounded-full bg-blue-600 transition-all duration-500"
                 style={{ width: `${deal.probability || 0}%` }}
               ></div>
@@ -233,7 +269,9 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
             <div className="space-y-6">
               {/* Stage Information */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3">Stage Information</h3>
+                <h3 className="text-lg font-semibold mb-3">
+                  Stage Information
+                </h3>
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Current Stage:</span>
@@ -270,18 +308,6 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
                         <span className="font-medium">{deal.accountName}</span>
                       </div>
                     )}
-                    {deal.email && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Email:</span>
-                        <span className="font-medium">{deal.email}</span>
-                      </div>
-                    )}
-                    {deal.phone && (
-                      <div className="flex justify-between">
-                        <span className="text-gray-600">Phone:</span>
-                        <span className="font-medium">{deal.phone}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
@@ -311,30 +337,36 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
                     Related Contacts ({relatedContacts.length})
                   </h3>
                   <div className="space-y-2">
-                    {relatedContacts.slice(0, 3).map(contact => (
-                      <div key={contact.id} className="flex justify-between items-center">
-                        <span className="text-gray-600">{contact.name}</span>
+                    {relatedContacts.slice(0, 3).map((contact) => (
+                      <div
+                        key={contact._id || contact.id}
+                        className="flex justify-between items-center"
+                      >
+                        <span className="text-gray-600">
+                          {contact.name ||
+                            `${contact.firstName} ${contact.lastName}`}
+                        </span>
                         <Badge variant="outline" className="text-xs">
-                          {contact.title || 'Contact'}
+                          {contact.title || "Contact"}
                         </Badge>
                       </div>
                     ))}
-                    {relatedContacts.length > 3 && (
-                      <div className="text-sm text-gray-500">
-                        +{relatedContacts.length - 3} more contacts
-                      </div>
-                    )}
                   </div>
                 </div>
               )}
 
               {/* Activities */}
-              {relatedActivities.length > 0 && (
+              {activities.length > 0 && (
                 <div className="bg-gray-50 p-4 rounded-lg">
-                  <h3 className="text-lg font-semibold mb-3">Recent Activities</h3>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Recent Activities
+                  </h3>
                   <div className="space-y-2">
-                    {relatedActivities.slice(0, 3).map(activity => (
-                      <div key={activity.id} className="flex justify-between items-center">
+                    {activities.slice(0, 3).map((activity) => (
+                      <div
+                        key={activity.id}
+                        className="flex justify-between items-center"
+                      >
                         <span className="text-gray-600">{activity.title}</span>
                         <Badge variant="outline" className="text-xs">
                           {activity.status}
@@ -347,7 +379,9 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
 
               {/* System Information */}
               <div className="bg-gray-50 p-4 rounded-lg">
-                <h3 className="text-lg font-semibold mb-3">System Information</h3>
+                <h3 className="text-lg font-semibold mb-3">
+                  System Information
+                </h3>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Created:</span>
@@ -359,7 +393,9 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
                   </div>
                   {deal.sourceLeadId && (
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Converted from Lead:</span>
+                      <span className="text-gray-600">
+                        Converted from Lead:
+                      </span>
                       <span className="font-medium">Yes</span>
                     </div>
                   )}
@@ -375,29 +411,15 @@ const ViewDealDialog = ({ open, onOpenChange, deal, onEditDeal }) => {
                 <FileText className="w-5 h-5 mr-2" />
                 Description
               </h3>
-              <p className="text-gray-700 whitespace-pre-wrap">{deal.description}</p>
+              <p className="text-gray-700 whitespace-pre-wrap">
+                {deal.description}
+              </p>
             </div>
           )}
 
           {/* Next Steps / Action Buttons */}
           <div className="flex justify-end gap-3 pt-4 border-t">
-            <Button 
-              variant="outline" 
-              onClick={handleAddActivity}
-              className="flex items-center gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Add Activity
-            </Button>
-            <Button 
-              variant="outline" 
-              onClick={handleViewRelatedContacts}
-              className="flex items-center gap-2"
-            >
-              <Users className="w-4 h-4" />
-              View Related Contacts
-            </Button>
-            <Button 
+            <Button
               onClick={handleEditDeal}
               className="bg-blue-600 hover:bg-blue-700 flex items-center gap-2"
             >
