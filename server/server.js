@@ -55,6 +55,8 @@ app.get('/api/health', (req, res) => {
     jwtSecret: process.env.JWT_SECRET ? 'Configured' : 'Not configured'
   });
 });
+app.use("/api/deals", require("./routes/file/sales/dealRoutes"));
+app.use("/api/campaigns", require("./routes/file/sales/campaignRoutes"));
 
 // Test route
 app.get('/api/test', (req, res) => {

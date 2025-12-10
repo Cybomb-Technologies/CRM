@@ -1,36 +1,57 @@
 // src/components/deals/DealsKanban.jsx
-import React, { useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
-  MoreVertical, 
-  MoveRight, 
-  IndianRupee, 
-  Target, 
-  Calendar, 
-  User, 
-  Building 
-} from 'lucide-react';
+import React, { useState, useEffect } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  MoreVertical,
+  MoveRight,
+  IndianRupee,
+  Target,
+  Calendar,
+  User,
+  Building,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuLabel,
-  DropdownMenuSeparator // Added this missing import
-} from '@/components/ui/dropdown-menu';
-import { useData } from '@/contexts/DataContext';
-import { useToast } from '@/components/ui/use-toast';
-import DealStageBadge from './DealStageBadge';
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+import DealStageBadge from "./DealStageBadge";
+import dealsAPI from "./dealsAPI";
 
-const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, onDealEdit, onDealDelete }) => {
-  const { moveDealStage, getDealStages, getDealsByStage } = useData();
+const DealsKanban = ({
+  deals,
+  loading,
+  selectedDeals,
+  onDealSelect,
+  onDealView,
+  onDealEdit,
+  onDealDelete,
+  refreshDeals,
+}) => {
   const { toast } = useToast();
-  const dealStages = getDealStages();
 
   const [draggedDeal, setDraggedDeal] = useState(null);
+  const [dealStages, setDealStages] = useState({});
+
+  useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const stages = await dealsAPI.getDealStages();
+        setDealStages(stages);
+      } catch (error) {
+        console.error("Error fetching deal stages:", error);
+      }
+    };
+
+    fetchStages();
+  }, []);
 
   if (loading) {
     return (
@@ -43,7 +64,7 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
 
   const handleDragStart = (e, deal) => {
     setDraggedDeal(deal);
-    e.dataTransfer.setData('text/plain', deal.id);
+    e.dataTransfer.setData("text/plain", deal._id || deal.id);
   };
 
   const handleDragOver = (e) => {
@@ -55,53 +76,87 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
     if (!draggedDeal) return;
 
     if (draggedDeal.stage !== targetStage) {
-      const result = await moveDealStage(draggedDeal.id, draggedDeal.stage, targetStage);
-      
-      if (result.success) {
-        toast({
-          title: "Stage Updated",
-          description: `Deal moved to ${dealStages[targetStage]}`,
-        });
-      } else {
+      try {
+        const response = await dealsAPI.moveDealStage(
+          draggedDeal._id || draggedDeal.id,
+          targetStage
+        );
+
+        if (response.success) {
+          toast({
+            title: "Stage Updated",
+            description: `Deal moved to ${dealStages[targetStage]}`,
+          });
+
+          // Refresh the deals list using the passed refresh function
+          if (refreshDeals) {
+            refreshDeals();
+          }
+        } else {
+          toast({
+            title: "Move Failed",
+            description: response.message,
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Error moving deal stage:", error);
         toast({
           title: "Move Failed",
-          description: result.message,
-          variant: "destructive"
+          description: error.message || "Failed to move deal stage",
+          variant: "destructive",
         });
       }
     }
-    
+
     setDraggedDeal(null);
   };
 
   const handleMoveStage = async (deal, newStage) => {
-    const result = await moveDealStage(deal.id, deal.stage, newStage);
-    
-    if (result.success) {
-      toast({
-        title: "Stage Updated",
-        description: result.message,
-      });
-    } else {
+    try {
+      const response = await dealsAPI.moveDealStage(
+        deal._id || deal.id,
+        newStage
+      );
+
+      if (response.success) {
+        toast({
+          title: "Stage Updated",
+          description: response.message,
+        });
+
+        // Refresh the deals list using the passed refresh function
+        if (refreshDeals) {
+          refreshDeals();
+        }
+      } else {
+        toast({
+          title: "Move Failed",
+          description: response.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error moving deal stage:", error);
       toast({
         title: "Move Failed",
-        description: result.message,
-        variant: "destructive"
+        description: error.message || "Failed to move deal stage",
+        variant: "destructive",
       });
     }
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount || 0);
   };
 
   const getStageDeals = (stage) => {
-    return deals.filter(deal => deal.stage === stage);
+    return deals.filter((deal) => deal.stage === stage);
   };
 
   const getTotalValue = (stageDeals) => {
@@ -109,14 +164,17 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
   };
 
   const getWeightedValue = (stageDeals) => {
-    return stageDeals.reduce((sum, deal) => sum + (deal.value || 0) * (deal.probability || 0) / 100, 0);
+    return stageDeals.reduce(
+      (sum, deal) => sum + ((deal.value || 0) * (deal.probability || 0)) / 100,
+      0
+    );
   };
 
   const handleSelectDeal = (dealId, checked) => {
     if (checked) {
       onDealSelect([...selectedDeals, dealId]);
     } else {
-      onDealSelect(selectedDeals.filter(id => id !== dealId));
+      onDealSelect(selectedDeals.filter((id) => id !== dealId));
     }
   };
 
@@ -129,7 +187,7 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
           const weightedValue = getWeightedValue(stageDeals);
 
           return (
-            <div 
+            <div
               key={stageKey}
               className="flex-shrink-0 w-80"
               onDragOver={handleDragOver}
@@ -148,18 +206,22 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
                   <div className="text-xs text-gray-500 space-y-1 mt-2">
                     <div className="flex justify-between">
                       <span>Total:</span>
-                      <span className="font-medium">{formatCurrency(totalValue)}</span>
+                      <span className="font-medium">
+                        {formatCurrency(totalValue)}
+                      </span>
                     </div>
                     <div className="flex justify-between">
                       <span>Weighted:</span>
-                      <span className="font-medium">{formatCurrency(weightedValue)}</span>
+                      <span className="font-medium">
+                        {formatCurrency(weightedValue)}
+                      </span>
                     </div>
                   </div>
                 </CardHeader>
                 <CardContent className="flex-1 overflow-y-auto p-4 space-y-3">
                   {stageDeals.map((deal) => (
                     <div
-                      key={deal.id}
+                      key={deal._id || deal.id}
                       draggable
                       onDragStart={(e) => handleDragStart(e, deal)}
                       className="border rounded-lg p-3 bg-white dark:bg-gray-800 hover:shadow-md transition-shadow cursor-move group"
@@ -167,42 +229,58 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
                       {/* Header with Checkbox and Menu */}
                       <div className="flex items-start justify-between mb-2">
                         <Checkbox
-                          checked={selectedDeals.includes(deal.id)}
-                          onCheckedChange={(checked) => handleSelectDeal(deal.id, checked)}
+                          checked={selectedDeals.includes(deal._id || deal.id)}
+                          onCheckedChange={(checked) =>
+                            handleSelectDeal(deal._id || deal.id, checked)
+                          }
                           onClick={(e) => e.stopPropagation()}
                         />
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
                               <MoreVertical className="w-3 h-3" />
                             </Button>
                           </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end" className="w-48 max-h-60 overflow-y-auto">
-                            <DropdownMenuItem onClick={() => onDealView && onDealView(deal)}>
+                          <DropdownMenuContent
+                            align="end"
+                            className="w-48 max-h-60 overflow-y-auto"
+                          >
+                            <DropdownMenuItem
+                              onClick={() => onDealView && onDealView(deal)}
+                            >
                               View Details
                             </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onDealEdit && onDealEdit(deal)}>
+                            <DropdownMenuItem
+                              onClick={() => onDealEdit && onDealEdit(deal)}
+                            >
                               Edit Deal
                             </DropdownMenuItem>
-                            
+
                             <DropdownMenuSeparator />
-                            
+
                             <DropdownMenuLabel>Move to Stage</DropdownMenuLabel>
-                            {Object.entries(dealStages).map(([targetStageKey, targetStageLabel]) => (
-                              targetStageKey !== deal.stage && (
-                                <DropdownMenuItem 
-                                  key={targetStageKey}
-                                  onClick={() => handleMoveStage(deal, targetStageKey)}
-                                >
-                                  <MoveRight className="w-4 h-4 mr-2" />
-                                  {targetStageLabel}
-                                </DropdownMenuItem>
-                              )
-                            ))}
-                            
+                            {Object.entries(dealStages).map(
+                              ([targetStageKey, targetStageLabel]) =>
+                                targetStageKey !== deal.stage && (
+                                  <DropdownMenuItem
+                                    key={targetStageKey}
+                                    onClick={() =>
+                                      handleMoveStage(deal, targetStageKey)
+                                    }
+                                  >
+                                    <MoveRight className="w-4 h-4 mr-2" />
+                                    {targetStageLabel}
+                                  </DropdownMenuItem>
+                                )
+                            )}
+
                             <DropdownMenuSeparator />
-                            
-                            <DropdownMenuItem 
+
+                            <DropdownMenuItem
                               onClick={() => onDealDelete && onDealDelete(deal)}
                               className="text-red-600"
                             >
@@ -223,7 +301,7 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
                           <Building className="w-3 h-3 flex-shrink-0" />
                           <span className="truncate">{deal.company}</span>
                         </div>
-                        
+
                         {deal.contactName && (
                           <div className="flex items-center gap-2">
                             <User className="w-3 h-3 flex-shrink-0" />
@@ -233,7 +311,9 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
 
                         <div className="flex items-center gap-2">
                           <IndianRupee className="w-3 h-3 flex-shrink-0" />
-                          <span className="font-semibold truncate">{formatCurrency(deal.value)}</span>
+                          <span className="font-semibold truncate">
+                            {formatCurrency(deal.value)}
+                          </span>
                         </div>
 
                         {/* Probability Bar */}
@@ -241,25 +321,30 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
                           <Target className="w-3 h-3 flex-shrink-0" />
                           <div className="flex items-center gap-2 flex-1 min-w-0">
                             <div className="flex-1 bg-gray-200 rounded-full h-1.5 min-w-[40px]">
-                              <div 
+                              <div
                                 className="h-1.5 rounded-full bg-blue-600 transition-all duration-300"
                                 style={{ width: `${deal.probability || 0}%` }}
                               ></div>
                             </div>
-                            <span className="text-xs font-medium whitespace-nowrap">{deal.probability || 0}%</span>
+                            <span className="text-xs font-medium whitespace-nowrap">
+                              {deal.probability || 0}%
+                            </span>
                           </div>
                         </div>
 
                         {deal.closeDate && (
                           <div className="flex items-center gap-2">
                             <Calendar className="w-3 h-3 flex-shrink-0" />
-                            <span className="whitespace-nowrap">{new Date(deal.closeDate).toLocaleDateString()}</span>
+                            <span className="whitespace-nowrap">
+                              {new Date(deal.closeDate).toLocaleDateString()}
+                            </span>
                           </div>
                         )}
 
                         {deal.owner && (
                           <div className="text-xs text-gray-500 pt-1 border-t border-gray-100 dark:border-gray-700">
-                            Owner: <span className="font-medium">{deal.owner}</span>
+                            Owner:{" "}
+                            <span className="font-medium">{deal.owner}</span>
                           </div>
                         )}
                       </div>
@@ -268,12 +353,19 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
                       {deal.tags && deal.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-3 pt-2 border-t border-gray-100 dark:border-gray-700">
                           {deal.tags.slice(0, 2).map((tag, index) => (
-                            <Badge key={index} variant="outline" className="text-xs px-2 py-0 h-5">
+                            <Badge
+                              key={index}
+                              variant="outline"
+                              className="text-xs px-2 py-0 h-5"
+                            >
                               {tag}
                             </Badge>
                           ))}
                           {deal.tags.length > 2 && (
-                            <Badge variant="outline" className="text-xs px-2 py-0 h-5">
+                            <Badge
+                              variant="outline"
+                              className="text-xs px-2 py-0 h-5"
+                            >
                               +{deal.tags.length - 2}
                             </Badge>
                           )}
@@ -285,7 +377,9 @@ const DealsKanban = ({ deals, loading, selectedDeals, onDealSelect, onDealView, 
                   {stageDeals.length === 0 && (
                     <div className="text-center text-gray-500 text-sm py-8 border-2 border-dashed border-gray-200 rounded-lg">
                       <div>No deals in this stage</div>
-                      <div className="text-xs mt-1">Drag deals here or create new ones</div>
+                      <div className="text-xs mt-1">
+                        Drag deals here or create new ones
+                      </div>
                     </div>
                   )}
                 </CardContent>

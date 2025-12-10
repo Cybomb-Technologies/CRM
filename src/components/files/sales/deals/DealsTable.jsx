@@ -1,34 +1,56 @@
 // src/components/deals/DealsTable.jsx
-import React from 'react';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Edit, Trash2, Eye, MoreVertical, MoveRight, Building, User } from 'lucide-react';
+import React from "react";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Edit,
+  Trash2,
+  Eye,
+  MoreVertical,
+  MoveRight,
+  Building,
+  User,
+} from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
   DropdownMenuSeparator,
-  DropdownMenuLabel
-} from '@/components/ui/dropdown-menu';
-import { useData } from '@/contexts/DataContext';
-import { useToast } from '@/components/ui/use-toast';
-import DealStageBadge from './DealStageBadge';
+  DropdownMenuLabel,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/components/ui/use-toast";
+import DealStageBadge from "./DealStageBadge";
+import dealsAPI from "./dealsAPI";
 
-const DealsTable = ({ 
-  deals, 
-  loading, 
+const DealsTable = ({
+  deals,
+  loading,
   selectedDeals,
   onDealSelect,
-  onDealEdit, 
-  onDealDelete, 
+  onDealEdit,
+  onDealDelete,
   onDealView,
-  onDealMove
+  refreshDeals,
 }) => {
-  const { moveDealStage, getDealStages } = useData();
   const { toast } = useToast();
-  const dealStages = getDealStages();
+
+  // Get deal stages from API
+  const [dealStages, setDealStages] = React.useState({});
+
+  React.useEffect(() => {
+    const fetchStages = async () => {
+      try {
+        const stages = await dealsAPI.getDealStages();
+        setDealStages(stages);
+      } catch (error) {
+        console.error("Error fetching deal stages:", error);
+      }
+    };
+
+    fetchStages();
+  }, []);
 
   if (loading) {
     return (
@@ -42,14 +64,16 @@ const DealsTable = ({
   if (!deals || deals.length === 0) {
     return (
       <div className="p-8 text-center">
-        <p className="text-gray-600">No deals found. Create your first deal to get started.</p>
+        <p className="text-gray-600">
+          No deals found. Create your first deal to get started.
+        </p>
       </div>
     );
   }
 
   const handleSelectAll = (checked) => {
     if (checked) {
-      onDealSelect(deals.map(deal => deal.id));
+      onDealSelect(deals.map((deal) => deal._id || deal.id));
     } else {
       onDealSelect([]);
     }
@@ -59,39 +83,56 @@ const DealsTable = ({
     if (checked) {
       onDealSelect([...selectedDeals, dealId]);
     } else {
-      onDealSelect(selectedDeals.filter(id => id !== dealId));
+      onDealSelect(selectedDeals.filter((id) => id !== dealId));
     }
   };
 
   const handleMoveStage = async (deal, newStage) => {
-    const result = await moveDealStage(deal.id, deal.stage, newStage);
-    
-    if (result.success) {
-      toast({
-        title: "Stage Updated",
-        description: result.message,
-      });
-    } else {
+    try {
+      const response = await dealsAPI.moveDealStage(
+        deal._id || deal.id,
+        newStage
+      );
+
+      if (response.success) {
+        toast({
+          title: "Stage Updated",
+          description: response.message,
+        });
+
+        // Refresh deals using the passed refresh function
+        if (refreshDeals) {
+          refreshDeals();
+        }
+      } else {
+        toast({
+          title: "Move Failed",
+          description: response.message,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Error moving deal stage:", error);
       toast({
         title: "Move Failed",
-        description: result.message,
-        variant: "destructive"
+        description: error.message || "Failed to move deal stage",
+        variant: "destructive",
       });
     }
   };
 
   const getProbabilityColor = (probability) => {
-    if (probability >= 70) return 'bg-green-100 text-green-800';
-    if (probability >= 30) return 'bg-yellow-100 text-yellow-800';
-    return 'bg-red-100 text-red-800';
+    if (probability >= 70) return "bg-green-100 text-green-800";
+    if (probability >= 30) return "bg-yellow-100 text-yellow-800";
+    return "bg-red-100 text-red-800";
   };
 
   const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency',
-      currency: 'INR',
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
@@ -102,28 +143,53 @@ const DealsTable = ({
           <tr className="border-b border-gray-200 dark:border-gray-700">
             <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
               <Checkbox
-                checked={selectedDeals.length === deals.length && deals.length > 0}
+                checked={
+                  selectedDeals.length === deals.length && deals.length > 0
+                }
                 onCheckedChange={handleSelectAll}
               />
             </th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Deal</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Company</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Contact</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Value</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Probability</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Stage</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Owner</th>
-            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">Close Date</th>
-            <th className="text-right p-4 font-medium text-gray-900 dark:text-white">Actions</th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Deal
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Company
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Contact
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Value
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Probability
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Stage
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Owner
+            </th>
+            <th className="text-left p-4 font-medium text-gray-900 dark:text-white">
+              Close Date
+            </th>
+            <th className="text-right p-4 font-medium text-gray-900 dark:text-white">
+              Actions
+            </th>
           </tr>
         </thead>
         <tbody>
           {deals.map((deal) => (
-            <tr key={deal.id} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+            <tr
+              key={deal._id || deal.id}
+              className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
               <td className="p-4">
                 <Checkbox
-                  checked={selectedDeals.includes(deal.id)}
-                  onCheckedChange={(checked) => handleSelectDeal(deal.id, checked)}
+                  checked={selectedDeals.includes(deal._id || deal.id)}
+                  onCheckedChange={(checked) =>
+                    handleSelectDeal(deal._id || deal.id, checked)
+                  }
                 />
               </td>
               <td className="p-4 font-medium text-gray-900 dark:text-white">
@@ -132,7 +198,11 @@ const DealsTable = ({
                   {deal.tags && deal.tags.length > 0 && (
                     <div className="flex flex-wrap gap-1 mt-1">
                       {deal.tags.slice(0, 2).map((tag, index) => (
-                        <Badge key={index} variant="outline" className="text-xs">
+                        <Badge
+                          key={index}
+                          variant="outline"
+                          className="text-xs"
+                        >
                           {tag}
                         </Badge>
                       ))}
@@ -165,12 +235,16 @@ const DealsTable = ({
               <td className="p-4">
                 <div className="flex items-center gap-2">
                   <div className="w-16 bg-gray-200 rounded-full h-2">
-                    <div 
+                    <div
                       className="h-2 rounded-full bg-blue-600"
                       style={{ width: `${deal.probability || 0}%` }}
                     ></div>
                   </div>
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getProbabilityColor(deal.probability || 0)}`}>
+                  <span
+                    className={`px-2 py-1 rounded-full text-xs font-medium ${getProbabilityColor(
+                      deal.probability || 0
+                    )}`}
+                  >
                     {deal.probability || 0}%
                   </span>
                 </div>
@@ -178,9 +252,13 @@ const DealsTable = ({
               <td className="p-4">
                 <DealStageBadge stage={deal.stage} />
               </td>
-              <td className="p-4 text-gray-600 dark:text-gray-400">{deal.owner || 'Unassigned'}</td>
               <td className="p-4 text-gray-600 dark:text-gray-400">
-                {deal.closeDate ? new Date(deal.closeDate).toLocaleDateString() : 'N/A'}
+                {deal.owner || "Unassigned"}
+              </td>
+              <td className="p-4 text-gray-600 dark:text-gray-400">
+                {deal.closeDate
+                  ? new Date(deal.closeDate).toLocaleDateString()
+                  : "N/A"}
               </td>
               <td className="p-4 text-right">
                 <div className="flex items-center justify-end gap-1">
@@ -190,34 +268,42 @@ const DealsTable = ({
                         <MoreVertical className="w-4 h-4" />
                       </Button>
                     </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 max-h-60 overflow-y-auto">
-                      <DropdownMenuItem onClick={() => onDealView && onDealView(deal)}>
+                    <DropdownMenuContent
+                      align="end"
+                      className="w-56 max-h-60 overflow-y-auto"
+                    >
+                      <DropdownMenuItem
+                        onClick={() => onDealView && onDealView(deal)}
+                      >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => onDealEdit && onDealEdit(deal)}>
+                      <DropdownMenuItem
+                        onClick={() => onDealEdit && onDealEdit(deal)}
+                      >
                         <Edit className="w-4 h-4 mr-2" />
                         Edit Deal
                       </DropdownMenuItem>
-                      
+
                       <DropdownMenuSeparator />
-                      
+
                       <DropdownMenuLabel>Move to Stage</DropdownMenuLabel>
-                      {Object.entries(dealStages).map(([stageKey, stageLabel]) => (
-                        stageKey !== deal.stage && (
-                          <DropdownMenuItem 
-                            key={stageKey}
-                            onClick={() => handleMoveStage(deal, stageKey)}
-                          >
-                            <MoveRight className="w-4 h-4 mr-2" />
-                            {stageLabel}
-                          </DropdownMenuItem>
-                        )
-                      ))}
-                      
+                      {Object.entries(dealStages).map(
+                        ([stageKey, stageLabel]) =>
+                          stageKey !== deal.stage && (
+                            <DropdownMenuItem
+                              key={stageKey}
+                              onClick={() => handleMoveStage(deal, stageKey)}
+                            >
+                              <MoveRight className="w-4 h-4 mr-2" />
+                              {stageLabel}
+                            </DropdownMenuItem>
+                          )
+                      )}
+
                       <DropdownMenuSeparator />
-                      
-                      <DropdownMenuItem 
+
+                      <DropdownMenuItem
                         onClick={() => onDealDelete && onDealDelete(deal)}
                         className="text-red-600"
                       >

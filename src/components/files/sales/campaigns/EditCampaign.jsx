@@ -1,7 +1,8 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import { campaignsService } from "./campaignsService";
 import { useToast } from "@/components/ui/use-toast";
+import { Loader2 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import {
   Select,
@@ -11,11 +12,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const CreateCampaign = () => {
+const EditCampaign = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuth();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(true);
 
   const [formData, setFormData] = useState({
     campaignOwner: user ? `${user.name} (${user.email})` : "Current User",
@@ -55,6 +58,63 @@ const CreateCampaign = () => {
     "Cancelled",
   ];
 
+  useEffect(() => {
+    fetchCampaign();
+  }, [id]);
+
+  const fetchCampaign = async () => {
+    setInitialLoading(true);
+    try {
+      const result = await campaignsService.fetchCampaign(id);
+      if (result.success && result.data) {
+        const campaign = result.data;
+
+        // Format dates for input fields
+        const formatDateForInput = (dateString) => {
+          if (!dateString) return "";
+          const date = new Date(dateString);
+          return date.toISOString().split("T")[0];
+        };
+
+        setFormData({
+          campaignOwner:
+            campaign.campaignOwner ||
+            (user ? `${user.name} (${user.email})` : "Current User"),
+          campaignName: campaign.campaignName || "",
+          type: campaign.type || "",
+          status: campaign.status || "Planning",
+          startDate: formatDateForInput(campaign.startDate),
+          endDate: formatDateForInput(campaign.endDate),
+          expectedRevenue: campaign.expectedRevenue?.toString() || "",
+          budgetedCost: campaign.budgetedCost?.toString() || "",
+          actualCost: campaign.actualCost?.toString() || "",
+          expectedResponse: campaign.expectedResponse?.toString() || "",
+          numbersSent: campaign.numbersSent?.toString() || "",
+          description: campaign.description || "",
+          targetAudience: campaign.targetAudience || "",
+          goal: campaign.goal || "",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Failed to load campaign data",
+          variant: "destructive",
+        });
+        navigate("/campaigns/list");
+      }
+    } catch (error) {
+      console.error("Fetch campaign error:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load campaign data",
+        variant: "destructive",
+      });
+      navigate("/campaigns/list");
+    } finally {
+      setInitialLoading(false);
+    }
+  };
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
@@ -92,21 +152,20 @@ const CreateCampaign = () => {
         // Convert date strings to Date objects
         startDate: formData.startDate ? new Date(formData.startDate) : null,
         endDate: formData.endDate ? new Date(formData.endDate) : null,
-        // Initialize arrays
-        members: [],
-        activities: [],
-        // Ensure campaign owner is set from user context
-        campaignOwner: user ? `${user.name} (${user.email})` : "Current User",
+        // Ensure campaign owner is updated with current user info
+        campaignOwner: user
+          ? `${user.name} (${user.email})`
+          : formData.campaignOwner,
       };
 
-      const result = await campaignsService.createCampaign(campaignData);
+      const result = await campaignsService.updateCampaign(id, campaignData);
 
       if (result.success) {
         toast({
           title: "Success",
-          description: "Campaign created successfully!",
+          description: "Campaign updated successfully!",
         });
-        navigate("/campaigns/list");
+        navigate(`/campaigns/${id}`);
       } else {
         toast({
           title: "Error",
@@ -115,10 +174,10 @@ const CreateCampaign = () => {
         });
       }
     } catch (error) {
-      console.error("Create campaign error:", error);
+      console.error("Update campaign error:", error);
       toast({
         title: "Error",
-        description: "Failed to create campaign. Please try again.",
+        description: "Failed to update campaign. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -126,15 +185,24 @@ const CreateCampaign = () => {
     }
   };
 
+  if (initialLoading) {
+    return (
+      <div className="w-full bg-white p-8 text-center">
+        <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
+        <p className="mt-4 text-gray-600">Loading campaign data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full bg-white p-8">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-2xl font-semibold">Create Campaign</h1>
+        <h1 className="text-2xl font-semibold">Edit Campaign</h1>
 
         <div className="flex gap-3">
           <button
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md disabled:opacity-50"
-            onClick={() => navigate("/campaigns")}
+            onClick={() => navigate(`/campaigns/${id}`)}
             disabled={loading}
           >
             Cancel
@@ -143,14 +211,14 @@ const CreateCampaign = () => {
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md disabled:opacity-50"
             disabled={loading}
           >
-            Save and New
+            Save
           </button>
           <button
             className="px-4 py-2 bg-[#4667d8] text-white rounded-md hover:bg-[#3c59c0] disabled:opacity-50"
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? "Creating..." : "Save"}
+            {loading ? "Saving..." : "Save & View"}
           </button>
         </div>
       </div>
@@ -384,4 +452,4 @@ const CreateCampaign = () => {
   );
 };
 
-export default CreateCampaign;
+export default EditCampaign;
