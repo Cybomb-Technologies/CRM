@@ -37,6 +37,7 @@
     "js-file-download": "^0.4.12",
     "jspdf": "^2.5.1",
     "lucide-react": "^0.344.0",
+    "multer": "^2.0.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-helmet": "^6.1.0",

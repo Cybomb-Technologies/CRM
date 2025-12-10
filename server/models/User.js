@@ -19,6 +19,23 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: [true, 'Name is required'],
     trim: true,
+  },
+  profilePicture: {
+    type: String,
+    default: null
+  },
+  settings: {
+    theme: {
+      type: String,
+      enum: ['light', 'dark', 'system'],
+      default: 'light'
+    },
+    notifications: {
+      email: {
+        type: Boolean,
+        default: true
+      }
+    }
   }
 }, {
   timestamps: true

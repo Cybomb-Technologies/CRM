@@ -16,26 +16,26 @@ import ActivityStats from "@/components/analytics/ActivityStats";
 const Emp5Routes = (
   <>
     {/* More Reports Routes */}
-    <Route path="/reports/sales-orders" element={<SalesOrderReportsPage />} />
+    <Route path="reports/sales-orders" element={<SalesOrderReportsPage />} />
     <Route
-      path="/reports/purchase-orders"
+      path="reports/purchase-orders"
       element={<PurchaseOrderReportsPage />}
     />
-    <Route path="/reports/invoices" element={<InvoiceReportsPage />} />
+    <Route path="reports/invoices" element={<InvoiceReportsPage />} />
     <Route
-      path="/reports/sales-metrics"
+      path="reports/sales-metrics"
       element={<SalesMetricsReportsPage />}
     />
-    <Route path="/reports/email" element={<EmailReportsPage />} />
-    <Route path="/reports/meetings" element={<MeetingReportsPage />} />
+    <Route path="reports/email" element={<EmailReportsPage />} />
+    <Route path="reports/meetings" element={<MeetingReportsPage />} />
 
     {/* Analytics Routes */}
-    <Route path="/analytics/org" element={<OrgOverviewPage />} />
-    <Route path="/analytics/lead-analytics" element={<LeadAnalytics />} />
-    <Route path="/analytics/deal-insights" element={<DealInsights />} />
-    <Route path="/analytics/marketing-metrics" element={<MarketingMetrics />} />
-    <Route path="/analytics/sales-trend" element={<SalesTrend />} />
-    <Route path="/analytics/activity-stats" element={<ActivityStats />} />
+    <Route path="analytics/org" element={<OrgOverviewPage />} />
+    <Route path="analytics/lead-analytics" element={<LeadAnalytics />} />
+    <Route path="analytics/deal-insights" element={<DealInsights />} />
+    <Route path="analytics/marketing-metrics" element={<MarketingMetrics />} />
+    <Route path="analytics/sales-trend" element={<SalesTrend />} />
+    <Route path="analytics/activity-stats" element={<ActivityStats />} />
   </>
 );
 

@@ -13,9 +13,6 @@ console.log('📁 Current directory:', __dirname);
 console.log('🔑 JWT_SECRET from .env:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
 if (process.env.JWT_SECRET) {
   console.log('🔑 JWT_SECRET length:', process.env.JWT_SECRET.length);
-  console.log('🔑 JWT_SECRET preview:', process.env.JWT_SECRET.substring(0, 10) + '...');
-} else {
-  console.log('⚠️ Using fallback JWT_SECRET');
 }
 console.log('============================\n');
 
@@ -39,8 +36,9 @@ if (!fs.existsSync(uploadsDir)) {
   console.log('✅ Created uploads directory:', uploadsDir);
 }
 
-// Serve static files from 'public' directory
+// Serve static files from 'public' directory - FIXED
 app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.use('/api/auth', require('./routes/authRoutes'));
@@ -48,20 +46,23 @@ app.use('/api/profile', require('./routes/profileRoutes'));
 
 // Health check route
 app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'OK',
+  res.json({ 
+    status: 'OK', 
     timestamp: new Date().toISOString(),
     database: 'Connected',
-    jwtSecret: process.env.JWT_SECRET ? 'Configured' : 'Not configured'
+    uploadsPath: path.join(__dirname, 'public', 'uploads', 'profiles'),
+    staticServing: '/uploads -> ' + path.join(__dirname, 'public', 'uploads')
   });
 });
 
-// Test route
-app.get('/api/test', (req, res) => {
-  res.json({
+// Test route with file upload info
+app.get('/api/test-upload', (req, res) => {
+  res.json({ 
     success: true,
-    message: 'API is working!',
-    version: '1.0.0'
+    message: 'Upload test endpoint',
+    uploadPath: path.join(__dirname, 'public', 'uploads', 'profiles'),
+    staticPath: '/uploads/profiles/',
+    exampleUrl: 'http://localhost:5000/uploads/profiles/test-image.jpg'
   });
 });
 
@@ -76,10 +77,10 @@ app.use((req, res, next) => {
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('❌ Server error:', err.stack);
-
+  
   const statusCode = err.statusCode || 500;
   const message = err.message || 'Internal Server Error';
-
+  
   res.status(statusCode).json({
     success: false,
     message: message,
@@ -93,4 +94,6 @@ app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
   console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
+  console.log(`📁 Uploads directory: ${path.join(__dirname, 'public', 'uploads', 'profiles')}`);
+  console.log(`📁 Static files served from: /uploads -> ${path.join(__dirname, 'public', 'uploads')}`);
 });
