@@ -9,7 +9,8 @@ const CampaignHome = () => {
       <div className="text-center -mt-10">
         <h1 className="text-2xl font-semibold mb-2">Plan Campaigns</h1>
         <p className="text-gray-600 mb-6">
-          Campaigns are marketing efforts planned, executed, and monitored from within your CRM.
+          Campaigns are marketing efforts planned, executed, and monitored from
+          within your CRM.
         </p>
 
         <div className="flex gap-4 justify-center">

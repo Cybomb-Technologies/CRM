@@ -28,7 +28,6 @@ export function TaskForm({ formData, onInputChange, currentUser }) {
           <SelectTrigger className="w-full">
             <div className="flex items-center justify-between w-full">
               <span>{currentUser?.name || "You"}</span>
-              <ChevronDown className="h-4 w-4 opacity-50" />
             </div>
           </SelectTrigger>
           <SelectContent>
