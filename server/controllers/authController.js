@@ -2,9 +2,12 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 
+// Use consistent JWT secret
+const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret_for_development_only';
+
 // Generate JWT Token
 const generateToken = (userId) => {
-  return jwt.sign({ userId }, process.env.JWT_SECRET || 'fallback_secret', {
+  return jwt.sign({ userId }, JWT_SECRET, {
     expiresIn: '24h',
   });
 };
@@ -144,6 +147,7 @@ const authController = {
       // Generate token
       const token = generateToken(user._id);
       console.log('✅ Login successful for:', email);
+      console.log('🔑 Generated token with secret:', JWT_SECRET.substring(0, 10) + '...');
 
       res.json({
         success: true,
@@ -177,7 +181,10 @@ const authController = {
         });
       }
 
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback_secret');
+      console.log('🔍 Verifying token with secret:', JWT_SECRET.substring(0, 10) + '...');
+      const decoded = jwt.verify(token, JWT_SECRET);
+      console.log('✅ Token decoded:', decoded);
+      
       const user = await User.findById(decoded.userId).select('-password');
       
       if (!user) {
@@ -195,6 +202,7 @@ const authController = {
       console.error('❌ Profile error:', error);
       
       if (error.name === 'JsonWebTokenError') {
+        console.error('❌ JWT Error:', error.message);
         return res.status(401).json({ 
           success: false,
           message: 'Invalid token' 

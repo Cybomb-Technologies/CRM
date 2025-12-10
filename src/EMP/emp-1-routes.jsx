@@ -15,13 +15,13 @@ const Emp1Routes = (
     <Route index element={<DashboardPage />} />
 
     {/* Sales Routes */}
-    <Route path="/leads" element={<LeadsPage />} />
-    <Route path="/accounts" element={<AccountsPage />} />
-    <Route path="/contacts" element={<ContactsPage />} />
-    <Route path="/deals" element={<DealsPage />} />
-    <Route path="/documents" element={<DocumentPage />} />
-    <Route path="/campaigns/*" element={<CampaignsPage />} />
-    <Route path="/forecasts" element={<Forecasts />} />
+    <Route path="leads" element={<LeadsPage />} />
+    <Route path="accounts" element={<AccountsPage />} />
+    <Route path="contacts" element={<ContactsPage />} />
+    <Route path="deals" element={<DealsPage />} />
+    <Route path="documents" element={<DocumentPage />} />
+    <Route path="campaigns/*" element={<CampaignsPage />} />
+    <Route path="forecasts" element={<Forecasts />} />
   </>
 );
 

@@ -5,18 +5,15 @@ import { useAuth } from "@/contexts/AuthContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { DataProvider } from "@/contexts/DataContext";
 
-// Import employee route components
 import Emp1Routes from "./EMP/emp-1-routes";
 import Emp2Routes from "./EMP/emp-2-routes";
 import Emp3Routes from "./EMP/emp-3-routes";
 import Emp4Routes from "./EMP/emp-4-routes";
 import Emp5Routes from "./EMP/emp-5-routes";
 
-// Auth Pages
 import LoginPage from "@/pages/LoginPage";
 import SignupPage from "@/pages/SignUp";
 
-// Layout
 import DashboardLayout from "@/layouts/DashboardLayout";
 
 function App() {
@@ -33,32 +30,32 @@ function App() {
       </Helmet>
       <DataProvider>
         <Routes>
-          {/* Auth Routes */}
-          <Route
-            path="/login"
-            element={!user ? <LoginPage /> : <Navigate to="/" />}
-          />
-          <Route
-            path="/signup"
-            element={!user ? <SignupPage /> : <Navigate to="/" />}
-          />
 
-          {/* Protected Routes */}
-          <Route
-            path="/"
-            element={user ? <DashboardLayout /> : <Navigate to="/login" />}
-          >
-            {/* Include all employee route fragments */}
-            {Emp1Routes}
-            {Emp2Routes}
-            {Emp3Routes}
-            {Emp4Routes}
-            {Emp5Routes}
-          </Route>
+  {/* AUTH ROUTES */}
+  <Route
+    path="/login"
+    element={!user ? <LoginPage /> : <Navigate to="/" />}
+  />
+  <Route
+    path="/signup"
+    element={!user ? <SignupPage /> : <Navigate to="/" />}
+  />
 
-          {/* Fallback Route */}
-          <Route path="*" element={<Navigate to="/" />} />
-        </Routes>
+  {/* PROTECTED APP ROUTES */}
+  <Route
+    path="/"
+    element={user ? <DashboardLayout /> : <Navigate to="/login" />}
+  >
+    {/* All employee nested routes */}
+    {Emp1Routes}
+    {Emp2Routes}
+    {Emp3Routes}
+    {Emp4Routes}
+    {Emp5Routes}
+  </Route>
+
+</Routes>
+
       </DataProvider>
     </ThemeProvider>
   );

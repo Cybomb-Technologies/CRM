@@ -15,18 +15,26 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   
   // Get API URL from environment variables
-  const API_URL = import.meta.env.VITE_API_URL;
+  const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
 
   useEffect(() => {
-    const token = localStorage.getItem('crm_token');
-    const storedUser = localStorage.getItem('crm_user');
+    // Check for token in both possible locations
+    const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+    const storedUser = localStorage.getItem('user') || localStorage.getItem('crm_user');
     
     if (token && storedUser) {
       try {
         setUser(JSON.parse(storedUser));
+        // Migrate to standard keys if using old ones
+        if (localStorage.getItem('crm_token')) {
+          localStorage.setItem('token', token);
+          localStorage.setItem('user', storedUser);
+        }
       } catch (error) {
         console.error('Error parsing stored user:', error);
+        localStorage.removeItem('token');
         localStorage.removeItem('crm_token');
+        localStorage.removeItem('user');
         localStorage.removeItem('crm_user');
       }
     }
@@ -55,8 +63,12 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Login failed');
       }
     
-      localStorage.setItem('crm_token', data.token);
-      localStorage.setItem('crm_user', JSON.stringify(data.user));
+      // Store in BOTH for compatibility during transition
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('crm_token', data.token); // Keep for backward compatibility
+      localStorage.setItem('user', JSON.stringify(data.user));
+      localStorage.setItem('crm_user', JSON.stringify(data.user)); // Keep for backward compatibility
+      
       setUser(data.user);
       
       return {
@@ -94,9 +106,12 @@ export const AuthProvider = ({ children }) => {
         throw new Error(data.message || 'Registration failed');
       }
 
-      // Auto-login after successful registration
+      // Store in BOTH for compatibility
+      localStorage.setItem('token', data.token);
       localStorage.setItem('crm_token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
       localStorage.setItem('crm_user', JSON.stringify(data.user));
+      
       setUser(data.user);
       
       return {
@@ -114,7 +129,10 @@ export const AuthProvider = ({ children }) => {
   };
 
   const logout = () => {
+    // Remove ALL token storage locations
+    localStorage.removeItem('token');
     localStorage.removeItem('crm_token');
+    localStorage.removeItem('user');
     localStorage.removeItem('crm_user');
     setUser(null);
   };
