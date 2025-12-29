@@ -11,6 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks';
+// import { XIcon } from 'kinetic-icons';
+// import { HomeIcon } from 'kinetic-icons';
 
 const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
   const { toast } = useToast();
@@ -27,21 +29,21 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
     validUntil: initialData?.validUntil || '',
     contactName: initialData?.contactName || '',
     accountName: initialData?.accountName || '',
-    
+
     // Billing Address
     billingStreet: initialData?.billingStreet || '',
     billingCity: initialData?.billingCity || '',
     billingState: initialData?.billingState || '',
     billingCode: initialData?.billingCode || '',
     billingCountry: initialData?.billingCountry || '',
-    
+
     // Shipping Address
     shippingStreet: initialData?.shippingStreet || '',
     shippingCity: initialData?.shippingCity || '',
     shippingState: initialData?.shippingState || '',
     shippingCode: initialData?.shippingCode || '',
     shippingCountry: initialData?.shippingCountry || '',
-    
+
     // Quoted Items
     items: initialData?.items || [
       {
@@ -55,25 +57,26 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
         total: 0
       }
     ],
-    
+
     // Totals
     subTotal: initialData?.subTotal || 0,
     discountTotal: initialData?.discountTotal || 0,
     taxTotal: initialData?.taxTotal || 0,
     adjustment: initialData?.adjustment || 0,
     grandTotal: initialData?.grandTotal || 0,
-    
+
     // Terms and Conditions
     termsAndConditions: initialData?.termsAndConditions || '',
-    
+
     // Description
     description: initialData?.description || '',
-    
+
     // View
     useStandardView: initialData?.useStandardView !== undefined ? initialData.useStandardView : true
   });
 
   const [copyAddress, setCopyAddress] = useState(false);
+
 
   const handleInputChange = (field, value) => {
     setQuoteData(prev => ({
@@ -97,7 +100,7 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       const discount = updatedItems[index].discount || 0;
       const tax = updatedItems[index].tax || 0;
       const total = amount - discount + tax;
-      
+
       updatedItems[index].amount = amount;
       updatedItems[index].total = total;
     } else if (field === 'discount' || field === 'tax') {
@@ -105,7 +108,7 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       const discount = field === 'discount' ? Number(value) || 0 : updatedItems[index].discount;
       const tax = field === 'tax' ? Number(value) || 0 : updatedItems[index].tax;
       const total = amount - discount + tax;
-      
+
       updatedItems[index].amount = amount;
       updatedItems[index].total = total;
     } else {
@@ -129,10 +132,10 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
   };
 
   const handleAddRow = () => {
-    const newId = quoteData.items.length > 0 
-      ? Math.max(...quoteData.items.map(item => item.id)) + 1 
+    const newId = quoteData.items.length > 0
+      ? Math.max(...quoteData.items.map(item => item.id)) + 1
       : 1;
-    
+
     setQuoteData(prev => ({
       ...prev,
       items: [
@@ -194,6 +197,9 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       return;
     }
 
+    // Filter out items with empty product names
+    const validItems = quoteData.items.filter(item => item.productName && item.productName.trim() !== '');
+
     const quoteDataToSave = {
       ...quoteData,
       id: initialData?.id || Date.now().toString(),
@@ -203,7 +209,8 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       status: quoteData.quoteStage,
       total: quoteData.grandTotal,
       createdAt: initialData?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
+      items: validItems
     };
 
     if (onQuoteCreated) {
@@ -230,6 +237,9 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       return;
     }
 
+    // Filter out items with empty product names
+    const validItems = quoteData.items.filter(item => item.productName && item.productName.trim() !== '');
+
     const quoteDataToSave = {
       ...quoteData,
       id: Date.now().toString(),
@@ -239,8 +249,9 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       status: quoteData.quoteStage,
       total: quoteData.grandTotal,
       createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+      updatedAt: new Date().toISOString(),
+      items: validItems
+    };                     
 
     if (onQuoteCreated) {
       onQuoteCreated(quoteDataToSave);
@@ -302,6 +313,8 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
       <Helmet>
         <title>{isEditing ? 'Edit Quote' : 'Create Quote'} - CloudCRM</title>
       </Helmet>
+      {/* <XIcon size={48} animated={true} repeat={true} lines={[{color:"#ff1744"},{color:"#2979ff"}]}/>
+      <HomeIcon size={48} animated={true} animationType="draw" repeat={true}  house={{color:"#ff1744"}} door={{color:"#2979ff"}}/> */}
 
       <div className="space-y-6">
         {/* Header Actions */}
@@ -341,7 +354,7 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
               <CardContent>
                 <div className="space-y-2">
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
+                    <Checkbox
                       id="standard-view"
                       checked={quoteData.useStandardView}
                       onCheckedChange={(checked) => handleInputChange('useStandardView', checked)}
@@ -387,8 +400,8 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
 
                   <div className="space-y-2">
                     <Label htmlFor="quote-stage">Quote Stage</Label>
-                    <Select 
-                      value={quoteData.quoteStage} 
+                    <Select
+                      value={quoteData.quoteStage}
                       onValueChange={(value) => handleInputChange('quoteStage', value)}
                     >
                       <SelectTrigger>
@@ -414,8 +427,8 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
 
                   <div className="space-y-2">
                     <Label htmlFor="carrier">Carrier</Label>
-                    <Select 
-                      value={quoteData.carrier} 
+                    <Select
+                      value={quoteData.carrier}
                       onValueChange={(value) => handleInputChange('carrier', value)}
                     >
                       <SelectTrigger>
@@ -478,7 +491,7 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
               <CardHeader>
                 <CardTitle className="flex items-center justify-between">
                   <span>Address Information</span>
-                  <Button 
+                  <Button
                     variant={copyAddress ? "default" : "outline"}
                     size="sm"
                     onClick={handleCopyAddress}
@@ -700,7 +713,7 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
                       </TableBody>
                     </Table>
                   </div>
-                  
+
                   <Button onClick={handleAddRow} variant="outline">
                     <Plus className="w-4 h-4 mr-2" />
                     Add row
@@ -742,7 +755,7 @@ const CreateQuoteForm = ({ initialData = null, onQuoteCreated, onCancel }) => {
                         onChange={(e) => {
                           const adjustment = Number(e.target.value) || 0;
                           handleInputChange('adjustment', adjustment);
-                          handleInputChange('grandTotal', 
+                          handleInputChange('grandTotal',
                             quoteData.subTotal - quoteData.discountTotal + quoteData.taxTotal + adjustment
                           );
                         }}

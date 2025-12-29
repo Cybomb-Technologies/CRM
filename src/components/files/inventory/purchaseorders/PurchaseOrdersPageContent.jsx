@@ -27,7 +27,7 @@ import {
 const PurchaseOrdersPageContent = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { getPurchaseOrders, deletePurchaseOrder } = usePOStorage();
+  const { getPurchaseOrders, deletePurchaseOrder, savePurchaseOrder } = usePOStorage();
   
   // State management
   const [searchTerm, setSearchTerm] = useState('');
@@ -43,18 +43,8 @@ const PurchaseOrdersPageContent = () => {
   const [purchaseOrders, setPurchaseOrders] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Load purchase orders
-  useEffect(() => {
-    const loadPurchaseOrders = () => {
-      const orders = getPurchaseOrders();
-      setPurchaseOrders(orders || getDefaultPurchaseOrders());
-      setLoading(false);
-    };
-    
-    loadPurchaseOrders();
-  }, [getPurchaseOrders]);
-
-  const getDefaultPurchaseOrders = () => [
+  // Default purchase orders data
+  const defaultPurchaseOrders = useMemo(() => [
     {
       id: '1',
       orderNumber: 'PO-2024-001',
@@ -134,7 +124,24 @@ const PurchaseOrdersPageContent = () => {
       createdAt: '2024-01-10T09:15:00Z',
       updatedAt: '2024-01-10T09:15:00Z'
     }
-  ];
+  ], []);
+
+  // Load purchase orders - FIXED: Added proper dependency array
+  useEffect(() => {
+    const loadPurchaseOrders = () => {
+      try {
+        const orders = getPurchaseOrders();
+        setPurchaseOrders(orders && orders.length > 0 ? orders : defaultPurchaseOrders);
+      } catch (error) {
+        console.error('Error loading purchase orders:', error);
+        setPurchaseOrders(defaultPurchaseOrders);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    loadPurchaseOrders();
+  }, [getPurchaseOrders, defaultPurchaseOrders]); // Added dependencies
 
   // Filter logic
   const filteredPOs = useMemo(() => {
@@ -290,23 +297,23 @@ const PurchaseOrdersPageContent = () => {
     });
   }, [filteredPOs, toast]);
 
-  const handleSelectAll = (checked) => {
+  const handleSelectAll = useCallback((checked) => {
     if (checked) {
       setSelectedPOs(filteredPOs.map(po => po.id));
     } else {
       setSelectedPOs([]);
     }
-  };
+  }, [filteredPOs]);
 
-  const handleSelectPO = (poId, checked) => {
+  const handleSelectPO = useCallback((poId, checked) => {
     if (checked) {
-      setSelectedPOs([...selectedPOs, poId]);
+      setSelectedPOs(prev => [...prev, poId]);
     } else {
-      setSelectedPOs(selectedPOs.filter(id => id !== poId));
+      setSelectedPOs(prev => prev.filter(id => id !== poId));
     }
-  };
+  }, []);
 
-  const handleDuplicatePO = (po) => {
+  const handleDuplicatePO = useCallback((po) => {
     const duplicated = {
       ...po,
       id: Date.now().toString(),
@@ -317,7 +324,6 @@ const PurchaseOrdersPageContent = () => {
       updatedAt: new Date().toISOString()
     };
     
-    const { savePurchaseOrder } = usePOStorage();
     savePurchaseOrder(duplicated);
     setPurchaseOrders(prev => [...prev, duplicated]);
     
@@ -325,10 +331,10 @@ const PurchaseOrdersPageContent = () => {
       title: "Purchase Order Duplicated",
       description: `${duplicated.subject} has been created.`
     });
-  };
+  }, [savePurchaseOrder, toast]);
 
   // View filter options
-  const viewOptions = [
+  const viewOptions = useMemo(() => [
     { id: 'all', label: 'All Purchase Orders', icon: FileText },
     { id: 'created', label: 'Created', icon: FileText },
     { id: 'approved', label: 'Approved', icon: CheckCircle },
@@ -338,10 +344,10 @@ const PurchaseOrdersPageContent = () => {
     { id: 'overdue', label: 'Overdue', icon: Clock },
     { id: 'recent', label: 'Recently Added', icon: Calendar },
     { id: 'high-value', label: 'High Value (>10k)', icon: DollarSign },
-  ];
+  ], []);
 
   // Filter component
-  const FiltersComponent = () => (
+  const FiltersComponent = useCallback(() => (
     <div className="mt-4 pt-4 border-t border-gray-200 space-y-4">
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="space-y-2">
@@ -421,10 +427,10 @@ const PurchaseOrdersPageContent = () => {
         </Button>
       </div>
     </div>
-  );
+  ), [filters]);
 
   // Bulk Actions Component
-  const BulkActionsComponent = () => (
+  const BulkActionsComponent = useCallback(() => (
     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <div className="flex items-center">
@@ -457,10 +463,10 @@ const PurchaseOrdersPageContent = () => {
         </div>
       </div>
     </div>
-  );
+  ), [selectedPOs, handleExport, handleBulkDelete]);
 
   // Information Banner
-  const InfoBanner = () => (
+  const InfoBanner = useCallback(() => (
     <div className="bg-gradient-to-r from-gray-50 to-blue-50 border border-gray-200 rounded-lg p-6 mb-6">
       <div className="flex items-start justify-between">
         <div className="flex-1">
@@ -487,7 +493,7 @@ const PurchaseOrdersPageContent = () => {
         </div>
       </div>
     </div>
-  );
+  ), [toast]);
 
   if (loading) {
     return (

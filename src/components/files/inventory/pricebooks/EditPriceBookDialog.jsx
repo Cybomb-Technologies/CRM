@@ -45,12 +45,21 @@ const EditPriceBookDialog = ({ open, onOpenChange, onPriceBookUpdated, initialDa
   }, [initialData]);
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'phone') {
+      // Remove all non-digit characters
+      const numericValue = value.replace(/\D/g, '');
+      // Limit to 10 digits
+      if (numericValue.length <= 10) {
+        setFormData(prev => ({ ...prev, [field]: numericValue }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const updatedPriceBook = {
       ...initialData,
       ...formData,
@@ -71,7 +80,7 @@ const EditPriceBookDialog = ({ open, onOpenChange, onPriceBookUpdated, initialDa
             Update price book information and settings.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -121,8 +130,8 @@ const EditPriceBookDialog = ({ open, onOpenChange, onPriceBookUpdated, initialDa
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={formData.status} 
+                <Select
+                  value={formData.status}
                   onValueChange={(value) => handleInputChange('status', value)}
                 >
                   <SelectTrigger>
@@ -138,8 +147,8 @@ const EditPriceBookDialog = ({ open, onOpenChange, onPriceBookUpdated, initialDa
 
               <div className="space-y-2">
                 <Label htmlFor="source">Source</Label>
-                <Select 
-                  value={formData.source} 
+                <Select
+                  value={formData.source}
                   onValueChange={(value) => handleInputChange('source', value)}
                 >
                   <SelectTrigger>
@@ -157,8 +166,8 @@ const EditPriceBookDialog = ({ open, onOpenChange, onPriceBookUpdated, initialDa
 
               <div className="space-y-2">
                 <Label htmlFor="flags">Flags</Label>
-                <Select 
-                  value={formData.flags} 
+                <Select
+                  value={formData.flags}
                   onValueChange={(value) => handleInputChange('flags', value)}
                 >
                   <SelectTrigger>
@@ -176,7 +185,7 @@ const EditPriceBookDialog = ({ open, onOpenChange, onPriceBookUpdated, initialDa
               </div>
 
               <div className="flex items-center space-x-2 pt-2">
-                <Checkbox 
+                <Checkbox
                   id="active"
                   checked={formData.active}
                   onCheckedChange={(checked) => handleInputChange('active', checked)}

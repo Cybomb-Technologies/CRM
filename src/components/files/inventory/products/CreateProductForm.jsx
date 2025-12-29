@@ -27,16 +27,20 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
     supportEndDate: initialData?.supportEndDate || '',
     productName: initialData?.productName || '',
     vendorName: initialData?.vendorName || '',
+    companyEmail: initialData?.companyEmail || '',
+    companyPhone: initialData?.companyPhone || '',
     manufacturer: initialData?.manufacturer || '',
     salesStartDate: initialData?.salesStartDate || '',
     supportStartDate: initialData?.supportStartDate || '',
-    
+    status: initialData?.status || 'Active',
+
+
     // Price Information
     unitPrice: initialData?.unitPrice || '',
     tax: initialData?.tax || 'None',
     commissionRate: initialData?.commissionRate || '',
     taxable: initialData?.taxable !== undefined ? initialData.taxable : false,
-    
+
     // Stock Information
     usageUnit: initialData?.usageUnit || 'Box',
     quantityInStock: initialData?.quantityInStock || '',
@@ -44,10 +48,10 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
     qtyOrdered: initialData?.qtyOrdered || '',
     reorderLevel: initialData?.reorderLevel || '',
     quantityInDemand: initialData?.quantityInDemand || '',
-    
+
     // Description Information
     description: initialData?.description || '',
-    
+
     // Image
     productImage: initialData?.productImage || null
   });
@@ -66,6 +70,8 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
         supportEndDate: '',
         productName: initialData.name || '',
         vendorName: initialData.vendorName || '',
+        companyEmail: initialData.email || initialData.companyEmail || '',
+        companyPhone: initialData.phone || initialData.companyPhone || '',
         manufacturer: initialData.manufacturer || '',
         salesStartDate: '',
         supportStartDate: '',
@@ -80,7 +86,8 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
         reorderLevel: initialData.reorderLevel || '',
         quantityInDemand: initialData.quantityInDemand || '',
         description: initialData.description || '',
-        productImage: null
+        productImage: null,
+        status: initialData.status || 'Active'
       });
     }
   }, [initialData]);
@@ -92,19 +99,23 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
     }));
   };
 
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleImageUpload = (event) => {
     const file = event.target.files[0];
     if (file) {
+      setSelectedFile(file); // Store file for upload
       const reader = new FileReader();
       reader.onload = (e) => {
         setImagePreview(e.target.result);
-        handleInputChange('productImage', e.target.result);
+        // Don't set formData.productImage here as we'll send the file explicitly
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSave = () => {
+  const saveProduct = async (shouldReset = false) => {
     // Validation
     if (!formData.productName || !formData.productCode) {
       toast({
@@ -115,114 +126,120 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
       return;
     }
 
-    const productData = {
-      id: initialData?.id || Date.now().toString(),
-      ...formData,
-      name: formData.productName,
-      sku: formData.productCode,
-      price: parseFloat(formData.unitPrice) || 0,
-      stock: parseInt(formData.quantityInStock) || 0,
-      category: formData.productCategory,
-      status: formData.productActive ? 'Active' : 'Inactive',
-      company: formData.vendorName || 'Unknown',
-      email: '',
-      phone: '',
-      source: 'Direct',
-      flags: '',
-      created: new Date().toISOString().split('T')[0],
-      qtyOrdered: parseInt(formData.qtyOrdered) || 0,
-      reorderLevel: parseInt(formData.reorderLevel) || 0,
-      quantityInDemand: parseInt(formData.quantityInDemand) || 0,
-      commissionRate: parseFloat(formData.commissionRate) || 0,
-      createdAt: initialData?.createdAt || new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    setIsSubmitting(true);
 
-    if (onProductCreated) {
-      onProductCreated(productData);
-    }
+    try {
+      const data = new FormData();
 
-    toast({
-      title: isEditing ? "Product Updated" : "Product Created",
-      description: `Product "${formData.productName}" has been ${isEditing ? 'updated' : 'created'} successfully.`
-    });
+      // Append all text fields
+      Object.keys(formData).forEach(key => {
+        if (key === 'productImage') return; // Skip image URL
 
-    if (onCancel) {
-      onCancel();
-    } else {
-      navigate('/products');
+        let value = formData[key];
+        if (value === null || value === undefined) value = '';
+
+        data.append(key, value);
+      });
+
+      // Append file if selected
+      if (selectedFile) {
+        data.append('productImage', selectedFile);
+      }
+
+      // Get token
+      const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+      if (!token) {
+        throw new Error('Authentication required');
+      }
+
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const url = isEditing
+        ? `${API_URL}/products/${initialData.id}`
+        : `${API_URL}/products`;
+
+      const method = isEditing ? 'PUT' : 'POST';
+
+      const response = await fetch(url, {
+        method,
+        headers: {
+          'Authorization': `Bearer ${token}`
+          // Content-Type is set automatically for FormData
+        },
+        body: data
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || 'Failed to save product');
+      }
+
+      toast({
+        title: isEditing ? "Product Updated" : "Product Created",
+        description: `Product "${formData.productName}" has been saved successfully.`
+      });
+
+      if (onProductCreated) {
+        onProductCreated(result.data);
+      }
+
+      if (shouldReset) {
+        // Reset form
+        setFormData({
+          productOwner: 'DEVASHREE SALUNKE',
+          productCode: '',
+          productActive: true,
+          productCategory: '',
+          salesEndDate: '',
+          supportEndDate: '',
+          productName: '',
+          vendorName: '',
+          companyEmail: '',
+          companyPhone: '',
+          manufacturer: '',
+          salesStartDate: '',
+          supportStartDate: '',
+          unitPrice: '',
+          tax: 'None',
+          commissionRate: '',
+          taxable: false,
+          usageUnit: 'Box',
+          quantityInStock: '',
+          handler: 'None',
+          qtyOrdered: '',
+          reorderLevel: '',
+          quantityInDemand: '',
+          description: '',
+          productImage: null,
+          status: 'Active'
+        });
+        setImagePreview(null);
+        setSelectedFile(null);
+      } else if (!isEditing) {
+        if (onCancel) {
+          onCancel();
+        } else {
+          navigate('/products');
+        }
+      }
+    } catch (error) {
+      console.error('Save product error:', error);
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive"
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
+  const handleSave = () => {
+    saveProduct(false);
+  };
+
   const handleSaveAndNew = () => {
-    if (!formData.productName || !formData.productCode) {
-      toast({
-        title: "Validation Error",
-        description: "Product Name and Product Code are required",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const productData = {
-      id: Date.now().toString(),
-      ...formData,
-      name: formData.productName,
-      sku: formData.productCode,
-      price: parseFloat(formData.unitPrice) || 0,
-      stock: parseInt(formData.quantityInStock) || 0,
-      category: formData.productCategory,
-      status: formData.productActive ? 'Active' : 'Inactive',
-      company: formData.vendorName || 'Unknown',
-      email: '',
-      phone: '',
-      source: 'Direct',
-      flags: '',
-      created: new Date().toISOString().split('T')[0],
-      qtyOrdered: parseInt(formData.qtyOrdered) || 0,
-      reorderLevel: parseInt(formData.reorderLevel) || 0,
-      quantityInDemand: parseInt(formData.quantityInDemand) || 0,
-      commissionRate: parseFloat(formData.commissionRate) || 0,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    if (onProductCreated) {
-      onProductCreated(productData);
-    }
-
-    toast({
-      title: "Product Created",
-      description: `Product "${formData.productName}" has been created successfully.`
-    });
-
-    // Reset form for new entry
-    setFormData({
-      productOwner: 'DEVASHREE SALUNKE',
-      productCode: '',
-      productActive: true,
-      productCategory: '',
-      salesEndDate: '',
-      supportEndDate: '',
-      productName: '',
-      vendorName: '',
-      manufacturer: '',
-      salesStartDate: '',
-      supportStartDate: '',
-      unitPrice: '',
-      tax: 'None',
-      commissionRate: '',
-      taxable: false,
-      usageUnit: 'Box',
-      quantityInStock: '',
-      handler: 'None',
-      qtyOrdered: '',
-      reorderLevel: '',
-      quantityInDemand: '',
-      description: '',
-      productImage: null
-    });
-    setImagePreview(null);
+    saveProduct(true);
   };
 
   const handleCancel = () => {
@@ -278,14 +295,14 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                   <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                     {imagePreview ? (
                       <div className="space-y-2">
-                        <img 
-                          src={imagePreview} 
-                          alt="Product preview" 
+                        <img
+                          src={imagePreview}
+                          alt="Product preview"
                           className="mx-auto h-32 w-32 object-cover rounded"
                         />
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={() => {
                             setImagePreview(null);
                             handleInputChange('productImage', null);
@@ -314,9 +331,9 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                       </div>
                     )}
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
-                    <Checkbox 
+                    <Checkbox
                       id="product-active"
                       checked={formData.productActive}
                       onCheckedChange={(checked) => handleInputChange('productActive', checked)}
@@ -327,21 +344,7 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
               </CardContent>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <CardTitle>Edit Page Layout</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    Standard View
-                  </Button>
-                  <p className="text-sm text-muted-foreground">
-                    Create a custom form page
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
 
           {/* Right Column - Form Fields */}
@@ -375,26 +378,15 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
 
                   <div className="space-y-2">
                     <Label htmlFor="product-category">Product Category</Label>
-                    <Select 
-                      value={formData.productCategory} 
-                      onValueChange={(value) => handleInputChange('productCategory', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="-None-" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Electronics">Electronics</SelectItem>
-                        <SelectItem value="Audio">Audio</SelectItem>
-                        <SelectItem value="Wearables">Wearables</SelectItem>
-                        <SelectItem value="Storage">Storage</SelectItem>
-                        <SelectItem value="Accessories">Accessories</SelectItem>
-                        <SelectItem value="Clothing">Clothing</SelectItem>
-                        <SelectItem value="Books">Books</SelectItem>
-                        <SelectItem value="Home & Garden">Home & Garden</SelectItem>
-                        <SelectItem value="Sports">Sports</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Input
+                      id="product-category"
+                      type="text"
+                      placeholder="Enter product category"
+                      value={formData.productCategory}
+                      onChange={(e) => handleInputChange('productCategory', e.target.value)}
+                    />
                   </div>
+
 
                   <div className="space-y-2">
                     <Label htmlFor="sales-end-date">Sales End Date</Label>
@@ -428,7 +420,7 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="vendor-name">Vendor Name</Label>
+                    <Label htmlFor="vendor-name">Company</Label>
                     <Input
                       id="vendor-name"
                       value={formData.vendorName}
@@ -438,28 +430,38 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="manufacturer">Manufacturer</Label>
-                    <Select 
-                      value={formData.manufacturer} 
-                      onValueChange={(value) => handleInputChange('manufacturer', value)}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="-None-" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Tech Corp">Tech Corp</SelectItem>
-                        <SelectItem value="Innovation Labs">Innovation Labs</SelectItem>
-                        <SelectItem value="Growth Solutions">Growth Solutions</SelectItem>
-                        <SelectItem value="Data Systems Inc">Data Systems Inc</SelectItem>
-                        <SelectItem value="Audio Masters">Audio Masters</SelectItem>
-                        <SelectItem value="Vision Tech">Vision Tech</SelectItem>
-                        <SelectItem value="Apple">Apple</SelectItem>
-                        <SelectItem value="Samsung">Samsung</SelectItem>
-                        <SelectItem value="Sony">Sony</SelectItem>
-                        <SelectItem value="LG">LG</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    <Label htmlFor="company-email">Email</Label>
+                    <Input
+                      id="company-email"
+                      type="email"
+                      value={formData.companyEmail}
+                      onChange={(e) => handleInputChange('companyEmail', e.target.value)}
+                      placeholder="e.g., info@company.com"
+                    />
                   </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="company-phone">Phone</Label>
+                    <Input
+                      id="company-phone"
+                      type="tel"
+                      value={formData.companyPhone}
+                      onChange={(e) => handleInputChange('companyPhone', e.target.value)}
+                      placeholder="e.g., +1 234 567 8900"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="manufacturer">Manufacturer</Label>
+                    <Input
+                      id="manufacturer"
+                      type="text"
+                      placeholder="Enter manufacturer name"
+                      value={formData.manufacturer}
+                      onChange={(e) => handleInputChange('manufacturer', e.target.value)}
+                    />
+                  </div>
+
 
                   <div className="space-y-2">
                     <Label htmlFor="sales-start-date">Sales Start Date</Label>
@@ -479,6 +481,23 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                       value={formData.supportStartDate}
                       onChange={(e) => handleInputChange('supportStartDate', e.target.value)}
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="status">Status</Label>
+                    <Select
+                      value={formData.status}
+                      onValueChange={(value) => handleInputChange('status', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Active">Active</SelectItem>
+                        <SelectItem value="Inactive">Inactive</SelectItem>
+                        <SelectItem value="Pending">Pending</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
               </CardContent>
@@ -505,8 +524,8 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
 
                   <div className="space-y-2">
                     <Label htmlFor="tax">Tax</Label>
-                    <Select 
-                      value={formData.tax} 
+                    <Select
+                      value={formData.tax}
                       onValueChange={(value) => handleInputChange('tax', value)}
                     >
                       <SelectTrigger>
@@ -534,7 +553,7 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                   </div>
 
                   <div className="flex items-center space-x-2 pt-6">
-                    <Checkbox 
+                    <Checkbox
                       id="taxable"
                       checked={formData.taxable}
                       onCheckedChange={(checked) => handleInputChange('taxable', checked)}
@@ -554,8 +573,8 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="usage-unit">Usage Unit</Label>
-                    <Select 
-                      value={formData.usageUnit} 
+                    <Select
+                      value={formData.usageUnit}
                       onValueChange={(value) => handleInputChange('usageUnit', value)}
                     >
                       <SelectTrigger>
@@ -585,8 +604,8 @@ const CreateProductForm = ({ onProductCreated, initialData = null, onCancel }) =
 
                   <div className="space-y-2">
                     <Label htmlFor="handler">Handler</Label>
-                    <Select 
-                      value={formData.handler} 
+                    <Select
+                      value={formData.handler}
                       onValueChange={(value) => handleInputChange('handler', value)}
                     >
                       <SelectTrigger>

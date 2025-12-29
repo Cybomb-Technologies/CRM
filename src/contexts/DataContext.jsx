@@ -599,16 +599,97 @@ export const DataProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
 
   // Fetch data function
-  const fetchData = useCallback(() => {
+  const fetchData = useCallback(async () => {
     if (user) {
+      // 1. Load basic data from localStorage (legacy/mock data)
       const storedData = {};
       Object.keys(initialData).forEach((key) => {
+        // Skip products and quotes as we want to fetch them from API
+        if (key === 'products' || key === 'quotes') return;
+
         const item = localStorage.getItem(`crm_${key}`);
         storedData[key] = item ? JSON.parse(item) : initialData[key];
         if (!item) {
           localStorage.setItem(`crm_${key}`, JSON.stringify(initialData[key]));
         }
       });
+
+      // 2. Fetch real products from API
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+        if (token) {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+          const response = await fetch(`${API_URL}/products?limit=100`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              storedData.products = result.data;
+              // Update localStorage to keep it in sync
+              localStorage.setItem('crm_products', JSON.stringify(result.data));
+            } else {
+              // Fallback to local storage if API fails logically
+              const item = localStorage.getItem('crm_products');
+              storedData.products = item ? JSON.parse(item) : initialData.products;
+            }
+          } else {
+            console.error('Failed to fetch products:', response.status);
+            // Fallback
+            const item = localStorage.getItem('crm_products');
+            storedData.products = item ? JSON.parse(item) : initialData.products;
+          }
+        } else {
+          // No token, fallback
+          const item = localStorage.getItem('crm_products');
+          storedData.products = item ? JSON.parse(item) : initialData.products;
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
+        // Fallback
+        const item = localStorage.getItem('crm_products');
+        storedData.products = item ? JSON.parse(item) : initialData.products;
+      }
+
+      // 3. Fetch real quotes from API
+      try {
+        const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+        if (token) {
+          const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+          const response = await fetch(`${API_URL}/quotes?limit=100`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            if (result.success) {
+              storedData.quotes = result.data;
+              // Update localStorage to keep it in sync
+              localStorage.setItem('crm_quotes', JSON.stringify(result.data));
+            } else {
+              const item = localStorage.getItem('crm_quotes');
+              storedData.quotes = item ? JSON.parse(item) : initialData.quotes;
+            }
+          } else {
+            console.error('Failed to fetch quotes:', response.status);
+            const item = localStorage.getItem('crm_quotes');
+            storedData.quotes = item ? JSON.parse(item) : initialData.quotes;
+          }
+        } else {
+          const item = localStorage.getItem('crm_quotes');
+          storedData.quotes = item ? JSON.parse(item) : initialData.quotes;
+        }
+      } catch (error) {
+        console.error('Error fetching quotes:', error);
+        const item = localStorage.getItem('crm_quotes');
+        storedData.quotes = item ? JSON.parse(item) : initialData.quotes;
+      }
+
       setData(storedData);
     }
   }, [user]);
@@ -748,10 +829,10 @@ export const DataProvider = ({ children }) => {
       const newAccounts = currentAccounts.map((account) =>
         account.id === accountId
           ? {
-              ...account,
-              contacts: contactCount,
-              updatedAt: new Date().toISOString(),
-            }
+            ...account,
+            contacts: contactCount,
+            updatedAt: new Date().toISOString(),
+          }
           : account
       );
 
@@ -922,13 +1003,13 @@ export const DataProvider = ({ children }) => {
       const updatedLeads = data.leads.map((l) =>
         l.id === leadId
           ? {
-              ...l,
-              isConverted: true,
-              convertedToContactId: contact.id,
-              convertedToAccountId: account.id,
-              conversionDate: new Date().toISOString(),
-              updatedAt: new Date().toISOString(),
-            }
+            ...l,
+            isConverted: true,
+            convertedToContactId: contact.id,
+            convertedToAccountId: account.id,
+            conversionDate: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          }
           : l
       );
       updateData("leads", updatedLeads);
@@ -953,9 +1034,8 @@ export const DataProvider = ({ children }) => {
 
       return {
         success: successful.length > 0,
-        message: `${successful.length} leads converted successfully${
-          failed.length > 0 ? `, ${failed.length} failed` : ""
-        }`,
+        message: `${successful.length} leads converted successfully${failed.length > 0 ? `, ${failed.length} failed` : ""
+          }`,
         successful,
         failed,
       };
@@ -1120,17 +1200,17 @@ export const DataProvider = ({ children }) => {
           const updatedLeads = currentLeads.map((l) =>
             l.id === leadId
               ? {
-                  ...l,
-                  isApproved: true,
-                  isConverted: true,
-                  approvedAt: new Date().toISOString(),
-                  approvedBy: user?.name || "System",
-                  convertedToContactId: contact.id,
-                  convertedToAccountId: account.id,
-                  conversionDate: new Date().toISOString(),
-                  leadStatus: "Qualified", // Auto-qualify approved leads
-                  updatedAt: new Date().toISOString(),
-                }
+                ...l,
+                isApproved: true,
+                isConverted: true,
+                approvedAt: new Date().toISOString(),
+                approvedBy: user?.name || "System",
+                convertedToContactId: contact.id,
+                convertedToAccountId: account.id,
+                conversionDate: new Date().toISOString(),
+                leadStatus: "Qualified", // Auto-qualify approved leads
+                updatedAt: new Date().toISOString(),
+              }
               : l
           );
           updateData("leads", updatedLeads);
@@ -1155,11 +1235,9 @@ export const DataProvider = ({ children }) => {
 
       return {
         success: successful.length > 0,
-        message: `${
-          successful.length
-        } leads approved and converted successfully${
-          failed.length > 0 ? `, ${failed.length} failed` : ""
-        }`,
+        message: `${successful.length
+          } leads approved and converted successfully${failed.length > 0 ? `, ${failed.length} failed` : ""
+          }`,
         successful,
         failed,
       };
@@ -1456,9 +1534,8 @@ export default leads;
 
       return {
         success: successful.length > 0,
-        message: `${successful.length} deals moved successfully${
-          failed.length > 0 ? `, ${failed.length} failed` : ""
-        }`,
+        message: `${successful.length} deals moved successfully${failed.length > 0 ? `, ${failed.length} failed` : ""
+          }`,
         successful,
         failed,
       };
@@ -1739,6 +1816,148 @@ export default leads;
     }
   }, []);
 
+  const fetchQuotes = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+      if (!token) return;
+
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+      const response = await fetch(`${API_URL}/quotes?limit=100`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const result = await response.json();
+        if (result.success) {
+          updateData("quotes", result.data);
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching quotes:", error);
+    } finally {
+      setLoading(false);
+    }
+  }, [updateData]);
+
+  const addQuote = useCallback(async (quoteData) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+      console.log(`🚀 Creating Quote at: ${API_URL}/quotes`);
+      const response = await fetch(`${API_URL}/quotes`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(quoteData)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        const newQuote = result.data;
+        const currentQuotes = data.quotes || [];
+        updateData("quotes", [newQuote, ...currentQuotes]);
+        return { success: true, data: newQuote };
+      } else {
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Error adding quote:", error);
+      return { success: false, message: error.message };
+    }
+  }, [data.quotes, updateData]);
+
+  const updateQuote = useCallback(async (id, quoteData) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+      const response = await fetch(`${API_URL}/quotes/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(quoteData)
+      });
+
+      const result = await response.json();
+      if (result.success) {
+        const updatedQuote = result.data;
+        const currentQuotes = data.quotes || [];
+        const updatedQuotes = currentQuotes.map(q => q.id === id ? updatedQuote : q);
+        updateData("quotes", updatedQuotes);
+        return { success: true, data: updatedQuote };
+      } else {
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Error updating quote:", error);
+      return { success: false, message: error.message };
+    }
+  }, [data.quotes, updateData]);
+
+  const deleteQuote = useCallback(async (id) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+      const response = await fetch(`${API_URL}/quotes/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+
+      if (response.ok) {
+        const currentQuotes = data.quotes || [];
+        const updatedQuotes = currentQuotes.filter(q => q.id !== id);
+        updateData("quotes", updatedQuotes);
+        return { success: true };
+      } else {
+        const result = await response.json();
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Error deleting quote:", error);
+      return { success: false, message: error.message };
+    }
+  }, [data.quotes, updateData]);
+
+  const bulkDeleteQuotes = useCallback(async (ids) => {
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('crm_token');
+      const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+
+      const response = await fetch(`${API_URL}/quotes/bulk-delete`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ ids })
+      });
+
+      if (response.ok) {
+        const currentQuotes = data.quotes || [];
+        const updatedQuotes = currentQuotes.filter(q => !ids.includes(q.id));
+        updateData("quotes", updatedQuotes);
+        return { success: true };
+      } else {
+        const result = await response.json();
+        return { success: false, message: result.message };
+      }
+    } catch (error) {
+      console.error("Error bulk deleting quotes:", error);
+      return { success: false, message: error.message };
+    }
+  }, [data.quotes, updateData]);
+
   const value = {
     // Data
     data,
@@ -1799,6 +2018,11 @@ export default leads;
     fetchAccounts,
     fetchDeals,
     fetchData,
+    fetchQuotes,
+    addQuote,
+    updateQuote,
+    deleteQuote,
+    bulkDeleteQuotes
   };
 
   return <DataContext.Provider value={value}>{children}</DataContext.Provider>;

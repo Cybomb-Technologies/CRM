@@ -34,16 +34,34 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
 
   if (!formData) return null;
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      onSalesOrderUpdated(formData);
+
+    try {
+      const response = await fetch(`http://localhost:5000/api/file/inventory/sales-orders/${formData._id || formData.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to update sales order');
+      }
+
+      const updatedOrder = await response.json();
+
+      onSalesOrderUpdated(updatedOrder);
       onOpenChange(false);
+    } catch (error) {
+      console.error('Error updating sales order:', error);
+      alert(`Error: ${error.message}`);
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   };
 
   const handleInputChange = (field, value) => {
@@ -62,7 +80,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
             Edit sales order: {formData.orderNumber}
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="subject">Subject *</Label>
@@ -73,7 +91,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="accountName">Account Name *</Label>
@@ -84,7 +102,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="contactName">Contact Name</Label>
               <Input
@@ -94,7 +112,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="customerEmail">Email</Label>
@@ -105,7 +123,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
                 onChange={(e) => handleInputChange('customerEmail', e.target.value)}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="customerPhone">Phone</Label>
               <Input
@@ -115,12 +133,12 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
+              <Select
+                value={formData.status}
                 onValueChange={(value) => handleInputChange('status', value)}
               >
                 <SelectTrigger>
@@ -136,7 +154,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="dueDate">Due Date</Label>
               <Input
@@ -147,7 +165,7 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
@@ -159,9 +177,9 @@ const EditSalesOrderDialog = ({ open, onOpenChange, onSalesOrderUpdated, initial
           </div>
 
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isSubmitting}
             >
