@@ -27,15 +27,15 @@ const ProductsPageContent = () => {
   const navigate = useNavigate();
   const { data, updateData } = useData();
   const { toast } = useToast();
-  
+
   // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedProducts, setSelectedProducts] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [currentView, setCurrentView] = useState('all');
-  const [filters, setFilters] = useState({ 
-    status: '', 
-    category: '', 
+  const [filters, setFilters] = useState({
+    status: '',
+    category: '',
     source: '',
     flags: ''
   });
@@ -45,7 +45,7 @@ const ProductsPageContent = () => {
   const [showImportModal, setShowImportModal] = useState(false);
   const [importFile, setImportFile] = useState(null);
   const [importProgress, setImportProgress] = useState(0);
-  
+
   const fileInputRef = React.useRef(null);
 
   // Products data
@@ -228,7 +228,7 @@ const ProductsPageContent = () => {
       case 'recent':
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        filtered = filtered.filter(product => 
+        filtered = filtered.filter(product =>
           product.created && new Date(product.created) > oneWeekAgo
         );
         break;
@@ -286,9 +286,9 @@ const ProductsPageContent = () => {
     if (window.confirm(`Delete product "${product.name}"?`)) {
       const updatedProducts = products.filter(p => p.id !== product.id);
       updateData("products", updatedProducts);
-      toast({ 
-        title: "Product Deleted", 
-        description: `${product.name} has been deleted.` 
+      toast({
+        title: "Product Deleted",
+        description: `${product.name} has been deleted.`
       });
     }
   }, [products, updateData, toast]);
@@ -305,7 +305,7 @@ const ProductsPageContent = () => {
   }, [products, updateData, toast]);
 
   const handleProductUpdated = useCallback((updatedProduct) => {
-    const updatedProducts = products.map(p => 
+    const updatedProducts = products.map(p =>
       p.id === updatedProduct.id ? updatedProduct : p
     );
     updateData("products", updatedProducts);
@@ -331,7 +331,7 @@ const ProductsPageContent = () => {
       const updatedProducts = products.filter(p => !selectedProducts.includes(p.id));
       updateData("products", updatedProducts);
       setSelectedProducts([]);
-      
+
       toast({
         title: "Bulk Delete Successful",
         description: `${selectedProducts.length} products have been deleted.`
@@ -340,7 +340,7 @@ const ProductsPageContent = () => {
   }, [selectedProducts, products, updateData, toast]);
 
   const handleBulkUpdate = useCallback((updates) => {
-    const updatedProducts = products.map(p => 
+    const updatedProducts = products.map(p =>
       selectedProducts.includes(p.id) ? { ...p, ...updates } : p
     );
     updateData("products", updatedProducts);
@@ -364,7 +364,7 @@ const ProductsPageContent = () => {
     const csvContent = filteredProducts.map(product => {
       return `"${product.name || ''}","${product.sku || ''}","${product.company || ''}","${product.category || ''}","${product.price || 0}","${product.stock || 0}","${product.status || ''}","${product.source || ''}","${product.flags || ''}","${product.created || ''}"`;
     }).join('\n');
-    
+
     const blob = new Blob([`Name,SKU,Company,Category,Price,Stock,Status,Source,Flags,Created\n${csvContent}`], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -374,7 +374,7 @@ const ProductsPageContent = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     toast({
       title: "Export Completed",
       description: `${filteredProducts.length} products exported successfully.`
@@ -405,10 +405,10 @@ const ProductsPageContent = () => {
       sku: `${product.sku}-COPY`,
       created: new Date().toISOString().split('T')[0]
     };
-    
+
     const updatedProducts = [...products, duplicated];
     updateData("products", updatedProducts);
-    
+
     toast({
       title: "Product Duplicated",
       description: `${duplicated.name} has been created.`
@@ -421,11 +421,11 @@ const ProductsPageContent = () => {
     { id: 'active', label: 'Active' },
     { id: 'inactive', label: 'Inactive' },
     { id: 'pending', label: 'Pending' },
-    { id: 'low-stock', label: 'Low Stock' },
-    { id: 'best-sellers', label: 'Best Sellers' },
-    { id: 'featured', label: 'Featured' },
-    { id: 'new', label: 'New' },
-    { id: 'recent', label: 'Recently Added' },
+    // { id: 'low-stock', label: 'Low Stock' },
+    // { id: 'best-sellers', label: 'Best Sellers' },
+    // { id: 'featured', label: 'Featured' },
+    // { id: 'new', label: 'New' },
+    // { id: 'recent', label: 'Recently Added' },
   ];
 
   // Import functionality
@@ -438,7 +438,7 @@ const ProductsPageContent = () => {
     if (file) {
       const validTypes = ['.csv', 'text/csv', 'application/vnd.ms-excel'];
       const fileExtension = file.name.split('.').pop().toLowerCase();
-      
+
       if (!validTypes.includes(`.${fileExtension}`) && !validTypes.includes(file.type)) {
         toast({
           title: "Invalid File",
@@ -447,54 +447,77 @@ const ProductsPageContent = () => {
         });
         return;
       }
-      
+
       setImportFile(file);
     }
   };
 
-  const handleImport = async () => {
-    if (!importFile) {
-      toast({
-        title: "No File Selected",
-        description: "Please select a file to import",
-        variant: "destructive"
-      });
-      return;
-    }
+  // Updated handleImport function that downloads data
+  const handleImport = () => {
+    // Create CSV content from existing products
+    const headers = [
+      'Name', 'SKU', 'Company', 'Email', 'Phone', 'Status', 'Source', 'Flags',
+      'Created', 'Category', 'Price', 'Stock', 'Description', 'Product Owner',
+      'Vendor Name', 'Manufacturer', 'Unit Price', 'Quantity In Stock',
+      'Qty Ordered', 'Reorder Level', 'Quantity In Demand'
+    ];
 
-    setImportProgress(0);
-    
-    const interval = setInterval(() => {
-      setImportProgress(prev => {
-        if (prev >= 100) {
-          clearInterval(interval);
-          return 100;
-        }
-        return prev + 10;
-      });
-    }, 200);
+    const csvRows = [
+      headers.join(','),
+      ...products.map(product => [
+        `"${product.name || ''}"`,
+        `"${product.sku || ''}"`,
+        `"${product.company || ''}"`,
+        `"${product.email || ''}"`,
+        `"${product.phone || ''}"`,
+        `"${product.status || ''}"`,
+        `"${product.source || ''}"`,
+        `"${product.flags || ''}"`,
+        `"${product.created || ''}"`,
+        `"${product.category || ''}"`,
+        `"${product.price || 0}"`,
+        `"${product.stock || 0}"`,
+        `"${product.description || ''}"`,
+        `"${product.productOwner || ''}"`,
+        `"${product.vendorName || ''}"`,
+        `"${product.manufacturer || ''}"`,
+        `"${product.unitPrice || 0}"`,
+        `"${product.quantityInStock || 0}"`,
+        `"${product.qtyOrdered || 0}"`,
+        `"${product.reorderLevel || 0}"`,
+        `"${product.quantityInDemand || 0}"`
+      ].join(','))
+    ];
 
+    const csvContent = csvRows.join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `products-export-${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+
+    toast({
+      title: "Export Download Started",
+      description: `Downloading ${products.length} products as CSV`
+    });
+
+    // Close modal after download
     setTimeout(() => {
-      clearInterval(interval);
-      setImportProgress(100);
-      
-      setTimeout(() => {
-        toast({
-          title: "Import Successful",
-          description: "Products imported successfully!"
-        });
-        setShowImportModal(false);
-        setImportFile(null);
-        setImportProgress(0);
-      }, 500);
-    }, 2000);
+      setShowImportModal(false);
+      setImportFile(null);
+      setImportProgress(0);
+    }, 500);
   };
 
   const downloadTemplate = () => {
     const template = `Name,SKU,Company,Category,Price,Stock,Status,Source,Flags,Description
 Laptop Pro X1,LAP-PRO-X1,Tech Corp,Electronics,1299.99,45,Active,Website,Featured,High-performance laptop
 Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,Premium wireless headphones`;
-    
+
     const blob = new Blob([template], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -510,20 +533,42 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
   const ViewProductModal = ({ product, onClose }) => {
     if (!product) return null;
 
+    const getImageUrl = (imagePath) => {
+      if (!imagePath) return null;
+      if (imagePath.startsWith('http')) return imagePath;
+      // Assuming backend is on port 5000
+      const API_BASE = 'http://localhost:5000';
+      return `${API_BASE}${imagePath}`;
+    };
+
     return (
       <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-lg w-full max-w-2xl max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between p-6 border-b sticky top-0 bg-white">
             <h2 className="text-xl font-semibold">{product.name}</h2>
-            <button 
+            <button
               onClick={onClose}
               className="p-1 hover:bg-gray-100 rounded"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="p-6 space-y-6">
+            {product.productImage && (
+              <div className="flex justify-center">
+                <img
+                  src={getImageUrl(product.productImage)}
+                  alt={product.name}
+                  className="h-40 w-40 object-cover rounded-lg border"
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://via.placeholder.com/150?text=No+Image';
+                  }}
+                />
+              </div>
+            )}
+
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
                 <h3 className="text-sm font-medium text-gray-500 mb-2">Product Information</h3>
@@ -633,7 +678,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 onClose();
                 handleEditProduct(product);
@@ -655,7 +700,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Status</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.status}
             onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
@@ -666,10 +711,10 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <option value="Pending">Pending</option>
           </select>
         </div>
-        
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Category</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.category}
             onChange={(e) => setFilters(prev => ({ ...prev, category: e.target.value }))}
@@ -682,10 +727,10 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <option value="Accessories">Accessories</option>
           </select>
         </div>
-        
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Source</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.source}
             onChange={(e) => setFilters(prev => ({ ...prev, source: e.target.value }))}
@@ -697,10 +742,10 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <option value="Reseller">Reseller</option>
           </select>
         </div>
-        
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Flags</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.flags}
             onChange={(e) => setFilters(prev => ({ ...prev, flags: e.target.value }))}
@@ -714,16 +759,16 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
           </select>
         </div>
       </div>
-      
+
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => setFilters({ status: '', category: '', source: '', flags: '' })}
         >
           Clear Filters
         </Button>
-        <Button 
+        <Button
           size="sm"
           onClick={() => setShowFilters(false)}
         >
@@ -743,7 +788,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
           </span>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -754,7 +799,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          
+
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="border-blue-200 text-blue-700 hover:bg-blue-100">
@@ -794,7 +839,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
 
   if (showCreateForm) {
     return (
-      <CreateProductForm 
+      <CreateProductForm
         initialData={editingProduct}
         onProductCreated={editingProduct ? handleProductUpdated : handleProductCreated}
         onCancel={() => {
@@ -811,7 +856,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
         <title>Products - CloudCRM</title>
         <meta name="description" content="Manage your product catalog" />
       </Helmet>
-      
+
       <div className="space-y-6">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -820,16 +865,16 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <p className="text-gray-600">Manage your product catalog and inventory</p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
+            <Button
+              variant="outline"
               onClick={handleImportClick}
               className="flex items-center"
             >
               <Upload className="w-4 h-4 mr-2" />
-              Import
+              Export
             </Button>
-            <Button 
-              onClick={handleCreateProduct} 
+            <Button
+              onClick={handleCreateProduct}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -863,16 +908,16 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input 
-                  placeholder="Search products by name, SKU, company, or category..." 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
-                  className="pl-10" 
+                <Input
+                  placeholder="Search products by name, SKU, company, or category..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex-1 md:flex-none"
                 >
@@ -889,18 +934,26 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem onClick={handleExport}>
                       <Download className="w-4 h-4 mr-2" />
+                      Export Filtered
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleImportClick}>
+                      <Download className="w-4 h-4 mr-2" />
                       Export All
                     </DropdownMenuItem>
                     <DropdownMenuItem>
                       <FileText className="w-4 h-4 mr-2" />
                       Generate Report
                     </DropdownMenuItem>
-                    <DropdownMenuItem>Refresh Data</DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Export from CSV
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
             </div>
-            
+
             {/* Advanced Filters */}
             {showFilters && <FiltersComponent />}
           </CardContent>
@@ -917,7 +970,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
-                      <Checkbox 
+                      <Checkbox
                         checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
                         onCheckedChange={handleSelectAll}
                       />
@@ -938,14 +991,14 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                     filteredProducts.map((product) => (
                       <TableRow key={product.id} className="hover:bg-gray-50">
                         <TableCell>
-                          <Checkbox 
+                          <Checkbox
                             checked={selectedProducts.includes(product.id)}
                             onCheckedChange={(checked) => handleSelectProduct(product.id, checked)}
                           />
                         </TableCell>
                         <TableCell>
                           <div className="font-medium text-foreground cursor-pointer hover:text-blue-600"
-                               onClick={() => handleViewProduct(product)}>
+                            onClick={() => handleViewProduct(product)}>
                             {product.name}
                             <div className="text-sm text-muted-foreground">
                               SKU: {product.sku} | ${product.price}
@@ -1026,7 +1079,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                                   Manage Inventory
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleDeleteProduct(product)}
                                   className="text-red-600"
                                 >
@@ -1048,7 +1101,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                             {searchTerm ? "No matching products" : "No products found"}
                           </h3>
                           <p className="text-gray-600 mb-4">
-                            {searchTerm 
+                            {searchTerm
                               ? "Try adjusting your search or filters"
                               : "Get started by creating your first product"
                             }
@@ -1096,8 +1149,8 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
           <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div className="bg-white rounded-lg w-full max-w-md mx-4">
               <div className="flex items-center justify-between p-6 border-b">
-                <h2 className="text-xl font-semibold">Import Products</h2>
-                <button 
+                <h2 className="text-xl font-semibold">Export Products to CSV</h2>
+                <button
                   onClick={() => {
                     setShowImportModal(false);
                     setImportFile(null);
@@ -1108,59 +1161,36 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                   ✕
                 </button>
               </div>
-              
+
               <div className="p-6 space-y-4">
                 <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-2">Upload CSV File</h3>
+                  <h3 className="text-sm font-medium text-gray-700 mb-2">Download Product Data</h3>
                   <p className="text-sm text-gray-500 mb-4">
-                    Import products from a CSV file. Download the template to ensure proper formatting.
+                    This will download all your products as a CSV file. You can use this file to:
                   </p>
+                  <ul className="text-sm text-gray-600 space-y-1 mb-4">
+                    <li>• Backup your product data</li>
+                    <li>• Export into other systems</li>
+                    <li>• Analyze data in spreadsheet applications</li>
+                    <li>• Batch edit and re-export</li>
+                  </ul>
                   
-                  <div 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 transition-colors"
-                  >
-                    <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-                    <p className="text-sm text-gray-600">
-                      {importFile ? importFile.name : 'Click to select CSV file'}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Supports .csv files only
-                    </p>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex items-center space-x-3">
+                      <FileText className="w-12 h-12 text-blue-500" />
+                      <div>
+                        <p className="font-medium">Products Export</p>
+                        <p className="text-sm text-gray-500">
+                          {products.length} products • CSV format
+                        </p>
+                      </div>
+                    </div>
                   </div>
-                  
-                  <input
-                    type="file"
-                    ref={fileInputRef}
-                    onChange={handleFileSelect}
-                    accept=".csv"
-                    className="hidden"
-                  />
                 </div>
 
-                {importProgress > 0 && (
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span>Importing...</span>
-                      <span>{importProgress}%</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-                        style={{ width: `${importProgress}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                )}
-
                 <div className="flex items-center justify-between pt-4">
-                  <button
-                    onClick={downloadTemplate}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Download Template
-                  </button>
                   
+
                   <div className="flex items-center space-x-3">
                     <button
                       onClick={() => {
@@ -1174,10 +1204,10 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
                     </button>
                     <button
                       onClick={handleImport}
-                      disabled={!importFile || importProgress > 0}
-                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 flex items-center"
                     >
-                      {importProgress > 0 ? 'Importing...' : 'Import'}
+                      <Download className="w-4 h-4 mr-2" />
+                      Download CSV ({products.length} products)
                     </button>
                   </div>
                 </div>
@@ -1188,7 +1218,7 @@ Wireless Headphones,WH-2024,Innovation Labs,Audio,199.99,120,Active,Partner,New,
 
         {/* View Product Modal */}
         {viewingProduct && (
-          <ViewProductModal 
+          <ViewProductModal
             product={viewingProduct}
             onClose={() => setViewingProduct(null)}
           />

@@ -1,5 +1,5 @@
 // src/components/files/inventory/quotes/QuotesPageContent.jsx
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
 import { useData, useToast } from '@/hooks';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import {
   Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2,
-  ChevronDown, Upload, X, Copy, FileText, Send, Download,Calendar, Building, User, DollarSign, CheckCircle, XCircle, Clock, AlertCircle
+  ChevronDown, Upload, X, Copy, FileText, Send, Download, Calendar, Building, User, DollarSign, CheckCircle, XCircle, Clock, AlertCircle
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -23,17 +23,25 @@ import FileDownload from "js-file-download";
 import CreateQuoteForm from '@/components/files/inventory/quotes/CreateQuoteForm';
 
 const QuotesPageContent = () => {
-  const { data, updateData } = useData();
+  const {
+    data,
+    updateData,
+    addQuote,
+    updateQuote,
+    deleteQuote,
+    bulkDeleteQuotes,
+    fetchQuotes
+  } = useData();
   const { toast } = useToast();
-  
+
   // State management
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedQuotes, setSelectedQuotes] = useState([]);
   const [showFilters, setShowFilters] = useState(false);
   const [currentView, setCurrentView] = useState('all');
-  const [filters, setFilters] = useState({ 
-    status: '', 
-    stage: '', 
+  const [filters, setFilters] = useState({
+    status: '',
+    stage: '',
     carrier: ''
   });
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -41,146 +49,16 @@ const QuotesPageContent = () => {
   const [viewingQuote, setViewingQuote] = useState(null);
 
   // Quotes data
-  const quotes = data.quotes || [
-    {
-      id: '1',
-      quoteNumber: 'QT-2024-001',
-      subject: 'Laptop Purchase Quote',
-      accountName: 'Tech Corp',
-      contactName: 'Sarah Johnson',
-      date: '2024-01-15',
-      expiryDate: '2024-02-15',
-      total: 3899.97,
-      status: 'Draft',
-      quoteStage: 'Draft',
-      carrier: 'FedEX',
-      quoteOwner: 'DEVASHREE SALUNKE',
-      team: 'Sales Team A',
-      dealName: 'Enterprise Laptop Deal',
-      validUntil: '2024-02-15',
-      items: [
-        { productName: 'Laptop Pro X1', quantity: 3, listPrice: 1299.99, amount: 3899.97, discount: 0, tax: 0, total: 3899.97 }
-      ],
-      subTotal: 3899.97,
-      discountTotal: 0,
-      taxTotal: 0,
-      adjustment: 0,
-      grandTotal: 3899.97,
-      termsAndConditions: '30 days payment terms',
-      description: 'Quote for enterprise laptop purchase'
-    },
-    {
-      id: '2',
-      quoteNumber: 'QT-2024-002',
-      subject: 'Office Equipment Package',
-      accountName: 'Innovation Labs',
-      contactName: 'Michael Chen',
-      date: '2024-01-10',
-      expiryDate: '2024-02-10',
-      total: 2499.95,
-      status: 'Sent',
-      quoteStage: 'Sent',
-      carrier: 'UPS',
-      quoteOwner: 'DEVASHREE SALUNKE',
-      team: 'Sales Team B',
-      dealName: 'Office Setup',
-      validUntil: '2024-02-10',
-      items: [
-        { productName: 'Wireless Headphones', quantity: 5, listPrice: 199.99, amount: 999.95, discount: 50, tax: 100, total: 1049.95 },
-        { productName: '4K Webcam', quantity: 2, listPrice: 159.99, amount: 319.98, discount: 20, tax: 30, total: 329.98 },
-        { productName: 'Bluetooth Speaker', quantity: 4, listPrice: 89.99, amount: 359.96, discount: 40, tax: 50, total: 369.96 }
-      ],
-      subTotal: 1679.89,
-      discountTotal: 110,
-      taxTotal: 180,
-      adjustment: 750.06,
-      grandTotal: 2499.95,
-      termsAndConditions: '15 days payment terms',
-      description: 'Complete office equipment package'
-    },
-    {
-      id: '3',
-      quoteNumber: 'QT-2024-003',
-      subject: 'Smart Watch Bulk Order',
-      accountName: 'Growth Solutions',
-      contactName: 'Emily Wilson',
-      date: '2024-01-05',
-      expiryDate: '2024-02-05',
-      total: 1749.95,
-      status: 'Accepted',
-      quoteStage: 'Accepted',
-      carrier: 'DHL',
-      quoteOwner: 'DEVASHREE SALUNKE',
-      team: 'Sales Team C',
-      dealName: 'Corporate Wellness',
-      validUntil: '2024-02-05',
-      items: [
-        { productName: 'Smart Watch Series 5', quantity: 5, listPrice: 349.99, amount: 1749.95, discount: 0, tax: 0, total: 1749.95 }
-      ],
-      subTotal: 1749.95,
-      discountTotal: 0,
-      taxTotal: 0,
-      adjustment: 0,
-      grandTotal: 1749.95,
-      termsAndConditions: 'Net 30',
-      description: 'Bulk order for corporate wellness program'
-    },
-    {
-      id: '4',
-      quoteNumber: 'QT-2024-004',
-      subject: 'Storage Solutions',
-      accountName: 'Data Systems Inc',
-      contactName: 'John Davis',
-      date: '2024-01-12',
-      expiryDate: '2024-02-12',
-      total: 649.95,
-      status: 'Rejected',
-      quoteStage: 'Rejected',
-      carrier: 'FedEX',
-      quoteOwner: 'DEVASHREE SALUNKE',
-      team: 'Sales Team A',
-      dealName: 'Data Backup Solution',
-      validUntil: '2024-02-12',
-      items: [
-        { productName: 'External SSD 1TB', quantity: 5, listPrice: 129.99, amount: 649.95, discount: 0, tax: 0, total: 649.95 }
-      ],
-      subTotal: 649.95,
-      discountTotal: 0,
-      taxTotal: 0,
-      adjustment: 0,
-      grandTotal: 649.95,
-      termsAndConditions: '',
-      description: 'External storage for data backup'
-    },
-    {
-      id: '5',
-      quoteNumber: 'QT-2024-005',
-      subject: 'Audio Equipment Package',
-      accountName: 'Audio Masters',
-      contactName: 'Lisa Thompson',
-      date: '2024-01-08',
-      expiryDate: '2024-02-08',
-      total: 1079.92,
-      status: 'Expired',
-      quoteStage: 'Expired',
-      carrier: 'USPS',
-      quoteOwner: 'DEVASHREE SALUNKE',
-      team: 'Sales Team B',
-      dealName: 'Studio Setup',
-      validUntil: '2024-02-08',
-      items: [
-        { productName: 'Wireless Headphones', quantity: 3, listPrice: 199.99, amount: 599.97, discount: 30, tax: 60, total: 629.97 },
-        { productName: 'Bluetooth Speaker', quantity: 5, listPrice: 89.99, amount: 449.95, discount: 0, tax: 0, total: 449.95 }
-      ],
-      subTotal: 1049.92,
-      discountTotal: 30,
-      taxTotal: 60,
-      adjustment: 0,
-      grandTotal: 1079.92,
-      termsAndConditions: 'Immediate payment',
-      description: 'Audio equipment for recording studio'
+  const quotes = data.quotes || [];
+
+  // Fetch quotes on mount
+  useEffect(() => {
+    if (fetchQuotes) {
+      fetchQuotes();
     }
-  ];
+  }, [fetchQuotes]);
+
+
 
   // Filter logic
   const filteredQuotes = useMemo(() => {
@@ -208,7 +86,7 @@ const QuotesPageContent = () => {
       case 'recent':
         const oneWeekAgo = new Date();
         oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-        filtered = filtered.filter(quote => 
+        filtered = filtered.filter(quote =>
           quote.date && new Date(quote.date) > oneWeekAgo
         );
         break;
@@ -258,42 +136,62 @@ const QuotesPageContent = () => {
     setViewingQuote(quote);
   }, []);
 
-  const handleDeleteQuote = useCallback((quote) => {
+  const handleDeleteQuote = useCallback(async (quote) => {
     if (window.confirm(`Delete quote "${quote.quoteNumber}"?`)) {
-      const updatedQuotes = quotes.filter(q => q.id !== quote.id);
-      updateData("quotes", updatedQuotes);
-      toast({ 
-        title: "Quote Deleted", 
-        description: `${quote.quoteNumber} has been deleted.` 
+      const result = await deleteQuote(quote.id || quote._id);
+      if (result.success) {
+        toast({
+          title: "Quote Deleted",
+          description: `${quote.quoteNumber} has been deleted.`
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "Failed to delete quote",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [deleteQuote, toast]);
+
+  const handleQuoteCreated = useCallback(async (newQuote) => {
+    const result = await addQuote(newQuote);
+    if (result.success) {
+      setShowCreateForm(false);
+      setEditingQuote(null);
+      toast({
+        title: "Quote Created",
+        description: `${result.data.quoteNumber} has been created successfully.`
+      });
+      // Optionally refresh list if needed, but addQuote updates local state too
+    } else {
+      toast({
+        title: "Error",
+        description: result.message || "Failed to create quote",
+        variant: "destructive"
       });
     }
-  }, [quotes, updateData, toast]);
+  }, [addQuote, toast]);
 
-  const handleQuoteCreated = useCallback((newQuote) => {
-    const updatedQuotes = [...quotes, newQuote];
-    updateData("quotes", updatedQuotes);
-    setShowCreateForm(false);
-    setEditingQuote(null);
-    toast({
-      title: "Quote Created",
-      description: `${newQuote.quoteNumber} has been created successfully.`
-    });
-  }, [quotes, updateData, toast]);
+  const handleQuoteUpdated = useCallback(async (updatedQuote) => {
+    const result = await updateQuote(updatedQuote.id || updatedQuote._id, updatedQuote);
+    if (result.success) {
+      setShowCreateForm(false);
+      setEditingQuote(null);
+      toast({
+        title: "Quote Updated",
+        description: `${result.data.quoteNumber} has been updated successfully.`
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: result.message || "Failed to update quote",
+        variant: "destructive"
+      });
+    }
+  }, [updateQuote, toast]);
 
-  const handleQuoteUpdated = useCallback((updatedQuote) => {
-    const updatedQuotes = quotes.map(q => 
-      q.id === updatedQuote.id ? updatedQuote : q
-    );
-    updateData("quotes", updatedQuotes);
-    setShowCreateForm(false);
-    setEditingQuote(null);
-    toast({
-      title: "Quote Updated",
-      description: `${updatedQuote.quoteNumber} has been updated successfully.`
-    });
-  }, [quotes, updateData, toast]);
-
-  const handleBulkDelete = useCallback(() => {
+  const handleBulkDelete = useCallback(async () => {
     if (selectedQuotes.length === 0) {
       toast({
         title: "No selection",
@@ -304,49 +202,70 @@ const QuotesPageContent = () => {
     }
 
     if (window.confirm(`Delete ${selectedQuotes.length} quotes?`)) {
-      const updatedQuotes = quotes.filter(q => !selectedQuotes.includes(q.id));
-      updateData("quotes", updatedQuotes);
-      setSelectedQuotes([]);
-      
+      const result = await bulkDeleteQuotes(selectedQuotes);
+      if (result.success) {
+        setSelectedQuotes([]);
+        toast({
+          title: "Bulk Delete Successful",
+          description: `${selectedQuotes.length} quotes have been deleted.`
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: result.message || "Failed to delete quotes",
+          variant: "destructive"
+        });
+      }
+    }
+  }, [selectedQuotes, bulkDeleteQuotes, toast]);
+
+  const handleSendQuote = useCallback(async (quote) => {
+    // Update quote status to Sent
+    const updatedQuoteData = { ...quote, status: 'Sent', quoteStage: 'Sent' };
+    const result = await updateQuote(quote.id || quote._id, updatedQuoteData);
+
+    if (result.success) {
       toast({
-        title: "Bulk Delete Successful",
-        description: `${selectedQuotes.length} quotes have been deleted.`
+        title: "Quote Sent",
+        description: `${quote.quoteNumber} has been sent to ${quote.accountName}.`
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: result.message || "Failed to send quote",
+        variant: "destructive"
       });
     }
-  }, [selectedQuotes, quotes, updateData, toast]);
+  }, [updateQuote, toast]);
 
-  const handleSendQuote = useCallback((quote) => {
-    // Update quote status to Sent
-    const updatedQuote = { ...quote, status: 'Sent', quoteStage: 'Sent' };
-    const updatedQuotes = quotes.map(q => 
-      q.id === quote.id ? updatedQuote : q
-    );
-    updateData("quotes", updatedQuotes);
-    
-    toast({
-      title: "Quote Sent",
-      description: `${quote.quoteNumber} has been sent to ${quote.accountName}.`
-    });
-  }, [quotes, updateData, toast]);
-
-  const handleDuplicateQuote = useCallback((quote) => {
-    const duplicated = {
+  const handleDuplicateQuote = useCallback(async (quote) => {
+    const duplicatedData = {
       ...quote,
-      id: Date.now().toString(),
-      quoteNumber: `${quote.quoteNumber}-COPY`,
+      quoteNumber: undefined, // Backend will generate
+      id: undefined,
+      _id: undefined,
       date: new Date().toISOString().split('T')[0],
       status: 'Draft',
-      quoteStage: 'Draft'
+      quoteStage: 'Draft',
+      createdAt: undefined,
+      updatedAt: undefined
     };
-    
-    const updatedQuotes = [...quotes, duplicated];
-    updateData("quotes", updatedQuotes);
-    
-    toast({
-      title: "Quote Duplicated",
-      description: `${duplicated.quoteNumber} has been created.`
-    });
-  }, [quotes, updateData, toast]);
+
+    const result = await addQuote(duplicatedData);
+
+    if (result.success) {
+      toast({
+        title: "Quote Duplicated",
+        description: `${result.data.quoteNumber} has been created.`
+      });
+    } else {
+      toast({
+        title: "Error",
+        description: result.message || "Failed to duplicate quote",
+        variant: "destructive"
+      });
+    }
+  }, [addQuote, toast]);
 
   const getStatusColor = useCallback((status) => {
     switch (status) {
@@ -363,7 +282,7 @@ const QuotesPageContent = () => {
     const csvContent = filteredQuotes.map(quote => {
       return `"${quote.quoteNumber || ''}","${quote.subject || ''}","${quote.accountName || ''}","${quote.contactName || ''}","${quote.date || ''}","${quote.expiryDate || ''}","${quote.total || 0}","${quote.status || ''}","${quote.carrier || ''}"`;
     }).join('\n');
-    
+
     const blob = new Blob([`Quote Number,Subject,Account,Contact,Date,Expiry Date,Total,Status,Carrier\n${csvContent}`], { type: 'text/csv' });
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -373,7 +292,7 @@ const QuotesPageContent = () => {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
-    
+
     toast({
       title: "Export Completed",
       description: `${filteredQuotes.length} quotes exported successfully.`
@@ -437,14 +356,14 @@ const QuotesPageContent = () => {
               <h2 className="text-xl font-semibold">{quote.subject}</h2>
               <p className="text-gray-600">{quote.quoteNumber}</p>
             </div>
-            <button 
+            <button
               onClick={onClose}
               className="p-1 hover:bg-gray-100 rounded"
             >
               <X className="w-5 h-5" />
             </button>
           </div>
-          
+
           <div className="p-6 space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
@@ -599,7 +518,7 @@ const QuotesPageContent = () => {
             <Button variant="outline" onClick={onClose}>
               Close
             </Button>
-            <Button 
+            <Button
               onClick={() => {
                 onClose();
                 handleEditQuote(quote);
@@ -621,7 +540,7 @@ const QuotesPageContent = () => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <label className="text-sm font-medium">Status</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.status}
             onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
@@ -634,10 +553,10 @@ const QuotesPageContent = () => {
             <option value="Expired">Expired</option>
           </select>
         </div>
-        
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Quote Stage</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.stage}
             onChange={(e) => setFilters(prev => ({ ...prev, stage: e.target.value }))}
@@ -650,10 +569,10 @@ const QuotesPageContent = () => {
             <option value="Expired">Expired</option>
           </select>
         </div>
-        
+
         <div className="space-y-2">
           <label className="text-sm font-medium">Carrier</label>
-          <select 
+          <select
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
             value={filters.carrier}
             onChange={(e) => setFilters(prev => ({ ...prev, carrier: e.target.value }))}
@@ -667,16 +586,16 @@ const QuotesPageContent = () => {
           </select>
         </div>
       </div>
-      
+
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => setFilters({ status: '', stage: '', carrier: '' })}
         >
           Clear Filters
         </Button>
-        <Button 
+        <Button
           size="sm"
           onClick={() => setShowFilters(false)}
         >
@@ -696,7 +615,7 @@ const QuotesPageContent = () => {
             {selectedQuotes.length} quote{selectedQuotes.length !== 1 ? 's' : ''} selected
           </span>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
@@ -707,7 +626,7 @@ const QuotesPageContent = () => {
             <Download className="w-4 h-4 mr-2" />
             Export
           </Button>
-          
+
           <Button
             variant="destructive"
             size="sm"
@@ -724,7 +643,7 @@ const QuotesPageContent = () => {
 
   if (showCreateForm) {
     return (
-      <CreateQuoteForm 
+      <CreateQuoteForm
         initialData={editingQuote}
         onQuoteCreated={editingQuote ? handleQuoteUpdated : handleQuoteCreated}
         onCancel={() => {
@@ -741,7 +660,7 @@ const QuotesPageContent = () => {
         <title>Quotes - CloudCRM</title>
         <meta name="description" content="Manage your quotes" />
       </Helmet>
-      
+
       <div className="space-y-6">
         {/* Header Section */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
@@ -750,8 +669,8 @@ const QuotesPageContent = () => {
             <p className="text-gray-600">Manage and track your quotes</p>
           </div>
           <div className="flex gap-2">
-            <Button 
-              onClick={handleCreateQuote} 
+            <Button
+              onClick={handleCreateQuote}
               className="bg-blue-600 hover:bg-blue-700"
             >
               <Plus className="w-4 h-4 mr-2" />
@@ -785,16 +704,16 @@ const QuotesPageContent = () => {
             <div className="flex flex-col md:flex-row gap-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input 
-                  placeholder="Search quotes by number, subject, account, or contact..." 
-                  value={searchTerm} 
-                  onChange={(e) => setSearchTerm(e.target.value)} 
-                  className="pl-10" 
+                <Input
+                  placeholder="Search quotes by number, subject, account, or contact..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
                 />
               </div>
               <div className="flex items-center space-x-2">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   onClick={() => setShowFilters(!showFilters)}
                   className="flex-1 md:flex-none"
                 >
@@ -822,7 +741,7 @@ const QuotesPageContent = () => {
                 </DropdownMenu>
               </div>
             </div>
-            
+
             {/* Advanced Filters */}
             {showFilters && <FiltersComponent />}
           </CardContent>
@@ -839,7 +758,7 @@ const QuotesPageContent = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12">
-                      <Checkbox 
+                      <Checkbox
                         checked={selectedQuotes.length === filteredQuotes.length && filteredQuotes.length > 0}
                         onCheckedChange={handleSelectAll}
                       />
@@ -861,14 +780,14 @@ const QuotesPageContent = () => {
                     filteredQuotes.map((quote) => (
                       <TableRow key={quote.id} className="hover:bg-gray-50">
                         <TableCell>
-                          <Checkbox 
+                          <Checkbox
                             checked={selectedQuotes.includes(quote.id)}
                             onCheckedChange={(checked) => handleSelectQuote(quote.id, checked)}
                           />
                         </TableCell>
                         <TableCell>
                           <div className="font-medium text-foreground cursor-pointer hover:text-blue-600"
-                               onClick={() => handleViewQuote(quote)}>
+                            onClick={() => handleViewQuote(quote)}>
                             {quote.quoteNumber}
                           </div>
                         </TableCell>
@@ -940,7 +859,7 @@ const QuotesPageContent = () => {
                                   Download PDF
                                 </DropdownMenuItem>
                                 <DropdownMenuSeparator />
-                                <DropdownMenuItem 
+                                <DropdownMenuItem
                                   onClick={() => handleDeleteQuote(quote)}
                                   className="text-red-600"
                                 >
@@ -962,7 +881,7 @@ const QuotesPageContent = () => {
                             {searchTerm ? "No matching quotes" : "No quotes found"}
                           </h3>
                           <p className="text-gray-600 mb-4">
-                            {searchTerm 
+                            {searchTerm
                               ? "Try adjusting your search or filters"
                               : "Get started by creating your first quote"
                             }
@@ -1015,7 +934,7 @@ const QuotesPageContent = () => {
 
         {/* View Quote Modal */}
         {viewingQuote && (
-          <ViewQuoteModal 
+          <ViewQuoteModal
             quote={viewingQuote}
             onClose={() => setViewingQuote(null)}
           />

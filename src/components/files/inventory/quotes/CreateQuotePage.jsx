@@ -5,6 +5,8 @@ import { ArrowBack } from '@mui/icons-material';
 import { Button, Box } from '@mui/material';
 import CreateQuoteForm from '@/components/files/inventory/quotes/CreateQuoteForm';
 import { useData } from '@/hooks';
+import { XIcon } from 'kinetic-icons';
+
 
 const CreateQuotePage = () => {
   const navigate = useNavigate();

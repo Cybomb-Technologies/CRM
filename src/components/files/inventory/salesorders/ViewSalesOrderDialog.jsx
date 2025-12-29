@@ -7,11 +7,11 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { 
-  Calendar, 
-  Building, 
-  User, 
-  Mail, 
+import {
+  Calendar,
+  Building,
+  User,
+  Mail,
   Phone,
   FileText
 } from "lucide-react";
@@ -82,7 +82,7 @@ const ViewSalesOrderDialog = ({ open, onOpenChange, salesOrder }) => {
                     <div className="font-medium">{salesOrder.accountName}</div>
                   </div>
                 </div>
-                
+
                 {salesOrder.contactName && (
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4 text-gray-400" />
@@ -93,7 +93,7 @@ const ViewSalesOrderDialog = ({ open, onOpenChange, salesOrder }) => {
                   </div>
                 )}
               </div>
-              
+
               <div className="space-y-2">
                 {salesOrder.customerEmail && (
                   <div className="flex items-center gap-2">
@@ -106,7 +106,7 @@ const ViewSalesOrderDialog = ({ open, onOpenChange, salesOrder }) => {
                     </div>
                   </div>
                 )}
-                
+
                 {salesOrder.customerPhone && (
                   <div className="flex items-center gap-2">
                     <Phone className="w-4 h-4 text-gray-400" />
@@ -133,11 +133,11 @@ const ViewSalesOrderDialog = ({ open, onOpenChange, salesOrder }) => {
                   <div className="font-medium">{formatDate(salesOrder.dueDate)}</div>
                 </div>
               </div>
-              
+
               <div>
                 <div className="text-sm text-gray-500">Total Amount</div>
                 <div className="text-xl font-bold text-gray-900">
-                  {formatCurrency(salesOrder.summary?.grandTotal || 0)}
+                  {formatCurrency(salesOrder.grandTotal || salesOrder.summary?.grandTotal || 0)}
                 </div>
               </div>
             </div>

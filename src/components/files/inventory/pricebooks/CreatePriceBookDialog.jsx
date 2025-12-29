@@ -29,18 +29,24 @@ const CreatePriceBookDialog = ({ open, onOpenChange, onPriceBookCreated }) => {
   });
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    if (field === 'phone') {
+      // Remove all non-digit characters
+      const numericValue = value.replace(/\D/g, '');
+      // Limit to 10 digits
+      if (numericValue.length <= 10) {
+        setFormData(prev => ({ ...prev, [field]: numericValue }));
+      }
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    
+
     const newPriceBook = {
-      id: Date.now().toString(),
       ...formData,
       name: formData.priceBookName,
-      products: 0,
-      created: new Date().toISOString().split('T')[0],
     };
 
     onPriceBookCreated(newPriceBook);
@@ -66,7 +72,7 @@ const CreatePriceBookDialog = ({ open, onOpenChange, onPriceBookCreated }) => {
             Add a new price book to manage pricing strategies for customer segments.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-4">
@@ -116,8 +122,8 @@ const CreatePriceBookDialog = ({ open, onOpenChange, onPriceBookCreated }) => {
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="status">Status</Label>
-                <Select 
-                  value={formData.status} 
+                <Select
+                  value={formData.status}
                   onValueChange={(value) => handleInputChange('status', value)}
                 >
                   <SelectTrigger>
@@ -133,8 +139,8 @@ const CreatePriceBookDialog = ({ open, onOpenChange, onPriceBookCreated }) => {
 
               <div className="space-y-2">
                 <Label htmlFor="source">Source</Label>
-                <Select 
-                  value={formData.source} 
+                <Select
+                  value={formData.source}
                   onValueChange={(value) => handleInputChange('source', value)}
                 >
                   <SelectTrigger>
@@ -152,8 +158,8 @@ const CreatePriceBookDialog = ({ open, onOpenChange, onPriceBookCreated }) => {
 
               <div className="space-y-2">
                 <Label htmlFor="flags">Flags</Label>
-                <Select 
-                  value={formData.flags} 
+                <Select
+                  value={formData.flags}
                   onValueChange={(value) => handleInputChange('flags', value)}
                 >
                   <SelectTrigger>
@@ -171,7 +177,7 @@ const CreatePriceBookDialog = ({ open, onOpenChange, onPriceBookCreated }) => {
               </div>
 
               <div className="flex items-center space-x-2 pt-2">
-                <Checkbox 
+                <Checkbox
                   id="active"
                   checked={formData.active}
                   onCheckedChange={(checked) => handleInputChange('active', checked)}

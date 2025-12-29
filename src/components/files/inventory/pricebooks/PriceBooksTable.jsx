@@ -96,16 +96,16 @@ const PriceBooksTable = ({
       </TableHeader>
       <TableBody>
         {priceBooks.map((book) => (
-          <TableRow key={book.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+          <TableRow key={book._id || book.id} className="hover:bg-gray-50 dark:hover:bg-gray-800">
             <TableCell>
               <Checkbox
-                checked={selectedPriceBooks.includes(book.id)}
-                onCheckedChange={() => handleSelectPriceBook(book.id)}
+                checked={selectedPriceBooks.includes(book._id || book.id)}
+                onCheckedChange={() => handleSelectPriceBook(book._id || book.id)}
               />
             </TableCell>
             <TableCell>
               <div className="font-medium text-gray-900 dark:text-white cursor-pointer hover:text-blue-600 dark:hover:text-blue-400"
-                   onClick={() => onPriceBookView(book)}>
+                onClick={() => onPriceBookView(book)}>
                 {book.name}
                 <div className="text-sm text-gray-500 dark:text-gray-400 line-clamp-1">
                   {book.description}
@@ -188,7 +188,7 @@ const PriceBooksTable = ({
                       Manage Products
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => onPriceBookDelete(book)}
                       className="text-red-600 dark:text-red-400"
                     >

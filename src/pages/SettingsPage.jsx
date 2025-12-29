@@ -1,5 +1,5 @@
 // =========================
-// SETTINGS PAGE (Fixed Upload)
+// SETTINGS PAGE (Fixed Upload) - UPDATED WITH BACKEND INTEGRATION
 // =========================
 
 import React, { useState, useEffect } from "react";
@@ -20,6 +20,14 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Switch } from "@/components/ui/switch";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast, useTheme, useData } from "@/hooks";
 import {
   Plus,
@@ -33,6 +41,8 @@ import {
   Key,
   Edit,
   Camera,
+  Sun,
+  Moon,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { Badge } from "@/components/ui/badge";
@@ -49,6 +59,7 @@ const SettingsPage = () => {
   // STATE
   // ------------------------------
   const [loading, setLoading] = useState(false);
+  const [teamLoading, setTeamLoading] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const [profile, setProfile] = useState(null);
@@ -60,6 +71,22 @@ const SettingsPage = () => {
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [isHoveringAvatar, setIsHoveringAvatar] = useState(false);
+
+  // Security state
+  const [securityForm, setSecurityForm] = useState({
+    currentPassword: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [twoFactorEnabled, setTwoFactorEnabled] = useState(false);
+
+  // Team state
+  const [addMemberForm, setAddMemberForm] = useState({
+    name: "",
+    email: "",
+    role: "Sales Rep",
+  });
+  const [showAddMember, setShowAddMember] = useState(false);
 
   // ------------------------------
   // TOKEN HELPER
@@ -74,13 +101,14 @@ const SettingsPage = () => {
   };
 
   // ------------------------------
-  // INITIAL AUTH CHECK
+  // INITIAL AUTH CHECK & DATA FETCH
   // ------------------------------
   useEffect(() => {
     const token = getToken();
     if (token) {
       setIsAuthenticated(true);
       fetchProfile(token);
+      fetchSecuritySettings();
     } else {
       setIsAuthenticated(false);
     }
@@ -129,6 +157,309 @@ const SettingsPage = () => {
   };
 
   // ------------------------------
+  // TEAM MANAGEMENT FUNCTIONS
+  // ------------------------------
+  const fetchTeamMembers = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      setTeamLoading(true);
+      const res = await fetch(`${API_URL}/team`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        updateData({ team: data.data || [] });
+      }
+    } catch (error) {
+      console.error('Fetch team error:', error);
+    } finally {
+      setTeamLoading(false);
+    }
+  };
+
+  const handleAddMember = async () => {
+    const token = getToken();
+    if (!token) {
+      toast({
+        title: "Not authenticated",
+        description: "Please login first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!addMemberForm.name || !addMemberForm.email) {
+      toast({
+        title: "Error",
+        description: "Please fill in name and email",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/team`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          name: addMemberForm.name,
+          email: addMemberForm.email,
+          role: addMemberForm.role,
+          status: "Active"
+        }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Team member added successfully",
+          variant: "default",
+        });
+        setShowAddMember(false);
+        setAddMemberForm({ name: "", email: "", role: "Sales Rep" });
+        fetchTeamMembers(); // Refresh team list
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to add team member",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Add team member error:", error);
+      toast({
+        title: "Network Error",
+        description: "Failed to add team member",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleUpdateMemberRole = async (memberId, newRole) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/team/${memberId}`, {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ role: newRole }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        fetchTeamMembers(); // Refresh team list
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to update team member",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Update team member error:", error);
+      toast({
+        title: "Network Error",
+        description: "Failed to update team member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteMember = async (memberId) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/team/${memberId}`, {
+        method: "DELETE",
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Team member deleted successfully",
+          variant: "default",
+        });
+        fetchTeamMembers(); // Refresh team list
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to delete team member",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Delete team member error:", error);
+      toast({
+        title: "Network Error",
+        description: "Failed to delete team member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // ------------------------------
+  // SECURITY FUNCTIONS
+  // ------------------------------
+  const fetchSecuritySettings = async () => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/security`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.success) {
+          setTwoFactorEnabled(data.data.twoFactorEnabled || false);
+        }
+      }
+    } catch (error) {
+      console.error('Fetch security settings error:', error);
+    }
+  };
+
+  const handleSecuritySave = async () => {
+    const token = getToken();
+    if (!token) {
+      toast({
+        title: "Not authenticated",
+        description: "Please login first",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { currentPassword, newPassword, confirmPassword } = securityForm;
+
+    if (!currentPassword || !newPassword) {
+      toast({
+        title: "Error",
+        description: "Please fill in all password fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      toast({
+        title: "Error",
+        description: "New passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast({
+        title: "Error",
+        description: "New password must be at least 6 characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/security/change-password`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        toast({
+          title: "Success",
+          description: "Password changed successfully!",
+          variant: "default",
+        });
+        // Clear password fields
+        setSecurityForm({
+          currentPassword: "",
+          newPassword: "",
+          confirmPassword: "",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || "Failed to change password",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Change password error:", error);
+      toast({
+        title: "Network Error",
+        description: "Failed to change password",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleToggle2FA = async (enabled) => {
+    const token = getToken();
+    if (!token) return;
+
+    try {
+      const res = await fetch(`${API_URL}/security/toggle-2fa`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ enabled }),
+      });
+
+      const data = await res.json();
+      if (data.success) {
+        setTwoFactorEnabled(enabled);
+        toast({
+          title: "Success",
+          description: `2FA ${enabled ? 'enabled' : 'disabled'} successfully!`,
+          variant: "default",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: data.message || `Failed to ${enabled ? 'enable' : 'disable'} 2FA`,
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Toggle 2FA error:", error);
+      toast({
+        title: "Network Error",
+        description: "Failed to update 2FA settings",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // ------------------------------
   // FILE INPUT
   // ------------------------------
   const handleFileChange = (e) => {
@@ -164,7 +495,6 @@ const SettingsPage = () => {
   // ------------------------------
   // UPLOAD PROFILE PICTURE - FIXED
   // ------------------------------
-  // UPLOAD PROFILE PICTURE - SIMPLIFIED AND FIXED
   const uploadProfilePicture = async () => {
     if (!selectedFile) {
       console.log("ℹ️ No file selected for upload");
@@ -177,42 +507,32 @@ const SettingsPage = () => {
     }
 
     const formData = new FormData();
-    // Only use 'profilePicture' as that's what multer expects
     formData.append("profilePicture", selectedFile);
 
     console.log("📤 Starting upload...");
     console.log("File:", selectedFile.name, "Size:", selectedFile.size);
-    console.log("Using token:", token.substring(0, 20) + "...");
 
     try {
       const res = await fetch(`${API_URL}/profile/picture`, {
         method: "POST",
         headers: {
           Authorization: `Bearer ${token}`,
-          // NO Content-Type header for FormData
         },
         body: formData,
       });
 
-      console.log("📥 Upload response:", res.status, res.statusText);
-
-      // Get response as text first
       const responseText = await res.text();
       console.log("📥 Raw response:", responseText);
 
       if (!res.ok) {
-        console.error("❌ Upload failed with status:", res.status);
         let errorMsg = `Upload failed (${res.status})`;
         try {
           const errorJson = JSON.parse(responseText);
           errorMsg = errorJson.message || errorMsg;
-        } catch (e) {
-          // Not JSON
-        }
+        } catch (e) {}
         return { success: false, message: errorMsg };
       }
 
-      // Parse JSON response
       const result = JSON.parse(responseText);
       console.log("✅ Upload successful:", result);
       return result;
@@ -381,7 +701,7 @@ const SettingsPage = () => {
   };
 
   // ------------------------------
-  // DEBUG UPLOAD - Add this function
+  // DEBUG UPLOAD
   // ------------------------------
   const debugUpload = async () => {
     const token = getToken();
@@ -405,7 +725,6 @@ const SettingsPage = () => {
 
     console.log("🔍 DEBUG UPLOAD:");
     console.log("Token exists:", !!token);
-    console.log("Token (first 30 chars):", token.substring(0, 30) + "...");
     console.log("Selected file:", {
       name: selectedFile.name,
       size: selectedFile.size,
@@ -501,6 +820,7 @@ const SettingsPage = () => {
             <TabsTrigger value="profile">Profile</TabsTrigger>
             <TabsTrigger value="appearance">Appearance</TabsTrigger>
             <TabsTrigger value="security">Security</TabsTrigger>
+            <TabsTrigger value="integrations">Integrations</TabsTrigger>
           </TabsList>
 
           {/* =====================
@@ -659,6 +979,115 @@ const SettingsPage = () => {
                     </div>
                   </>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* =====================
+          APPEARANCE
+          ===================== */}
+          <TabsContent value="appearance">
+            <Card>
+              <CardHeader>
+                <CardTitle>Appearance</CardTitle>
+                <CardDescription>Customize the look and feel of the application.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div>
+                    <p className="font-medium">Theme</p>
+                    <p className="text-sm text-muted-foreground">Select between light and dark mode.</p>
+                  </div>
+                  <Button onClick={toggleTheme} variant="outline" size="icon">
+                    {theme === 'dark' ? <Sun className="h-[1.2rem] w-[1.2rem]" /> : <Moon className="h-[1.2rem] w-[1.2rem]" />}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* =====================
+          SECURITY
+          ===================== */}
+          <TabsContent value="security">
+            <Card>
+              <CardHeader>
+                <CardTitle>Security Settings</CardTitle>
+                <CardDescription>Manage your account security</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="current-password">Current Password</Label>
+                  <Input 
+                    id="current-password" 
+                    type="password" 
+                    value={securityForm.currentPassword}
+                    onChange={(e) => setSecurityForm({...securityForm, currentPassword: e.target.value})}
+                    placeholder="Enter current password"
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="new-password">New Password</Label>
+                  <Input 
+                    id="new-password" 
+                    type="password" 
+                    value={securityForm.newPassword}
+                    onChange={(e) => setSecurityForm({...securityForm, newPassword: e.target.value})}
+                    placeholder="Enter new password"
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirm-password">Confirm New Password</Label>
+                  <Input 
+                    id="confirm-password" 
+                    type="password" 
+                    value={securityForm.confirmPassword}
+                    onChange={(e) => setSecurityForm({...securityForm, confirmPassword: e.target.value})}
+                    placeholder="Confirm new password"
+                    disabled={loading}
+                  />
+                </div>
+                <Button 
+                  onClick={handleSecuritySave} 
+                  className="bg-blue-600 hover:bg-blue-700"
+                  disabled={loading}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Updating...
+                    </>
+                  ) : (
+                    "Update Password"
+                  )}
+                </Button>
+                <div className="flex items-center justify-between rounded-lg border p-3 mt-4">
+                  <div>
+                    <p className="font-medium">Two-Factor Authentication (2FA)</p>
+                    <p className="text-sm text-muted-foreground">Add an extra layer of security to your account.</p>
+                  </div>
+                  <Switch 
+                    checked={twoFactorEnabled}
+                    onCheckedChange={handleToggle2FA}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* =====================
+          INTEGRATIONS
+          ===================== */}
+          <TabsContent value="integrations">
+            <Card>
+              <CardHeader>
+                <CardTitle>Integrations</CardTitle>
+                <CardDescription>Connect with third-party services.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground">Integration management coming soon...</p>
               </CardContent>
             </Card>
           </TabsContent>

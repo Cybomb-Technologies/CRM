@@ -14,8 +14,8 @@ const PriceBooksFilters = ({ filters, onFiltersChange }) => {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="space-y-2">
           <Label htmlFor="status-filter">Status</Label>
-          <Select 
-            value={filters.status} 
+          <Select
+            value={filters.status}
             onValueChange={(value) => handleFilterChange('status', value)}
           >
             <SelectTrigger id="status-filter">
@@ -29,11 +29,11 @@ const PriceBooksFilters = ({ filters, onFiltersChange }) => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="source-filter">Source</Label>
-          <Select 
-            value={filters.source} 
+          <Select
+            value={filters.source}
             onValueChange={(value) => handleFilterChange('source', value)}
           >
             <SelectTrigger id="source-filter">
@@ -49,11 +49,11 @@ const PriceBooksFilters = ({ filters, onFiltersChange }) => {
             </SelectContent>
           </Select>
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="flags-filter">Flags</Label>
-          <Select 
-            value={filters.flags} 
+          <Select
+            value={filters.flags}
             onValueChange={(value) => handleFilterChange('flags', value)}
           >
             <SelectTrigger id="flags-filter">
@@ -71,10 +71,10 @@ const PriceBooksFilters = ({ filters, onFiltersChange }) => {
           </Select>
         </div>
       </div>
-      
+
       <div className="flex justify-between">
-        <Button 
-          variant="outline" 
+        <Button
+          variant="outline"
           size="sm"
           onClick={() => onFiltersChange({ status: '', source: '', flags: '', dateRange: '' })}
         >

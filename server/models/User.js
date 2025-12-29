@@ -10,20 +10,24 @@ const userSchema = new mongoose.Schema({
     trim: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Please enter a valid email']
   },
+
   password: {
     type: String,
     required: [true, 'Password is required'],
     minlength: 6,
   },
+
   name: {
     type: String,
     required: [true, 'Name is required'],
     trim: true,
   },
+
   profilePicture: {
     type: String,
     default: null
   },
+
   settings: {
     theme: {
       type: String,
@@ -36,34 +40,47 @@ const userSchema = new mongoose.Schema({
         default: true
       }
     }
+  },
+
+  // FIX: Move these inside schema
+  twoFactorEnabled: {
+    type: Boolean,
+    default: false
+  },
+
+  lastPasswordChange: {
+    type: Date,
+    default: Date.now
   }
+
 }, {
   timestamps: true
 });
 
-// Hash password before saving
-userSchema.pre('save', async function(next) {
-  if (!this.isModified('password')) return next();
-  
+
+// FIX: Combine password hashing + update lastPasswordChange
+userSchema.pre('save', async function (next) {
   try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
+    // If password is modified → hash it
+    if (this.isModified('password')) {
+      const salt = await bcrypt.genSalt(12);
+      this.password = await bcrypt.hash(this.password, salt);
+      this.lastPasswordChange = Date.now();
+    }
     next();
   } catch (error) {
     next(error);
   }
 });
 
-// Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  try {
-    return await bcrypt.compare(candidatePassword, this.password);
-  } catch (error) {
-    throw new Error('Password comparison failed');
-  }
+
+// Compare password
+userSchema.methods.comparePassword = async function (candidatePassword) {
+  return await bcrypt.compare(candidatePassword, this.password);
 };
 
-// Add index for better performance
+
+// Index for performance
 userSchema.index({ email: 1 });
 
 module.exports = mongoose.model('User', userSchema);

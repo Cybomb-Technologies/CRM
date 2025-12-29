@@ -33,25 +33,43 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
 
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      const newOrder = {
-        ...formData,
-        orderNumber: `SO-${Math.floor(Math.random() * 1000).toString().padStart(3, '0')}`,
-        summary: {
-          grandTotal: Math.floor(Math.random() * 100000) + 10000
-        }
-      };
-      
+
+    try {
+      const response = await fetch('http://localhost:5000/api/file/inventory/sales-orders', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...formData,
+          // Add default items if needed or handle items in form
+          items: [
+            { productName: 'Default Item', quantity: 1, unitPrice: 0, total: 0, amount: 0 }
+          ],
+          total: 0
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to create sales order');
+      }
+
+      const newOrder = await response.json();
+
       onSalesOrderCreated(newOrder);
       onOpenChange(false);
       resetForm();
+    } catch (error) {
+      console.error('Error creating sales order:', error);
+      // Ideally show error toast here or pass error up
+      alert(`Error: ${error.message}`);
+    } finally {
       setIsSubmitting(false);
-    }, 500);
+    }
   };
 
   const resetForm = () => {
@@ -83,7 +101,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
             Create a new sales order for your customer.
           </DialogDescription>
         </DialogHeader>
-        
+
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="subject">Subject *</Label>
@@ -95,7 +113,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
               required
             />
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="accountName">Account Name *</Label>
@@ -107,7 +125,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
                 required
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="contactName">Contact Name</Label>
               <Input
@@ -118,7 +136,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="customerEmail">Email</Label>
@@ -130,7 +148,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
                 placeholder="customer@company.com"
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="customerPhone">Phone</Label>
               <Input
@@ -141,12 +159,12 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
               />
             </div>
           </div>
-          
+
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="status">Status</Label>
-              <Select 
-                value={formData.status} 
+              <Select
+                value={formData.status}
                 onValueChange={(value) => handleInputChange('status', value)}
               >
                 <SelectTrigger>
@@ -162,7 +180,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
                 </SelectContent>
               </Select>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="dueDate">Due Date</Label>
               <Input
@@ -173,7 +191,7 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
               />
             </div>
           </div>
-          
+
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
             <Textarea
@@ -186,9 +204,9 @@ const CreateSalesOrderDialog = ({ open, onOpenChange, onSalesOrderCreated }) => 
           </div>
 
           <DialogFooter>
-            <Button 
-              type="button" 
-              variant="outline" 
+            <Button
+              type="button"
+              variant="outline"
               onClick={() => {
                 onOpenChange(false);
                 resetForm();
