@@ -8,9 +8,9 @@ const PriceBooksViewFilters = ({ currentView, onViewChange }) => {
     { id: 'active', label: 'Active' },
     { id: 'inactive', label: 'Inactive' },
     { id: 'pending', label: 'Pending' },
-    { id: 'recent', label: 'Recently Created' },
-    { id: 'default', label: 'Default' },
-    { id: 'premium', label: 'Premium' },
+    // { id: 'recent', label: 'Recently Created' },
+    // { id: 'default', label: 'Default' },
+    // { id: 'premium', label: 'Premium' },
   ];
 
   return (

@@ -20,7 +20,7 @@ const CreatePurchaseOrderForm = ({ isEditing = false, poId = null }) => {
   
   const [formData, setFormData] = useState({
     // Purchase Order Information
-    poOwner: 'SANTHOSH KRISHNAMOORTHI',
+    poOwner: 'DEVASHREE SALUNKE',
     subject: '',
     requisitionNumber: '',
     contactName: '',
