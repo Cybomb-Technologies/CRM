@@ -139,12 +139,12 @@ const CreateCampaign = () => {
           >
             Cancel
           </button>
-          <button
+          {/* <button
             className="px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md disabled:opacity-50"
             disabled={loading}
           >
             Save and New
-          </button>
+          </button> */}
           <button
             className="px-4 py-2 bg-[#4667d8] text-white rounded-md hover:bg-[#3c59c0] disabled:opacity-50"
             onClick={handleSubmit}

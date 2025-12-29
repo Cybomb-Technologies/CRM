@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Target, TrendingUp, DollarSign, Users, FileText } from 'lucide-react';
 
-const ForecastMetrics = ({ forecastData, forecastType, onForecastTypeChange }) => {
+const ForecastMetrics = ({ forecastData, forecastType, onForecastTypeChange, loading }) => {
   const formatCurrency = (amount) => {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
@@ -45,6 +45,18 @@ const ForecastMetrics = ({ forecastData, forecastType, onForecastTypeChange }) =
     if (percentage >= 80) return 'text-yellow-600 bg-yellow-100';
     return 'text-red-600 bg-red-100';
   };
+
+  if (loading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {[1, 2, 3, 4].map((i) => (
+          <Card key={i} className="animate-pulse">
+            <CardContent className="p-6 h-32 bg-gray-100 rounded-lg"></CardContent>
+          </Card>
+        ))}
+      </div>
+    );
+  }
 
   if (!forecastData.totals) {
     return (
@@ -138,7 +150,7 @@ const ForecastMetrics = ({ forecastData, forecastType, onForecastTypeChange }) =
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {forecastData.totals.totalValue > 0 
+              {forecastData.totals.totalValue > 0
                 ? ((forecastData.totals.realistic / forecastData.totals.totalValue) * 100).toFixed(1)
                 : 0}%
             </div>

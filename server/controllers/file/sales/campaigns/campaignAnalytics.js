@@ -4,29 +4,69 @@ const Campaign = require("../../../../models/file/sales/Campaign");
 // Get campaign analytics
 const getCampaignAnalytics = async (req, res) => {
   try {
-    const { id } = req.params; // Changed from campaignId to id to match route
+    const { id } = req.params;
+
+    console.log("=== ANALYTICS DEBUG ===");
+    console.log("Fetching analytics for campaign ID:", id);
 
     const campaign = await Campaign.findById(id);
 
     if (!campaign) {
+      console.log("Campaign not found for analytics");
       return res.status(404).json({
         success: false,
         message: "Campaign not found",
       });
     }
 
+    console.log("Campaign found:", campaign.campaignName);
+    console.log("Total members:", campaign.members?.length || 0);
+
+    // Parse members to ensure we have proper objects
     const members = campaign.members || [];
     const activities = campaign.activities || [];
 
-    // Calculate metrics
-    const totalMembers = members.length;
-    const respondedMembers = members.filter((m) => m.responded).length;
-    const convertedMembers = members.filter((m) => m.converted).length;
+    // Parse members from JSON strings if needed
+    const parsedMembers = members.map((member) => {
+      if (typeof member === "string") {
+        try {
+          return JSON.parse(member);
+        } catch (error) {
+          console.error("Failed to parse member:", member);
+          return {
+            id: member,
+            name: "Unknown Member",
+            type: "unknown",
+            responded: false,
+            converted: false,
+          };
+        }
+      }
+      return member;
+    });
+
+    console.log("Parsed members count:", parsedMembers.length);
+    console.log("First member:", parsedMembers[0]);
+
+    // Calculate metrics from parsed members
+    const totalMembers = parsedMembers.length;
+    const respondedMembers = parsedMembers.filter(
+      (m) => m.responded === true
+    ).length;
+    const convertedMembers = parsedMembers.filter(
+      (m) => m.converted === true
+    ).length;
+
+    console.log("Responded members:", respondedMembers);
+    console.log("Converted members:", convertedMembers);
 
     const responseRate =
       totalMembers > 0 ? (respondedMembers / totalMembers) * 100 : 0;
     const conversionRate =
       respondedMembers > 0 ? (convertedMembers / respondedMembers) * 100 : 0;
+
+    console.log("Response rate:", responseRate);
+    console.log("Conversion rate:", conversionRate);
 
     const revenue = campaign.expectedRevenue || 0;
     const cost = campaign.actualCost || campaign.budgetedCost || 0;
@@ -57,11 +97,11 @@ const getCampaignAnalytics = async (req, res) => {
     const typeData = [
       {
         name: "Leads",
-        value: members.filter((m) => m.type === "lead").length,
+        value: parsedMembers.filter((m) => m.type === "lead").length,
       },
       {
         name: "Contacts",
-        value: members.filter((m) => m.type === "contact").length,
+        value: parsedMembers.filter((m) => m.type === "contact").length,
       },
     ];
 
@@ -171,12 +211,18 @@ const getCampaignAnalytics = async (req, res) => {
       ],
     };
 
+    console.log("=== ANALYTICS DATA SENT ===");
+    console.log("Response Rate:", analyticsData.responseRate);
+    console.log("Conversion Rate:", analyticsData.conversionRate);
+    console.log("=== END DEBUG ===");
+
     res.json({
       success: true,
       data: analyticsData,
     });
   } catch (error) {
     console.error("Get campaign analytics error:", error);
+    console.error("Error stack:", error.stack);
 
     if (error.name === "CastError") {
       return res.status(400).json({

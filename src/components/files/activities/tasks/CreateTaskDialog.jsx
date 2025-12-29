@@ -1,5 +1,4 @@
-//CreateTaskDialog.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -11,6 +10,11 @@ import { Button } from "@/components/ui/button";
 import { TaskForm } from "./TaskForm";
 import { taskAPI } from "./utils";
 import { useAuth } from "@/contexts/AuthContext";
+// Import APIs for related records
+import { leadsAPI } from "../../sales/leads/leadsAPI";
+import contactsAPI from "../../sales/contacts/contactsAPI";
+import accountsAPI from "../../sales/accounts/accountsAPI";
+import dealsAPI from "../../sales/deals/dealsAPI";
 
 export function CreateTaskDialog({ open, onOpenChange, onTaskCreated }) {
   const { user } = useAuth();
@@ -20,11 +24,68 @@ export function CreateTaskDialog({ open, onOpenChange, onTaskCreated }) {
     dueDate: "",
     priority: "medium",
     status: "pending",
-    relatedTo: "",
+    relatedTo: "", // Store ID or Name? The backend stores { id, name }.
     relatedToType: "deal",
+    relatedToId: "", // NEW: Store the ID separately if needed
     assignedTo: user?.name || "You",
   });
   const [loading, setLoading] = useState(false);
+
+  // NEW: State for dynamic options
+  const [recordOptions, setRecordOptions] = useState([]);
+  const [loadingRecords, setLoadingRecords] = useState(false);
+
+  // NEW: Fetch records when relatedToType changes
+  useEffect(() => {
+    const fetchRelatedRecords = async () => {
+      setLoadingRecords(true);
+      setRecordOptions([]);
+      try {
+        let list = [];
+        if (formData.relatedToType === "lead") {
+          const response = await leadsAPI.getLeads();
+          list = response.data || response;
+        } else if (formData.relatedToType === "contact") {
+          const response = await contactsAPI.getContacts();
+          list = response.contacts || response.data || response;
+        } else if (formData.relatedToType === "account") {
+          const response = await accountsAPI.fetchAccounts();
+          list = response.data || response.accounts || response;
+        } else if (formData.relatedToType === "deal") {
+          const response = await dealsAPI.getDeals();
+          list = response.deals || response.data || response; // Deals are in response.deals
+        }
+
+        // Ensure list is an array
+        const safeList = Array.isArray(list) ? list : [];
+
+        // Normalize data to { id, name }
+        const formattedOptions = safeList.map((item, index) => {
+          let name = "Unknown Record";
+          if (item.title) name = item.title; // For Deals
+          else if (item.name) name = item.name; // For Accounts or virtuals
+          else if (item.firstName || item.lastName) name = `${item.firstName || ''} ${item.lastName || ''}`.trim(); // For Leads/Contacts
+          else if (item.company) name = item.company; // Fallback
+
+          return {
+            id: item._id || item.id || `unknown-${index}`,
+            name: name
+          };
+        });
+
+        // Filter out empty names or unknown records if desired, or keep them to show valid IDs
+        setRecordOptions(formattedOptions.filter(opt => opt.name && opt.name !== "Unknown Record"));
+      } catch (error) {
+        console.error("Failed to fetch related records:", error);
+      } finally {
+        setLoadingRecords(false);
+      }
+    };
+
+    if (open) {
+      fetchRelatedRecords();
+    }
+  }, [formData.relatedToType, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -50,7 +111,7 @@ export function CreateTaskDialog({ open, onOpenChange, onTaskCreated }) {
         status: formData.status,
         relatedTo: {
           type: formData.relatedToType,
-          id: `temp-${Date.now()}`,
+          id: formData.relatedToId || `temp-${Date.now()}`, // Use real ID if available
           name: formData.relatedTo || "Unnamed",
         },
         assignedTo: formData.assignedTo,
@@ -68,6 +129,7 @@ export function CreateTaskDialog({ open, onOpenChange, onTaskCreated }) {
         status: "pending",
         relatedTo: "",
         relatedToType: "deal",
+        relatedToId: "",
         assignedTo: user?.name || "You",
       });
 
@@ -85,7 +147,21 @@ export function CreateTaskDialog({ open, onOpenChange, onTaskCreated }) {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    // If changing the Record Name dropdown, we might want to store both ID and Name
+    if (field === "relatedToRecord") {
+      // value is expected to be the ID or the full object? 
+      // Let's assume the Select returns the ID, and we find the name.
+      const selectedRecord = recordOptions.find(r => r.id === value);
+      if (selectedRecord) {
+        setFormData(prev => ({
+          ...prev,
+          relatedTo: selectedRecord.name,
+          relatedToId: selectedRecord.id
+        }));
+      }
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   return (
@@ -103,6 +179,8 @@ export function CreateTaskDialog({ open, onOpenChange, onTaskCreated }) {
             formData={formData}
             onInputChange={handleInputChange}
             currentUser={user}
+            recordOptions={recordOptions}
+            loadingRecords={loadingRecords}
           />
 
           <div className="flex justify-end space-x-2 pt-6 mt-6 border-t">

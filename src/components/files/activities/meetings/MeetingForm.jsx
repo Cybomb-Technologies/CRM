@@ -12,7 +12,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { ChevronDown } from "lucide-react";
 
-export function MeetingForm({ formData, onInputChange, currentUser }) {
+export function MeetingForm({ formData, onInputChange, currentUser, recordOptions = [], loadingRecords = false }) {
   const handleAttendeesChange = (value) => {
     const attendeesArray = value
       .split(",")
@@ -154,8 +154,8 @@ export function MeetingForm({ formData, onInputChange, currentUser }) {
               formData.venueType === "in-office"
                 ? "e.g., Conference Room A"
                 : formData.venueType === "client-location"
-                ? "e.g., Client Office Address"
-                : "Meeting platform details"
+                  ? "e.g., Client Office Address"
+                  : "Meeting platform details"
             }
           />
         </div>
@@ -242,12 +242,28 @@ export function MeetingForm({ formData, onInputChange, currentUser }) {
 
         <div>
           <Label htmlFor="relatedTo">Record Name</Label>
-          <Input
-            id="relatedTo"
-            value={formData.relatedTo}
-            onChange={(e) => onInputChange("relatedTo", e.target.value)}
-            placeholder="Search records..."
-          />
+          <Select
+            value={formData.relatedToId}
+            onValueChange={(value) => onInputChange("relatedToId", value)}
+            disabled={loadingRecords}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={loadingRecords ? "Loading..." : "Select Record"} />
+            </SelectTrigger>
+            <SelectContent>
+              {recordOptions.length > 0 ? (
+                recordOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-center text-gray-500">
+                  {loadingRecords ? "Loading..." : "No records found"}
+                </div>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

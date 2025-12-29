@@ -3,12 +3,6 @@ const express = require("express");
 const router = express.Router();
 const campaignController = require("../../../controllers/file/sales/campaigns/campaignController");
 
-// Import auth middleware if needed
-// const auth = require("../../../middleware/auth");
-
-// Apply auth middleware to all routes if needed
-// router.use(auth);
-
 // GET Routes
 router.get("/", campaignController.getCampaigns);
 router.get("/:id", campaignController.getCampaign);

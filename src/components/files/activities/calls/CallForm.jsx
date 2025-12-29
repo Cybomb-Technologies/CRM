@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { ChevronDown } from "lucide-react";
 
-export function CallForm({ formData, onInputChange, currentUser }) {
+export function CallForm({ formData, onInputChange, currentUser, recordOptions = [], loadingRecords = false }) {
   return (
     <div className="space-y-4">
       {/* Call Owner Field */}
@@ -118,7 +118,7 @@ export function CallForm({ formData, onInputChange, currentUser }) {
             id="phoneNumber"
             value={formData.phoneNumber}
             onChange={(e) => onInputChange("phoneNumber", e.target.value)}
-            placeholder="+1 (555) 123-4567"
+            placeholder="1234567890"
           />
         </div>
       </div>
@@ -203,12 +203,28 @@ export function CallForm({ formData, onInputChange, currentUser }) {
 
         <div>
           <Label htmlFor="relatedTo">Record Name</Label>
-          <Input
-            id="relatedTo"
-            value={formData.relatedTo}
-            onChange={(e) => onInputChange("relatedTo", e.target.value)}
-            placeholder="Search records..."
-          />
+          <Select
+            value={formData.relatedToId}
+            onValueChange={(value) => onInputChange("relatedToId", value)}
+            disabled={loadingRecords}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={loadingRecords ? "Loading..." : "Select Record"} />
+            </SelectTrigger>
+            <SelectContent>
+              {recordOptions.length > 0 ? (
+                recordOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-center text-gray-500">
+                  {loadingRecords ? "Loading..." : "No records found"}
+                </div>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,12 @@ import { Button } from "@/components/ui/button";
 import { MeetingForm } from "./MeetingForm";
 import { meetingAPI } from "./utils";
 import { useAuth } from "@/contexts/AuthContext";
+
+// Import APIs
+import { leadsAPI } from "../../sales/leads/leadsAPI";
+import contactsAPI from "../../sales/contacts/contactsAPI";
+import accountsAPI from "../../sales/accounts/accountsAPI";
+import dealsAPI from "../../sales/deals/dealsAPI";
 
 export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
   const { user } = useAuth();
@@ -26,10 +32,64 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
     meetingLink: "",
     attendees: [],
     relatedTo: "",
+    relatedToId: "", // Added to store ID
     relatedToType: "deal",
     hostName: user?.name || "You", // Changed from assignedTo to hostName
   });
   const [loading, setLoading] = useState(false);
+  const [recordOptions, setRecordOptions] = useState([]);
+  const [loadingRecords, setLoadingRecords] = useState(false);
+
+  // Fetch records
+  useEffect(() => {
+    const fetchRecords = async () => {
+      setLoadingRecords(true);
+      setRecordOptions([]);
+      try {
+        let list = [];
+        if (formData.relatedToType === "lead") {
+          const response = await leadsAPI.getLeads();
+          list = response.data || response;
+        } else if (formData.relatedToType === "contact") {
+          const response = await contactsAPI.getContacts();
+          list = response.contacts || response.data || response;
+        } else if (formData.relatedToType === "account") {
+          const response = await accountsAPI.fetchAccounts();
+          list = response.data || response.accounts || response;
+        } else if (formData.relatedToType === "deal") {
+          const response = await dealsAPI.getDeals();
+          list = response.deals || response.data || response;
+        }
+
+        const safeList = Array.isArray(list) ? list : [];
+
+        const formattedOptions = safeList.map((item, index) => {
+          let name = "Unknown Record";
+          if (formData.relatedToType === 'deal' && item.title) name = item.title;
+          else if (formData.relatedToType === 'account' && item.name) name = item.name;
+          else if (item.firstName || item.lastName) name = `${item.firstName || ''} ${item.lastName || ''}`.trim();
+          else if (item.name) name = item.name;
+          else if (item.company) name = item.company;
+
+          return {
+            id: item._id || item.id || `unknown-${index}`,
+            name: name || "Unknown Record"
+          };
+        });
+
+        setRecordOptions(formattedOptions);
+      } catch (error) {
+        console.error(`Error fetching ${formData.relatedToType}s:`, error);
+        setRecordOptions([]);
+      } finally {
+        setLoadingRecords(false);
+      }
+    };
+
+    if (open) {
+      fetchRecords();
+    }
+  }, [formData.relatedToType, open]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -61,7 +121,7 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
         attendees: formData.attendees,
         relatedTo: {
           type: formData.relatedToType,
-          id: `temp-${Date.now()}`,
+          id: formData.relatedToId || `temp-${Date.now()}`,
           name: formData.relatedTo || "Unnamed",
         },
         hostName: formData.hostName, // Changed from assignedTo to hostName
@@ -84,6 +144,7 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
         meetingLink: "",
         attendees: [],
         relatedTo: "",
+        relatedToId: "",
         relatedToType: "deal",
         hostName: user?.name || "You", // Changed from assignedTo to hostName
       });
@@ -102,7 +163,17 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (field === "relatedToId") {
+      // Also update the name when ID changes
+      const selectedOption = recordOptions.find(opt => opt.id === value);
+      setFormData(prev => ({
+        ...prev,
+        relatedToId: value,
+        relatedTo: selectedOption ? selectedOption.name : ""
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+    }
   };
 
   return (
@@ -120,6 +191,8 @@ export function CreateMeetingDialog({ open, onOpenChange, onMeetingCreated }) {
             formData={formData}
             onInputChange={handleInputChange}
             currentUser={user}
+            recordOptions={recordOptions}
+            loadingRecords={loadingRecords}
           />
 
           <div className="flex justify-end space-x-2 pt-6 mt-6 border-t">

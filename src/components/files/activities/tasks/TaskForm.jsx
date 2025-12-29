@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/select";
 import { ChevronDown } from "lucide-react";
 
-export function TaskForm({ formData, onInputChange, currentUser }) {
+export function TaskForm({ formData, onInputChange, currentUser, recordOptions = [], loadingRecords = false }) {
   return (
     <div className="space-y-4">
       {/* Task Owner Field */}
@@ -120,12 +120,29 @@ export function TaskForm({ formData, onInputChange, currentUser }) {
 
         <div>
           <Label htmlFor="relatedTo">Record Name</Label>
-          <Input
-            id="relatedTo"
-            value={formData.relatedTo}
-            onChange={(e) => onInputChange("relatedTo", e.target.value)}
-            placeholder="Search records..."
-          />
+          {/* Changed from Input to Select/Combobox */}
+          <Select
+            value={formData.relatedToId || ""}
+            onValueChange={(value) => onInputChange("relatedToRecord", value)}
+            disabled={loadingRecords}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder={loadingRecords ? "Loading..." : "Select record"} />
+            </SelectTrigger>
+            <SelectContent className="max-h-60">
+              {recordOptions.length > 0 ? (
+                recordOptions.map((option) => (
+                  <SelectItem key={option.id} value={option.id}>
+                    {option.name}
+                  </SelectItem>
+                ))
+              ) : (
+                <div className="p-2 text-sm text-center text-gray-500">
+                  {loadingRecords ? "Loading..." : "No records found"}
+                </div>
+              )}
+            </SelectContent>
+          </Select>
         </div>
       </div>
     </div>

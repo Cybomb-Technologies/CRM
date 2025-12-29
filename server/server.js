@@ -15,12 +15,15 @@ console.log('✅ === SERVER FIXES LOADED ===');
 console.log('📁 Current directory:', __dirname);
 console.log('🔑 JWT_SECRET from .env:', process.env.JWT_SECRET ? 'SET' : 'NOT SET');
 if (process.env.JWT_SECRET) {
-  console.log('🔑 JWT_SECRET length:', process.env.JWT_SECRET.length);
-  console.log('🔑 JWT_SECRET preview:', process.env.JWT_SECRET.substring(0, 10) + '...');
+  console.log("🔑 JWT_SECRET length:", process.env.JWT_SECRET.length);
+  console.log(
+    "🔑 JWT_SECRET preview:",
+    process.env.JWT_SECRET.substring(0, 10) + "..."
+  );
 } else {
-  console.log('⚠️ Using fallback JWT_SECRET');
+  console.log("⚠️ Using fallback JWT_SECRET");
 }
-console.log('============================\n');
+console.log("============================\n");
 
 // Connect to database
 connectDB();
@@ -33,10 +36,12 @@ const quoteRoutes = require('./routes/file/inventory/quoteRoutes');
 const securityRoutes = require('./routes/securityRoutes');
 
 // Middleware
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: ["http://localhost:5173", "http://localhost:3000"],
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -47,18 +52,18 @@ app.use((req, res, next) => {
 });
 
 // Ensure uploads directory exists
-const uploadsDir = path.join(__dirname, 'public', 'uploads', 'profiles');
+const uploadsDir = path.join(__dirname, "public", "uploads", "profiles");
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
-  console.log('✅ Created uploads directory:', uploadsDir);
+  console.log("✅ Created uploads directory:", uploadsDir);
 }
 
 // Serve static files from 'public' directory
-app.use('/uploads', express.static(path.join(__dirname, 'public', 'uploads')));
+app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/profile', require('./routes/profileRoutes'));
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/profile", require("./routes/profileRoutes"));
 app.use('/api/price-books', priceBookRoutes);
 // console.log('🔗 Mounting Quotes Route at /api/quotes');
 app.use('/api/quotes', quoteRoutes);
@@ -81,25 +86,46 @@ app.get('/api/server-check', (req, res) => {
 });
 
 // Health check route
-app.get('/api/health', (req, res) => {
+app.get("/api/health", (req, res) => {
   res.json({
-    status: 'OK',
+    status: "OK",
     timestamp: new Date().toISOString(),
-    database: 'Connected',
-    jwtSecret: process.env.JWT_SECRET ? 'Configured' : 'Not configured'
+    database: "Connected",
+    jwtSecret: process.env.JWT_SECRET ? "Configured" : "Not configured",
   });
 });
 
+app.use("/api/auth", require("./routes/auth"));
+app.use("/api/tasks", require("./routes/file/activities/taskRoutes"));
+app.use("/api/meetings", require("./routes/file/activities/meetingRoutes"));
+app.use("/api/calls", require("./routes/file/activities/callRoutes"));
+app.use("/api/leads", require("./routes/file/sales/leadRoutes"));
+app.use("/api/contacts", require("./routes/file/sales/contactRoutes"));
+app.use("/api/accounts", require("./routes/file/sales/accountRoutes"));
 app.use("/api/deals", require("./routes/file/sales/dealRoutes"));
 app.use("/api/campaigns", require("./routes/file/sales/campaignRoutes"));
-app.use('/api/products', productRoutes);
 
 // Test route
-app.get('/api/test', (req, res) => {
+app.get("/api/test", (req, res) => {
   res.json({
     success: true,
-    message: 'API is working!',
-    version: '1.0.0'
+    message: "API is working!",
+    version: "1.0.0",
+  });
+});
+
+// Test purchase order connection
+app.get('/api/test-po', (req, res) => {
+  res.json({
+    success: true,
+    message: 'Purchase Order API is ready!',
+    routes: [
+      'GET /api/purchase-orders',
+      'POST /api/purchase-orders',
+      'GET /api/purchase-orders/:id',
+      'PUT /api/purchase-orders/:id',
+      'DELETE /api/purchase-orders/:id'
+    ]
   });
 });
 
@@ -122,21 +148,21 @@ app.get('/api/test-po', (req, res) => {
 app.use((req, res, next) => {
   res.status(404).json({
     success: false,
-    message: `Route ${req.originalUrl} not found`
+    message: `Route ${req.originalUrl} not found`,
   });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-  console.error('❌ Server error:', err.stack);
+  console.error("❌ Server error:", err.stack);
 
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+  const message = err.message || "Internal Server Error";
 
   res.status(statusCode).json({
     success: false,
     message: message,
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 });
 
@@ -144,7 +170,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV || "development"}`);
   console.log(`🔗 API Base URL: http://localhost:${PORT}/api`);
   console.log(`📦 Purchase Order API: http://localhost:${PORT}/api/purchase-orders`);
 });
