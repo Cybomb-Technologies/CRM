@@ -12,6 +12,9 @@ import {
   Mail,
   Loader2,
   User,
+  Activity,
+  CheckCircle,
+  Clock,
 } from "lucide-react";
 import CampaignMembers from "./CampaignMembers";
 import CampaignAnalytics from "./CampaignAnalytics";
@@ -26,10 +29,11 @@ const CampaignDetail = () => {
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [metrics, setMetrics] = useState(null);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh key to force updates
 
   useEffect(() => {
     fetchCampaign();
-  }, [id]);
+  }, [id, refreshKey]); // Add refreshKey as dependency
 
   const fetchCampaign = async () => {
     setLoading(true);
@@ -62,8 +66,27 @@ const CampaignDetail = () => {
   const calculateMetrics = (campaignData) => {
     const members = campaignData.members || [];
     const activities = campaignData.activities || [];
-    const responses = members.filter((m) => m.responded).length;
-    const converted = members.filter((m) => m.converted).length;
+
+    // Parse members if they are JSON strings
+    const parsedMembers = members.map((member) => {
+      if (typeof member === "string") {
+        try {
+          return JSON.parse(member);
+        } catch (error) {
+          return {
+            id: member,
+            name: "Unknown Member",
+            type: "unknown",
+            responded: false,
+            converted: false,
+          };
+        }
+      }
+      return member;
+    });
+
+    const respondedMembers = parsedMembers.filter((m) => m.responded).length;
+    const convertedMembers = parsedMembers.filter((m) => m.converted).length;
 
     const revenue = parseFloat(campaignData.expectedRevenue) || 0;
     const cost =
@@ -79,25 +102,40 @@ const CampaignDetail = () => {
     const pendingActivities = activities.filter(
       (a) => a.status === "Pending"
     ).length;
+    const inProgressActivities = activities.filter(
+      (a) => a.status === "In Progress"
+    ).length;
     const activityCompletionRate =
       activities.length > 0
         ? (completedActivities / activities.length) * 100
         : 0;
 
     const calculatedMetrics = {
-      totalMembers: members.length,
-      responses,
-      converted,
-      responseRate: members.length > 0 ? (responses / members.length) * 100 : 0,
-      conversionRate: responses > 0 ? (converted / responses) * 100 : 0,
+      totalMembers: parsedMembers.length,
+      respondedMembers,
+      convertedMembers,
+      responseRate:
+        parsedMembers.length > 0
+          ? (respondedMembers / parsedMembers.length) * 100
+          : 0,
+      conversionRate:
+        respondedMembers > 0 ? (convertedMembers / respondedMembers) * 100 : 0,
       roi,
       totalActivities: activities.length,
       completedActivities,
       pendingActivities,
+      inProgressActivities,
       activityCompletionRate,
     };
 
+    console.log("Calculated Metrics:", calculatedMetrics);
     setMetrics(calculatedMetrics);
+  };
+
+  // Function to trigger refresh of campaign data
+  const handleCampaignUpdate = () => {
+    console.log("Refreshing campaign data...");
+    setRefreshKey((prev) => prev + 1); // This will trigger useEffect to refetch
   };
 
   const getStatusColor = (status) => {
@@ -118,12 +156,17 @@ const CampaignDetail = () => {
   };
 
   const tabs = [
-    { id: "overview", label: "Overview" },
-    { id: "members", label: `Members (${metrics?.totalMembers || 0})` },
-    { id: "analytics", label: "Analytics" },
+    { id: "overview", label: "Overview", icon: Activity },
+    {
+      id: "members",
+      label: `Members (${metrics?.totalMembers || 0})`,
+      icon: Users,
+    },
+    { id: "analytics", label: "Analytics", icon: TrendingUp },
     {
       id: "activities",
       label: `Activities (${metrics?.totalActivities || 0})`,
+      icon: CheckCircle,
     },
   ];
 
@@ -234,19 +277,23 @@ const CampaignDetail = () => {
 
         {/* Navigation Tabs */}
         <div className="flex border-b mt-4 -mb-px">
-          {tabs.map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`px-4 py-2 font-medium border-b-2 transition-colors ${
-                activeTab === tab.id
-                  ? "border-[#4667d8] text-[#4667d8]"
-                  : "border-transparent text-gray-500 hover:text-gray-700"
-              }`}
-            >
-              {tab.label}
-            </button>
-          ))}
+          {tabs.map((tab) => {
+            const Icon = tab.icon;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`px-4 py-2 font-medium border-b-2 transition-colors flex items-center gap-2 ${
+                  activeTab === tab.id
+                    ? "border-[#4667d8] text-[#4667d8]"
+                    : "border-transparent text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                <Icon className="w-4 h-4" />
+                {tab.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -254,7 +301,7 @@ const CampaignDetail = () => {
       <div className="p-6">
         {activeTab === "overview" && (
           <div className="space-y-6">
-            {/* Key Metrics */}
+            {/* Key Metrics - Updated dynamically */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
@@ -264,6 +311,9 @@ const CampaignDetail = () => {
                 <p className="text-2xl font-bold">
                   {metrics?.totalMembers || 0}
                 </p>
+                <div className="text-xs text-gray-600 mt-1">
+                  {metrics?.respondedMembers || 0} responded
+                </div>
               </div>
 
               <div className="bg-green-50 p-4 rounded-lg">
@@ -274,6 +324,10 @@ const CampaignDetail = () => {
                 <p className="text-2xl font-bold">
                   {metrics?.responseRate?.toFixed(1) || "0.0"}%
                 </p>
+                <div className="text-xs text-gray-600 mt-1">
+                  {metrics?.respondedMembers || 0} /{" "}
+                  {metrics?.totalMembers || 0} members
+                </div>
               </div>
 
               <div className="bg-purple-50 p-4 rounded-lg">
@@ -284,6 +338,10 @@ const CampaignDetail = () => {
                 <p className="text-2xl font-bold">
                   {metrics?.conversionRate?.toFixed(1) || "0.0"}%
                 </p>
+                <div className="text-xs text-gray-600 mt-1">
+                  {metrics?.convertedMembers || 0} /{" "}
+                  {metrics?.respondedMembers || 0} responded
+                </div>
               </div>
 
               <div className="bg-orange-50 p-4 rounded-lg">
@@ -294,14 +352,17 @@ const CampaignDetail = () => {
                 <p className="text-2xl font-bold">
                   {metrics?.roi?.toFixed(1) || "0.0"}%
                 </p>
+                <div className="text-xs text-gray-600 mt-1">
+                  Based on campaign costs
+                </div>
               </div>
             </div>
 
-            {/* Activities Summary */}
+            {/* Activities Summary - Updated dynamically */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-gray-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Mail className="w-5 h-5 text-gray-600" />
+                  <Activity className="w-5 h-5 text-gray-600" />
                   <h3 className="font-semibold">Total Activities</h3>
                 </div>
                 <p className="text-2xl font-bold">
@@ -311,31 +372,35 @@ const CampaignDetail = () => {
 
               <div className="bg-green-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <Target className="w-5 h-5 text-green-600" />
+                  <CheckCircle className="w-5 h-5 text-green-600" />
                   <h3 className="font-semibold">Completed</h3>
                 </div>
                 <p className="text-2xl font-bold">
                   {metrics?.completedActivities || 0}
                 </p>
-              </div>
-
-              <div className="bg-yellow-50 p-4 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <Calendar className="w-5 h-5 text-yellow-600" />
-                  <h3 className="font-semibold">Pending</h3>
+                <div className="text-xs text-gray-600 mt-1">
+                  {metrics?.activityCompletionRate?.toFixed(1) || "0.0"}%
+                  completion rate
                 </div>
-                <p className="text-2xl font-bold">
-                  {metrics?.pendingActivities || 0}
-                </p>
               </div>
 
               <div className="bg-blue-50 p-4 rounded-lg">
                 <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                  <h3 className="font-semibold">Completion Rate</h3>
+                  <Activity className="w-5 h-5 text-blue-600" />
+                  <h3 className="font-semibold">In Progress</h3>
                 </div>
                 <p className="text-2xl font-bold">
-                  {metrics?.activityCompletionRate?.toFixed(1) || "0.0"}%
+                  {metrics?.inProgressActivities || 0}
+                </p>
+              </div>
+
+              <div className="bg-yellow-50 p-4 rounded-lg">
+                <div className="flex items-center gap-2 mb-2">
+                  <Clock className="w-5 h-5 text-yellow-600" />
+                  <h3 className="font-semibold">Pending</h3>
+                </div>
+                <p className="text-2xl font-bold">
+                  {metrics?.pendingActivities || 0}
                 </p>
               </div>
             </div>
@@ -400,6 +465,9 @@ const CampaignDetail = () => {
                         ).toLocaleString()}`
                       : "Not specified"}
                   </div>
+                  <div>
+                    <strong>ROI:</strong> {metrics?.roi?.toFixed(1) || "0.0"}%
+                  </div>
                 </div>
               </div>
             </div>
@@ -442,15 +510,25 @@ const CampaignDetail = () => {
         )}
 
         {activeTab === "members" && (
-          <CampaignMembers campaign={campaign} onUpdate={fetchCampaign} />
+          <CampaignMembers
+            campaign={campaign}
+            onUpdate={handleCampaignUpdate} // Pass refresh function
+          />
         )}
 
         {activeTab === "analytics" && (
-          <CampaignAnalytics campaign={campaign} metrics={metrics} />
+          <CampaignAnalytics
+            campaign={campaign}
+            metrics={metrics}
+            refreshKey={refreshKey} // Pass refresh key to force updates
+          />
         )}
 
         {activeTab === "activities" && (
-          <CampaignActivities campaign={campaign} onUpdate={fetchCampaign} />
+          <CampaignActivities
+            campaign={campaign}
+            onUpdate={handleCampaignUpdate} // Pass refresh function
+          />
         )}
       </div>
     </div>

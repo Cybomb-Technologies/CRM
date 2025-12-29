@@ -48,6 +48,10 @@ const addTransformIndexHtml = {
 export default defineConfig({
 	customLogger: logger,
 
+	define: {
+		'process.env': {}
+	},
+
 	plugins: [
 		...(isDev ? [
 			inlineEditPlugin(),

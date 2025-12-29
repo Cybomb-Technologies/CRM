@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { campaignsService } from "./campaignsService";
 import {
   BarChart,
@@ -13,21 +13,23 @@ import {
   Pie,
   Cell,
 } from "recharts";
-import { Loader2 } from "lucide-react";
+import { Loader2, RefreshCw } from "lucide-react";
 import { useToast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
-const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
+const CampaignAnalytics = ({
+  campaign,
+  metrics: initialMetrics,
+  refreshKey,
+}) => {
   const { toast } = useToast();
   const [analyticsData, setAnalyticsData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [metrics, setMetrics] = useState(initialMetrics);
   const [error, setError] = useState(null);
+  const [forceRefresh, setForceRefresh] = useState(0);
 
-  useEffect(() => {
-    fetchAnalytics();
-  }, [campaign._id]);
-
-  const fetchAnalytics = async () => {
+  const fetchAnalytics = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
@@ -37,12 +39,18 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
         throw new Error("Campaign ID is missing");
       }
 
+      console.log("Fetching analytics for campaign:", campaignId);
+
+      // Add timestamp to prevent caching
       const result = await campaignsService.fetchCampaignAnalytics(campaignId);
 
-      if (result.success) {
+      if (result.success && result.data) {
+        console.log("Analytics data received:", result.data);
         setAnalyticsData(result.data);
         setMetrics({
           totalMembers: result.data.totalMembers || 0,
+          respondedMembers: result.data.respondedMembers || 0,
+          convertedMembers: result.data.convertedMembers || 0,
           responseRate: result.data.responseRate || 0,
           conversionRate: result.data.conversionRate || 0,
           roi: result.data.roi || 0,
@@ -55,19 +63,33 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
         throw new Error(result.message || "Failed to fetch analytics");
       }
     } catch (error) {
+      console.error("Fetch analytics error:", error);
       setError(error.message);
-      toast({
-        title: "Analytics Error",
-        description:
-          "Could not load analytics data. Showing calculated metrics instead.",
-        variant: "destructive",
-      });
 
       // Use calculated metrics as fallback
       const members = campaign.members || [];
       const activities = campaign.activities || [];
-      const responses = members.filter((m) => m.responded).length;
-      const converted = members.filter((m) => m.converted).length;
+
+      // Parse members if they are JSON strings
+      const parsedMembers = members.map((member) => {
+        if (typeof member === "string") {
+          try {
+            return JSON.parse(member);
+          } catch (error) {
+            return {
+              id: member,
+              name: "Unknown Member",
+              type: "unknown",
+              responded: false,
+              converted: false,
+            };
+          }
+        }
+        return member;
+      });
+
+      const responses = parsedMembers.filter((m) => m.responded).length;
+      const converted = parsedMembers.filter((m) => m.converted).length;
 
       const revenue = parseFloat(campaign.expectedRevenue) || 0;
       const cost =
@@ -87,28 +109,57 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
           ? (completedActivities / activities.length) * 100
           : 0;
 
-      setMetrics({
-        totalMembers: members.length,
-        responses,
-        converted,
+      const fallbackMetrics = {
+        totalMembers: parsedMembers.length,
+        respondedMembers: responses,
+        convertedMembers: converted,
         responseRate:
-          members.length > 0 ? (responses / members.length) * 100 : 0,
+          parsedMembers.length > 0
+            ? (responses / parsedMembers.length) * 100
+            : 0,
         conversionRate: responses > 0 ? (converted / responses) * 100 : 0,
         roi,
         totalActivities: activities.length,
         completedActivities,
         pendingActivities,
         activityCompletionRate,
+      };
+
+      setMetrics(fallbackMetrics);
+
+      toast({
+        title: "Analytics Warning",
+        description:
+          "Using locally calculated metrics. Analytics API might be delayed.",
+        variant: "warning",
       });
     } finally {
       setLoading(false);
     }
+  }, [campaign, toast]);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [fetchAnalytics, refreshKey, forceRefresh]);
+
+  const handleManualRefresh = () => {
+    setForceRefresh((prev) => prev + 1);
+    toast({
+      title: "Refreshing",
+      description: "Updating analytics data...",
+    });
   };
 
   if (loading) {
     return (
       <div className="space-y-8">
-        <h3 className="text-lg font-semibold">Campaign Analytics</h3>
+        <div className="flex justify-between items-center">
+          <h3 className="text-lg font-semibold">Campaign Analytics</h3>
+          <Button variant="outline" size="sm" disabled>
+            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+            Loading...
+          </Button>
+        </div>
         <div className="text-center py-12">
           <Loader2 className="w-8 h-8 animate-spin mx-auto text-blue-600" />
           <p className="mt-4 text-gray-600">Loading analytics data...</p>
@@ -117,54 +168,77 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
     );
   }
 
-  if (error && !analyticsData) {
-    return (
-      <div className="space-y-8">
-        <h3 className="text-lg font-semibold">Campaign Analytics</h3>
-        <div className="text-center py-12 border-2 border-dashed rounded-lg">
-          <p className="text-gray-500">
-            Unable to load analytics data from server.
-          </p>
-          <p className="text-sm text-gray-400 mt-2">
-            Showing calculated metrics instead.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
   const members = campaign.members || [];
   const activities = campaign.activities || [];
 
-  // Use data from analytics or calculate locally
+  // Parse members if they are JSON strings
+  const parsedMembers = members.map((member) => {
+    if (typeof member === "string") {
+      try {
+        return JSON.parse(member);
+      } catch (error) {
+        return {
+          id: member,
+          name: "Unknown Member",
+          type: "unknown",
+          responded: false,
+          converted: false,
+        };
+      }
+    }
+    return member;
+  });
+
+  // Use data from analytics API or calculate locally
   const responseData = analyticsData?.responseData || [
-    { name: "Responded", value: members.filter((m) => m.responded).length },
+    {
+      name: "Responded",
+      value:
+        metrics.respondedMembers ||
+        parsedMembers.filter((m) => m.responded).length,
+    },
     {
       name: "Not Responded",
-      value: members.filter((m) => !m.responded).length,
+      value:
+        (metrics.totalMembers || parsedMembers.length) -
+        (metrics.respondedMembers ||
+          parsedMembers.filter((m) => m.responded).length),
     },
   ];
 
   const conversionData = analyticsData?.conversionData || [
-    { name: "Converted", value: members.filter((m) => m.converted).length },
+    {
+      name: "Converted",
+      value:
+        metrics.convertedMembers ||
+        parsedMembers.filter((m) => m.converted).length,
+    },
     {
       name: "Not Converted",
-      value: members.filter((m) => !m.converted).length,
+      value:
+        (metrics.totalMembers || parsedMembers.length) -
+        (metrics.convertedMembers ||
+          parsedMembers.filter((m) => m.converted).length),
     },
   ];
 
   const typeData = analyticsData?.typeData || [
-    { name: "Leads", value: members.filter((m) => m.type === "lead").length },
+    {
+      name: "Leads",
+      value: parsedMembers.filter((m) => m.type === "lead").length,
+    },
     {
       name: "Contacts",
-      value: members.filter((m) => m.type === "contact").length,
+      value: parsedMembers.filter((m) => m.type === "contact").length,
     },
   ];
 
   const activityStatusData = analyticsData?.activityStatusData || [
     {
       name: "Completed",
-      value: activities.filter((a) => a.status === "Completed").length,
+      value:
+        metrics.completedActivities ||
+        activities.filter((a) => a.status === "Completed").length,
     },
     {
       name: "In Progress",
@@ -172,7 +246,9 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
     },
     {
       name: "Pending",
-      value: activities.filter((a) => a.status === "Pending").length,
+      value:
+        metrics.pendingActivities ||
+        activities.filter((a) => a.status === "Pending").length,
     },
     {
       name: "Cancelled",
@@ -203,52 +279,165 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
     "#82CA9D",
   ];
 
-  const performanceData = analyticsData?.performanceData || [
+  const performanceData = [
     {
       metric: "Total Members",
-      value: metrics.totalMembers,
+      value: metrics.totalMembers || parsedMembers.length,
       target: campaign.numbersSent || 100,
     },
     {
       metric: "Response Rate",
-      value: metrics.responseRate,
+      value:
+        metrics.responseRate ||
+        (parsedMembers.length > 0
+          ? (parsedMembers.filter((m) => m.responded).length /
+              parsedMembers.length) *
+            100
+          : 0),
       target: campaign.expectedResponse || 20,
     },
-    { metric: "Conversion Rate", value: metrics.conversionRate, target: 10 },
-    { metric: "ROI", value: metrics.roi, target: 50 },
+    {
+      metric: "Conversion Rate",
+      value:
+        metrics.conversionRate ||
+        (parsedMembers.filter((m) => m.responded).length > 0
+          ? (parsedMembers.filter((m) => m.converted).length /
+              parsedMembers.filter((m) => m.responded).length) *
+            100
+          : 0),
+      target: 10,
+    },
+    { metric: "ROI", value: metrics.roi || 0, target: 50 },
     {
       metric: "Activities Completed",
-      value: metrics.activityCompletionRate,
+      value: metrics.activityCompletionRate || 0,
       target: 75,
     },
   ];
 
-  const activityMetrics = analyticsData?.activityMetrics || [
+  const activityMetrics = [
     {
       name: "Total Activities",
-      value: metrics.totalActivities,
+      value: metrics.totalActivities || activities.length,
       color: "text-blue-600",
     },
     {
       name: "Completed",
-      value: metrics.completedActivities,
+      value:
+        metrics.completedActivities ||
+        activities.filter((a) => a.status === "Completed").length,
       color: "text-green-600",
     },
     {
       name: "Pending",
-      value: metrics.pendingActivities,
+      value:
+        metrics.pendingActivities ||
+        activities.filter((a) => a.status === "Pending").length,
       color: "text-yellow-600",
     },
     {
       name: "Completion Rate",
-      value: `${metrics.activityCompletionRate.toFixed(1)}%`,
+      value: `${(metrics.activityCompletionRate || 0).toFixed(1)}%`,
       color: "text-purple-600",
     },
   ];
 
+  // Consistent label renderer for ALL charts
+  const renderCustomizedLabel = ({
+    cx,
+    cy,
+    midAngle,
+    innerRadius,
+    outerRadius,
+    percent,
+    index,
+  }) => {
+    const RADIAN = Math.PI / 180;
+
+    // Always position labels at 65% of the slice (well inside the slice)
+    const radius = innerRadius + (outerRadius - innerRadius) * 0.65;
+    const x = cx + radius * Math.cos(-midAngle * RADIAN);
+    const y = cy + radius * Math.sin(-midAngle * RADIAN);
+
+    // Don't show label for very small slices
+    if (percent < 0.05) {
+      return null;
+    }
+
+    return (
+      <text
+        x={x}
+        y={y}
+        fill="white"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontSize={11}
+        fontWeight="bold"
+        className="drop-shadow-sm"
+      >
+        {`${(percent * 100).toFixed(0)}%`}
+      </text>
+    );
+  };
+
+  // Custom legend formatter to show full text
+  const renderCustomLegend = (value) => {
+    return <span className="text-xs">{value}</span>;
+  };
+
   return (
     <div className="space-y-8">
-      <h3 className="text-lg font-semibold">Campaign Analytics</h3>
+      <div className="flex justify-between items-center">
+        <h3 className="text-lg font-semibold">Campaign Analytics</h3>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={handleManualRefresh}
+            disabled={loading}
+          >
+            <RefreshCw className="w-4 h-4 mr-2" />
+            Refresh Analytics
+          </Button>
+        </div>
+      </div>
+
+      {/* Real-time Metrics Summary */}
+      <div className="bg-white p-6 border rounded-lg">
+        <h4 className="font-medium mb-4">Current Metrics</h4>
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+          <div className="text-center p-4 bg-blue-50 rounded-lg">
+            <p className="text-2xl font-bold text-blue-600">
+              {metrics.totalMembers || 0}
+            </p>
+            <p className="text-sm text-gray-600">Total Members</p>
+          </div>
+          <div className="text-center p-4 bg-green-50 rounded-lg">
+            <p className="text-2xl font-bold text-green-600">
+              {metrics.respondedMembers || 0}
+            </p>
+            <p className="text-sm text-gray-600">Responded</p>
+          </div>
+          <div className="text-center p-4 bg-purple-50 rounded-lg">
+            <p className="text-2xl font-bold text-purple-600">
+              {metrics.convertedMembers || 0}
+            </p>
+            <p className="text-sm text-gray-600">Converted</p>
+          </div>
+          <div className="text-center p-4 bg-orange-50 rounded-lg">
+            <p className="text-2xl font-bold text-orange-600">
+              {(metrics.responseRate || 0).toFixed(1)}%
+            </p>
+            <p className="text-sm text-gray-600">Response Rate</p>
+          </div>
+          <div className="text-center p-4 bg-red-50 rounded-lg">
+            <p className="text-2xl font-bold text-red-600">
+              {(metrics.conversionRate || 0).toFixed(1)}%
+            </p>
+            <p className="text-sm text-gray-600">Conversion Rate</p>
+          </div>
+        </div>
+      </div>
 
       {/* Performance vs Target */}
       <div>
@@ -329,171 +518,220 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
         </div>
       </div>
 
-      {/* Charts Grid */}
+      {/* Charts Grid - ALL CHARTS USE SAME LABEL RENDERER */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {/* Response Chart */}
         <div className="bg-white p-4 border rounded-lg">
           <h4 className="font-medium mb-4 text-center">Response Status</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={responseData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} (${(percent * 100).toFixed(0)}%)`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {responseData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => [`${value} members`, "Count"]} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-64 md:h-72 lg:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={responseData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={75}
+                  innerRadius={35}
+                  paddingAngle={2}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {responseData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} members`, "Count"]}
+                  contentStyle={{ fontSize: "12px" }}
+                />
+                <Legend
+                  formatter={renderCustomLegend}
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="text-center mt-2 text-sm text-gray-600">
+            {metrics.respondedMembers || 0} responded out of{" "}
+            {metrics.totalMembers || 0}
+          </div>
         </div>
 
         {/* Conversion Chart */}
         <div className="bg-white p-4 border rounded-lg">
           <h4 className="font-medium mb-4 text-center">Conversion Status</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={conversionData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} (${(percent * 100).toFixed(0)}%)`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {conversionData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[(index + 2) % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => [`${value} members`, "Count"]} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-64 md:h-72 lg:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={conversionData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={75}
+                  innerRadius={35}
+                  paddingAngle={2}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {conversionData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[(index + 2) % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} members`, "Count"]}
+                  contentStyle={{ fontSize: "12px" }}
+                />
+                <Legend
+                  formatter={renderCustomLegend}
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
+          <div className="text-center mt-2 text-sm text-gray-600">
+            {metrics.convertedMembers || 0} converted out of{" "}
+            {metrics.respondedMembers || 0} responded
+          </div>
         </div>
 
         {/* Member Type Chart */}
         <div className="bg-white p-4 border rounded-lg">
           <h4 className="font-medium mb-4 text-center">Member Types</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={typeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} (${(percent * 100).toFixed(0)}%)`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {typeData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[(index + 1) % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip formatter={(value) => [`${value} members`, "Count"]} />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-64 md:h-72 lg:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={typeData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={75}
+                  innerRadius={35}
+                  paddingAngle={2}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {typeData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[(index + 1) % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} members`, "Count"]}
+                  contentStyle={{ fontSize: "12px" }}
+                />
+                <Legend
+                  formatter={renderCustomLegend}
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Activity Status Chart */}
+        {/* Activity Status Chart - NOW USING SAME RENDERER */}
         <div className="bg-white p-4 border rounded-lg">
           <h4 className="font-medium mb-4 text-center">Activity Status</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={activityStatusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} (${(percent * 100).toFixed(0)}%)`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {activityStatusData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value) => [`${value} activities`, "Count"]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-64 md:h-72 lg:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={activityStatusData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={75}
+                  innerRadius={35}
+                  paddingAngle={2}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {activityStatusData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} activities`, "Count"]}
+                  contentStyle={{ fontSize: "12px" }}
+                />
+                <Legend
+                  formatter={renderCustomLegend}
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
-        {/* Activity Type Chart */}
+        {/* Activity Type Chart - NOW USING SAME RENDERER */}
         <div className="bg-white p-4 border rounded-lg">
           <h4 className="font-medium mb-4 text-center">Activity Types</h4>
-          <ResponsiveContainer width="100%" height={200}>
-            <PieChart>
-              <Pie
-                data={activityTypeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={({ name, percent }) =>
-                  `${name} (${(percent * 100).toFixed(0)}%)`
-                }
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {activityTypeData.map((entry, index) => (
-                  <Cell
-                    key={`cell-${index}`}
-                    fill={COLORS[index % COLORS.length]}
-                  />
-                ))}
-              </Pie>
-              <Tooltip
-                formatter={(value) => [`${value} activities`, "Count"]}
-              />
-            </PieChart>
-          </ResponsiveContainer>
+          <div className="h-64 md:h-72 lg:h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <PieChart>
+                <Pie
+                  data={activityTypeData}
+                  cx="50%"
+                  cy="50%"
+                  labelLine={false}
+                  label={renderCustomizedLabel}
+                  outerRadius={75}
+                  innerRadius={35}
+                  paddingAngle={3}
+                  fill="#8884d8"
+                  dataKey="value"
+                >
+                  {activityTypeData.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Tooltip
+                  formatter={(value) => [`${value} activities`, "Count"]}
+                  contentStyle={{ fontSize: "12px" }}
+                />
+                <Legend
+                  formatter={renderCustomLegend}
+                  wrapperStyle={{ fontSize: "12px", paddingTop: "10px" }}
+                />
+              </PieChart>
+            </ResponsiveContainer>
+          </div>
         </div>
 
         {/* Activity Summary */}
         <div className="bg-white p-4 border rounded-lg">
           <h4 className="font-medium mb-4 text-center">Activity Summary</h4>
-          <div className="flex items-center justify-center h-48">
+          <div className="flex items-center justify-center h-64 md:h-72 lg:h-64">
             <div className="text-center">
               <div className="text-3xl font-bold text-blue-600 mb-2">
-                {metrics.totalActivities}
+                {metrics.totalActivities || 0}
               </div>
               <p className="text-gray-600">Total Activities</p>
               <div className="mt-4 space-y-2">
                 <div className="flex justify-between text-sm">
                   <span>Completed:</span>
                   <span className="font-semibold text-green-600">
-                    {metrics.completedActivities}
+                    {metrics.completedActivities || 0}
                   </span>
                 </div>
                 <div className="flex justify-between text-sm">
@@ -508,7 +746,7 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
                 <div className="flex justify-between text-sm">
                   <span>Pending:</span>
                   <span className="font-semibold text-yellow-600">
-                    {metrics.pendingActivities}
+                    {metrics.pendingActivities || 0}
                   </span>
                 </div>
               </div>
@@ -550,7 +788,7 @@ const CampaignAnalytics = ({ campaign, metrics: initialMetrics }) => {
           </div>
           <div className="text-center">
             <p className="text-2xl font-bold text-purple-600">
-              {metrics.roi.toFixed(1)}%
+              {(metrics.roi || 0).toFixed(1)}%
             </p>
             <p className="text-sm text-gray-600">ROI</p>
           </div>

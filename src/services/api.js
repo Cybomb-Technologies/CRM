@@ -1,29 +1,29 @@
 const API_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
 
 // Helper function to get auth headers
-const getAuthHeaders = (contentType = 'application/json') => {
+export const getAuthHeaders = (contentType = 'application/json') => {
   const token = localStorage.getItem('token');
   const headers = {
     'Authorization': `Bearer ${token}`
   };
-  
+
   if (contentType) {
     headers['Content-Type'] = contentType;
   }
-  
+
   return headers;
 };
 
 // Helper function for API requests
-const apiRequest = async (endpoint, options = {}) => {
+export const apiRequest = async (endpoint, options = {}) => {
   try {
     const response = await fetch(`${API_URL}${endpoint}`, options);
     const data = await response.json();
-    
+
     if (!response.ok) {
       throw new Error(data.message || `API request failed with status ${response.status}`);
     }
-    
+
     return data;
   } catch (error) {
     console.error('API Request Error:', error);
@@ -53,7 +53,7 @@ export const profileService = {
   uploadProfilePicture: async (file) => {
     const formData = new FormData();
     formData.append('profilePicture', file);
-    
+
     return apiRequest('/profile/picture', {
       method: 'POST',
       headers: {

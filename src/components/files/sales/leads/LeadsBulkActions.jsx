@@ -188,9 +188,8 @@ const LeadsBulkActions = ({
   };
 
   const handleCreateClientScript = async () => {
-    const script = `// Client script for ${
-      selectedLeads.length
-    } leads\n// Generated on ${new Date().toLocaleString()}`;
+    const script = `// Client script for ${selectedLeads.length
+      } leads\n// Generated on ${new Date().toLocaleString()}`;
 
     setShowScriptDialog(true);
     toast({
@@ -347,133 +346,113 @@ const LeadsBulkActions = ({
           <h2>Detailed Lead Information</h2>
           
           ${selectedLeadsData
-            .map(
-              (lead, index) => `
+        .map(
+          (lead, index) => `
             <div class="lead-details">
-              <h3>Lead #${index + 1}: ${lead.firstName || ""} ${
-                lead.lastName || ""
-              }</h3>
+              <h3>Lead #${index + 1}: ${lead.firstName || ""} ${lead.lastName || ""
+            }</h3>
               <div class="lead-info">
                 <div class="lead-info-grid">
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Name:</span> ${
-                      lead.firstName || "N/A"
-                    } ${lead.lastName || "N/A"}
+                    <span class="lead-info-label">Name:</span> ${lead.firstName || "N/A"
+            } ${lead.lastName || "N/A"}
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Company:</span> ${
-                      lead.company || "N/A"
-                    }
+                    <span class="lead-info-label">Company:</span> ${lead.company || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Email:</span> ${
-                      lead.email || "N/A"
-                    }
+                    <span class="lead-info-label">Email:</span> ${lead.email || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Phone:</span> ${
-                      lead.phone || "N/A"
-                    }
+                    <span class="lead-info-label">Phone:</span> ${lead.phone || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Mobile:</span> ${
-                      lead.mobile || "N/A"
-                    }
+                    <span class="lead-info-label">Mobile:</span> ${lead.mobile || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
                     <span class="lead-info-label">Status:</span> 
-                    <span class="status-badge" style="background-color: ${
-                      lead.leadStatus === "New"
-                        ? "#dbeafe"
-                        : lead.leadStatus === "Contacted"
-                        ? "#fef3c7"
-                        : lead.leadStatus === "Qualified"
-                        ? "#d1fae5"
-                        : lead.leadStatus === "Unqualified"
-                        ? "#fee2e2"
-                        : "#f3f4f6"
-                    }; color: ${
-                lead.leadStatus === "New"
-                  ? "#1e40af"
-                  : lead.leadStatus === "Contacted"
-                  ? "#92400e"
-                  : lead.leadStatus === "Qualified"
+                    <span class="status-badge" style="background-color: ${lead.leadStatus === "New"
+              ? "#dbeafe"
+              : lead.leadStatus === "Contacted"
+                ? "#fef3c7"
+                : lead.leadStatus === "Qualified"
+                  ? "#d1fae5"
+                  : lead.leadStatus === "Unqualified"
+                    ? "#fee2e2"
+                    : "#f3f4f6"
+            }; color: ${lead.leadStatus === "New"
+              ? "#1e40af"
+              : lead.leadStatus === "Contacted"
+                ? "#92400e"
+                : lead.leadStatus === "Qualified"
                   ? "#065f46"
                   : lead.leadStatus === "Unqualified"
-                  ? "#991b1b"
-                  : "#374151"
-              };">${lead.leadStatus || "N/A"}</span>
+                    ? "#991b1b"
+                    : "#374151"
+            };">${lead.leadStatus || "N/A"}</span>
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Source:</span> ${
-                      lead.leadSource || "N/A"
-                    }
+                    <span class="lead-info-label">Source:</span> ${lead.leadSource || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Industry:</span> ${
-                      lead.industry || "N/A"
-                    }
+                    <span class="lead-info-label">Industry:</span> ${lead.industry || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Title:</span> ${
-                      lead.title || "N/A"
-                    }
+                    <span class="lead-info-label">Title:</span> ${lead.title || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Website:</span> ${
-                      lead.website || "N/A"
-                    }
+                    <span class="lead-info-label">Website:</span> ${lead.website || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Employees:</span> ${
-                      lead.numberOfEmployees || "N/A"
-                    }
+                    <span class="lead-info-label">Employees:</span> ${lead.numberOfEmployees || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Annual Revenue:</span> ${
-                      lead.annualRevenue ? "Rs. " + lead.annualRevenue : "N/A"
-                    }
+                    <span class="lead-info-label">Annual Revenue:</span> ${lead.annualRevenue ? "Rs. " + lead.annualRevenue : "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Rating:</span> ${
-                      lead.rating || "N/A"
-                    }
+                    <span class="lead-info-label">Rating:</span> ${lead.rating || "N/A"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Converted:</span> ${
-                      lead.isConverted ? "Yes" : "No"
-                    }
+                    <span class="lead-info-label">Converted:</span> ${lead.isConverted ? "Yes" : "No"
+            }
                   </div>
                   <div class="lead-info-item">
-                    <span class="lead-info-label">Converted to Account:</span> ${
-                      lead.convertedToAccountId ? "Yes" : "No"
-                    }
+                    <span class="lead-info-label">Converted to Account:</span> ${lead.convertedToAccountId ? "Yes" : "No"
+            }
                   </div>
                 </div>
-                ${
-                  lead.streetAddress
-                    ? `
+                ${lead.streetAddress
+              ? `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
                   <strong>Address Information:</strong><br>
                   ${lead.streetAddress || ""}<br>
-                  ${lead.city || ""}${lead.city && lead.state ? ", " : ""}${
-                        lead.state || ""
-                      } ${lead.zipCode || ""}<br>
+                  ${lead.city || ""}${lead.city && lead.state ? ", " : ""}${lead.state || ""
+              } ${lead.zipCode || ""}<br>
                   ${lead.country || ""}
                 </div>
                 `
-                    : ""
-                }
-                ${
-                  lead.description
-                    ? `
+              : ""
+            }
+                ${lead.description
+              ? `
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
                   <strong>Description:</strong><br>
                   ${lead.description}
                 </div>
                 `
-                    : ""
-                }
+              : ""
+            }
                 <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #eee;">
                   <strong>System Information:</strong><br>
                   Created: ${new Date(lead.createdAt).toLocaleString()}<br>
@@ -483,8 +462,8 @@ const LeadsBulkActions = ({
               </div>
             </div>
           `
-            )
-            .join("")}
+        )
+        .join("")}
 
           <table class="leads-table">
             <thead>
@@ -502,8 +481,8 @@ const LeadsBulkActions = ({
             </thead>
             <tbody>
               ${selectedLeadsData
-                .map(
-                  (lead, index) => `
+        .map(
+          (lead, index) => `
                 <tr>
                   <td>${index + 1}</td>
                   <td>${lead.firstName || ""} ${lead.lastName || ""}</td>
@@ -511,27 +490,25 @@ const LeadsBulkActions = ({
                   <td>${lead.email || "N/A"}</td>
                   <td>${lead.phone || "N/A"}</td>
                   <td>
-                    <span class="status-badge" style="background-color: ${
-                      lead.leadStatus === "New"
-                        ? "#dbeafe"
-                        : lead.leadStatus === "Contacted"
-                        ? "#fef3c7"
-                        : lead.leadStatus === "Qualified"
-                        ? "#d1fae5"
-                        : lead.leadStatus === "Unqualified"
-                        ? "#fee2e2"
-                        : "#f3f4f6"
-                    }; color: ${
-                    lead.leadStatus === "New"
-                      ? "#1e40af"
-                      : lead.leadStatus === "Contacted"
-                      ? "#92400e"
-                      : lead.leadStatus === "Qualified"
-                      ? "#065f46"
-                      : lead.leadStatus === "Unqualified"
-                      ? "#991b1b"
-                      : "#374151"
-                  };">
+                    <span class="status-badge" style="background-color: ${lead.leadStatus === "New"
+              ? "#dbeafe"
+              : lead.leadStatus === "Contacted"
+                ? "#fef3c7"
+                : lead.leadStatus === "Qualified"
+                  ? "#d1fae5"
+                  : lead.leadStatus === "Unqualified"
+                    ? "#fee2e2"
+                    : "#f3f4f6"
+            }; color: ${lead.leadStatus === "New"
+              ? "#1e40af"
+              : lead.leadStatus === "Contacted"
+                ? "#92400e"
+                : lead.leadStatus === "Qualified"
+                  ? "#065f46"
+                  : lead.leadStatus === "Unqualified"
+                    ? "#991b1b"
+                    : "#374151"
+            };">
                       ${lead.leadStatus || "N/A"}
                     </span>
                   </td>
@@ -540,8 +517,8 @@ const LeadsBulkActions = ({
                   <td>${new Date(lead.createdAt).toLocaleDateString()}</td>
                 </tr>
               `
-                )
-                .join("")}
+        )
+        .join("")}
             </tbody>
           </table>
 
@@ -622,25 +599,6 @@ const LeadsBulkActions = ({
               <Send className="w-4 h-4 mr-2" />
               Mass Email
             </DropdownMenuItem>
-
-            {/* Add to Campaign - Enhanced with submenu */}
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger className="flex items-center">
-                <Users className="w-4 h-4 mr-2" />
-                Add to Campaigns
-                <ChevronRight className="w-4 h-4 ml-auto" />
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="max-h-60 overflow-y-auto">
-                <DropdownMenuItem onClick={() => setShowCampaignDialog(true)}>
-                  Enhanced Campaign Manager
-                </DropdownMenuItem>
-                <DropdownMenuItem
-                  onClick={() => setShowSimpleCampaignDialog(true)}
-                >
-                  Quick Add to Campaign
-                </DropdownMenuItem>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
 
             <DropdownMenuSeparator />
 
@@ -1001,9 +959,8 @@ const LeadsBulkActions = ({
           <div className="space-y-4">
             <div className="bg-gray-100 p-4 rounded-md">
               <pre className="text-sm whitespace-pre-wrap">
-                {`// Client script for ${
-                  selectedLeads.length
-                } leads\n// Generated on ${new Date().toLocaleString()}\n\n// Add your custom script logic here`}
+                {`// Client script for ${selectedLeads.length
+                  } leads\n// Generated on ${new Date().toLocaleString()}\n\n// Add your custom script logic here`}
               </pre>
             </div>
           </div>

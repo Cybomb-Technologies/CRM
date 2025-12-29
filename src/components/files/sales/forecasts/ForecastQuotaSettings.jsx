@@ -1,5 +1,5 @@
 // src/components/forecasts/ForecastQuotaSettings.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -13,22 +13,77 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/components/ui/use-toast';
 
-const ForecastQuotaSettings = ({ open, onOpenChange }) => {
+import forecastsAPI from './forecastsAPI';
+
+const ForecastQuotaSettings = ({ open, onOpenChange, onSettingsChange }) => {
   const { toast } = useToast();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const [quotas, setQuotas] = useState({
-    monthly: 14000000,    // ₹1.4 crore monthly
-    quarterly: 42000000,  // ₹4.2 crore quarterly
-    yearly: 168000000     // ₹16.8 crore yearly
+    monthly: 14000000,
+    quarterly: 42000000,
+    yearly: 168000000
   });
 
-  const handleSave = () => {
-    // In a real app, save to localStorage or backend
-    localStorage.setItem('forecast_quotas', JSON.stringify(quotas));
-    toast({
-      title: "Settings Saved",
-      description: "Forecast quotas updated successfully.",
-    });
-    onOpenChange(false);
+  const [settings, setSettings] = useState({
+    probabilityThreshold: 70,
+    includeClosedLost: false,
+    autoRefresh: true
+  });
+
+  // Load settings when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadSettings();
+    }
+  }, [open]);
+
+  const loadSettings = async () => {
+    try {
+      setIsLoading(true);
+      const data = await forecastsAPI.getSettings();
+      if (data) {
+        if (data.quotas) setQuotas(prev => ({ ...prev, ...data.quotas }));
+        if (data.settings) setSettings(prev => ({ ...prev, ...data.settings }));
+      }
+    } catch (error) {
+      console.error('Error loading settings:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to load settings.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await forecastsAPI.updateSettings({
+        quotas,
+        settings
+      });
+
+      toast({
+        title: "Settings Saved",
+        description: "Forecast quotas and configuration updated.",
+      });
+
+      if (onSettingsChange) onSettingsChange();
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to save settings.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleReset = () => {
@@ -36,6 +91,11 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
       monthly: 14000000,
       quarterly: 42000000,
       yearly: 168000000
+    });
+    setSettings({
+      probabilityThreshold: 70,
+      includeClosedLost: false,
+      autoRefresh: true
     });
   };
 
@@ -62,10 +122,11 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
                       id="monthly-quota"
                       type="number"
                       value={quotas.monthly}
-                      onChange={(e) => setQuotas(prev => ({ 
-                        ...prev, 
-                        monthly: parseInt(e.target.value) || 0 
+                      onChange={(e) => setQuotas(prev => ({
+                        ...prev,
+                        monthly: parseInt(e.target.value) || 0
                       }))}
+                      disabled={isLoading || isSaving}
                     />
                   </div>
                 </div>
@@ -78,10 +139,11 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
                       id="quarterly-quota"
                       type="number"
                       value={quotas.quarterly}
-                      onChange={(e) => setQuotas(prev => ({ 
-                        ...prev, 
-                        quarterly: parseInt(e.target.value) || 0 
+                      onChange={(e) => setQuotas(prev => ({
+                        ...prev,
+                        quarterly: parseInt(e.target.value) || 0
                       }))}
+                      disabled={isLoading || isSaving}
                     />
                   </div>
                 </div>
@@ -94,10 +156,11 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
                       id="yearly-quota"
                       type="number"
                       value={quotas.yearly}
-                      onChange={(e) => setQuotas(prev => ({ 
-                        ...prev, 
-                        yearly: parseInt(e.target.value) || 0 
+                      onChange={(e) => setQuotas(prev => ({
+                        ...prev,
+                        yearly: parseInt(e.target.value) || 0
                       }))}
+                      disabled={isLoading || isSaving}
                     />
                   </div>
                 </div>
@@ -118,9 +181,14 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
                     <Input
                       id="probability-threshold"
                       type="number"
-                      defaultValue={70}
+                      value={settings.probabilityThreshold}
+                      onChange={(e) => setSettings(prev => ({
+                        ...prev,
+                        probabilityThreshold: parseInt(e.target.value) || 0
+                      }))}
                       min="0"
                       max="100"
+                      disabled={isLoading || isSaving}
                     />
                     <span className="text-sm text-gray-500">%</span>
                   </div>
@@ -128,19 +196,29 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
 
                 <div className="flex items-center justify-between">
                   <Label>Include Closed Lost Deals</Label>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="rounded border-gray-300"
-                    defaultChecked={false}
+                    checked={settings.includeClosedLost}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      includeClosedLost: e.target.checked
+                    }))}
+                    disabled={isLoading || isSaving}
                   />
                 </div>
 
                 <div className="flex items-center justify-between">
                   <Label>Auto-refresh Forecast</Label>
-                  <input 
-                    type="checkbox" 
+                  <input
+                    type="checkbox"
                     className="rounded border-gray-300"
-                    defaultChecked={true}
+                    checked={settings.autoRefresh}
+                    onChange={(e) => setSettings(prev => ({
+                      ...prev,
+                      autoRefresh: e.target.checked
+                    }))}
+                    disabled={isLoading || isSaving}
                   />
                 </div>
               </div>
@@ -149,11 +227,11 @@ const ForecastQuotaSettings = ({ open, onOpenChange }) => {
         </div>
 
         <DialogFooter>
-          <Button variant="outline" onClick={handleReset}>
+          <Button variant="outline" onClick={handleReset} disabled={isLoading || isSaving}>
             Reset to Defaults
           </Button>
-          <Button onClick={handleSave}>
-            Save Settings
+          <Button onClick={handleSave} disabled={isLoading || isSaving}>
+            {isSaving ? 'Saving...' : 'Save Settings'}
           </Button>
         </DialogFooter>
       </DialogContent>

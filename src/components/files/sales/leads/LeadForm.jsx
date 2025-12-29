@@ -763,14 +763,14 @@ const LeadForm = ({ onSuccess, onCancel, initialData }) => {
         >
           Cancel
         </Button>
-        <Button
+        {/* <Button
           type="button"
           variant="outline"
           onClick={handleSaveAndNew}
           disabled={loading}
         >
           Save and New
-        </Button>
+        </Button> */}
         <Button
           type="submit"
           disabled={loading}

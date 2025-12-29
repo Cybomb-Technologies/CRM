@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/select';
 import { useData } from '@/contexts/DataContext';
 
-const ForecastFilters = ({ filters, onFiltersChange }) => {
-  const { getDealStages, data } = useData();
+const ForecastFilters = ({ filters, onFiltersChange, disabled, filterOptions }) => {
+  const { getDealStages } = useData();
   const dealStages = getDealStages();
 
   const handleFilterChange = (key, value) => {
@@ -21,21 +21,21 @@ const ForecastFilters = ({ filters, onFiltersChange }) => {
   const clearFilters = () => {
     onFiltersChange({
       owner: 'all',
-      team: 'all', 
+      team: 'all',
       stage: 'all',
       probability: 'all'
     });
   };
 
-  // Get unique owners from deals
-  const allDeals = data.deals ? Object.values(data.deals).flat() : [];
-  const owners = [...new Set(allDeals.map(deal => deal.owner).filter(Boolean))];
+  // Use filterOptions from API if available, otherwise empty array
+  const owners = filterOptions?.owners || [];
+  const stages = filterOptions?.stages || [];
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
       <div>
         <label className="text-sm font-medium mb-2 block">Owner</label>
-        <Select value={filters.owner} onValueChange={(value) => handleFilterChange('owner', value)}>
+        <Select value={filters.owner} onValueChange={(value) => handleFilterChange('owner', value)} disabled={disabled}>
           <SelectTrigger>
             <SelectValue placeholder="All Owners" />
           </SelectTrigger>
@@ -52,7 +52,7 @@ const ForecastFilters = ({ filters, onFiltersChange }) => {
 
       <div>
         <label className="text-sm font-medium mb-2 block">Stage</label>
-        <Select value={filters.stage} onValueChange={(value) => handleFilterChange('stage', value)}>
+        <Select value={filters.stage} onValueChange={(value) => handleFilterChange('stage', value)} disabled={disabled}>
           <SelectTrigger>
             <SelectValue placeholder="All Stages" />
           </SelectTrigger>
@@ -69,7 +69,7 @@ const ForecastFilters = ({ filters, onFiltersChange }) => {
 
       <div>
         <label className="text-sm font-medium mb-2 block">Probability</label>
-        <Select value={filters.probability} onValueChange={(value) => handleFilterChange('probability', value)}>
+        <Select value={filters.probability} onValueChange={(value) => handleFilterChange('probability', value)} disabled={disabled}>
           <SelectTrigger>
             <SelectValue placeholder="All Probabilities" />
           </SelectTrigger>
@@ -83,7 +83,7 @@ const ForecastFilters = ({ filters, onFiltersChange }) => {
       </div>
 
       <div className="flex items-end gap-2">
-        <Button variant="outline" onClick={clearFilters} className="w-full">
+        <Button variant="outline" onClick={clearFilters} className="w-full" disabled={disabled}>
           Clear Filters
         </Button>
       </div>
