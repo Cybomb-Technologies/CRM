@@ -104,6 +104,8 @@ app.use("/api/contacts", require("./routes/file/sales/contactRoutes"));
 app.use("/api/accounts", require("./routes/file/sales/accountRoutes"));
 app.use("/api/deals", require("./routes/file/sales/dealRoutes"));
 app.use("/api/campaigns", require("./routes/file/sales/campaignRoutes"));
+app.use("/api/sales/forecasts", require("./routes/file/sales/forecastRoutes"));
+app.use("/api/file/sales/documents", require("./routes/file/sales/documentRoutes"));
 
 // Test route
 app.get("/api/test", (req, res) => {
