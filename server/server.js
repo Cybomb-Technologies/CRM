@@ -64,6 +64,7 @@ app.use("/uploads", express.static(path.join(__dirname, "public", "uploads")));
 // Routes
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/profile", require("./routes/profileRoutes"));
+app.use('/api/products', productRoutes);
 app.use('/api/price-books', priceBookRoutes);
 // console.log('🔗 Mounting Quotes Route at /api/quotes');
 app.use('/api/quotes', quoteRoutes);
@@ -72,6 +73,7 @@ app.use('/api/file/inventory/sales-orders', require('./routes/file/inventory/sal
 // Add Purchase Order Routes
 // console.log('🔗 Mounting Purchase Order Routes at /api/purchase-orders');
 app.use('/api/purchase-orders', require('./routes/file/inventory/purchaseOrderRoutes'));
+app.use('/api/invoices', require('./routes/file/inventory/invoiceRoutes'));
 
 // Team routes removed
 app.use('/api/security', securityRoutes);
