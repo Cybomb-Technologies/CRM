@@ -16,6 +16,14 @@ import {
   Calendar,
   Clock,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function CaseCard({ caseItem, onEdit, onResolve, onDelete }) {
   const formatDate = (dateString) => {
@@ -102,11 +110,11 @@ export function CaseCard({ caseItem, onEdit, onResolve, onDelete }) {
                 </div>
                 <div className="flex items-center">
                   <User className="w-4 h-4 mr-1" />
-                  {caseItem.owner}
+                  {caseItem.caseOwner || caseItem.owner}
                 </div>
                 <div className="flex items-center">
                   <Calendar className="w-4 h-4 mr-1" />
-                  {formatDate(caseItem.createdDate)}
+                  {formatDate(caseItem.createdAt || caseItem.createdDate)}
                 </div>
               </div>
 
@@ -126,9 +134,9 @@ export function CaseCard({ caseItem, onEdit, onResolve, onDelete }) {
                 </div>
                 <div>
                   <div className="flex items-center space-x-2 mb-2">
-                    {getRelatedToIcon(caseItem.relatedTo?.type)}
+                    {getRelatedToIcon(caseItem.relatedToType)}
                     <strong>Related To:</strong>
-                    <span>{caseItem.relatedTo?.name || "Not specified"}</span>
+                    <span>{caseItem.relatedTo || "Not specified"}</span>
                   </div>
                   <div className="flex items-center space-x-2">
                     <strong>Account:</strong>
@@ -176,8 +184,7 @@ export function CaseCard({ caseItem, onEdit, onResolve, onDelete }) {
             </div>
           </div>
 
-          <div className="flex items-center space-x-1">
-            <Button
+          {/* <Button
               variant="ghost"
               size="sm"
               onClick={() => onEdit && onEdit(caseItem)}
@@ -199,11 +206,36 @@ export function CaseCard({ caseItem, onEdit, onResolve, onDelete }) {
               onClick={() => onDelete && onDelete(caseItem)}
             >
               <Trash2 className="w-4 h-4" />
-            </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
-          </div>
+            </Button> */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <span className="sr-only">Open menu</span>
+                <MoreVertical className="w-4 h-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem onClick={() => onEdit && onEdit(caseItem)}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit
+              </DropdownMenuItem>
+              {caseItem.status !== "Resolved" && caseItem.status !== "Closed" && (
+                <DropdownMenuItem onClick={() => onResolve && onResolve(caseItem)}>
+                  <CheckCircle className="mr-2 h-4 w-4" />
+                  Resolve
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => onDelete && onDelete(caseItem)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </CardContent>
     </Card>

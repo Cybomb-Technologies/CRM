@@ -6,6 +6,8 @@ import CallsPage from "@/pages/files/activities/CallsPage";
 import CasesPage from "@/pages/files/support/CasesPage";
 import SolutionsPage from "@/pages/files/support/SolutionsPage";
 
+import ImportCases from "@/components/files/support/cases/ImportCases";
+
 const Emp2Routes = (
   <>
     {/* Activities Routes */}
@@ -14,6 +16,7 @@ const Emp2Routes = (
     <Route path="calls" element={<CallsPage />} />
 
     {/* Support Routes */}
+    <Route path="cases/import" element={<ImportCases />} />
     <Route path="cases" element={<CasesPage />} />
     <Route path="solutions" element={<SolutionsPage />} />
   </>
