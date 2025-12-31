@@ -1,53 +1,5 @@
-// Mock data for cases
-export const mockCases = [
-  {
-    id: 1,
-    caseNumber: "CASE-001",
-    subject: "Login issue with mobile app",
-    description:
-      "Customer cannot login to mobile application, getting authentication error",
-    productName: "Mobile App v2.0",
-    status: "New",
-    type: "Problem",
-    priority: "High",
-    caseOrigin: "Email",
-    caseReason: "New Problem",
-    relatedTo: { type: "account", id: "account-1", name: "TechCorp Inc" },
-    owner: "You",
-    accountName: "TechCorp Inc",
-    reportedBy: "John Smith",
-    dealName: "Enterprise Support",
-    email: "john.smith@techcorp.com",
-    phone: "+1 (555) 123-4567",
-    createdDate: "2024-01-15T09:00:00",
-    updatedDate: "2024-01-15T09:00:00",
-    internalComments:
-      "Customer reported issue this morning, needs urgent attention",
-  },
-  {
-    id: 2,
-    caseNumber: "CASE-002",
-    subject: "Feature request: Dark mode",
-    description:
-      "Customer requested dark mode feature for better user experience",
-    productName: "Web Dashboard",
-    status: "In Progress",
-    type: "Feature Request",
-    priority: "Medium",
-    caseOrigin: "Web",
-    caseReason: "Complex Functionality",
-    relatedTo: { type: "contact", id: "contact-1", name: "Sarah Johnson" },
-    owner: "Support Team",
-    accountName: "Innovate Solutions",
-    reportedBy: "Sarah Johnson",
-    dealName: "",
-    email: "sarah.j@innovate.com",
-    phone: "+1 (555) 987-6543",
-    createdDate: "2024-01-14T14:30:00",
-    updatedDate: "2024-01-15T10:15:00",
-    internalComments: "Feature under development, ETA 2 weeks",
-  },
-];
+// Mock data removed - fetching from backend
+export const mockCases = [];
 
 // Helper functions
 export const getStatusColor = (status) => {
