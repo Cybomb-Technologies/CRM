@@ -10,7 +10,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-export function CaseForm({ formData, onInputChange }) {
+export function CaseForm({ formData, onInputChange, currentUser }) {
   return (
     <div className="space-y-6">
       {/* Case Information Section */}
@@ -18,8 +18,35 @@ export function CaseForm({ formData, onInputChange }) {
         <h3 className="text-lg font-semibold mb-4">Case Information</h3>
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <Label htmlFor="owner">Case Owner</Label>
-            <Input id="owner" value="You" disabled className="bg-gray-50" />
+            <Label htmlFor="caseOwner">Case Owner</Label>
+            <Select
+              value={currentUser?.id || "current-user"}
+              onValueChange={(value) => {
+                /* 
+                   For now we only have the current user, so we just set the name.
+                   In future with full user list, we'd find the user by ID.
+                */
+                onInputChange("caseOwner", currentUser?.name || "You");
+              }}
+            >
+              <SelectTrigger>
+                <div className="flex items-center justify-between w-full">
+                  <span>{formData.caseOwner || currentUser?.name || "You"}</span>
+                </div>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={currentUser?.id || "current-user"}>
+                  <div className="flex flex-col text-left">
+                    <span className="font-medium">
+                      {currentUser?.name || "You"}
+                    </span>
+                    <span className="text-xs text-gray-400">
+                      {currentUser?.email || ""}
+                    </span>
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <div>
             <Label htmlFor="caseNumber">Case Number</Label>
