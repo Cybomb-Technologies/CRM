@@ -12,7 +12,7 @@ export const useInvoiceForm = () => {
     salesOrder: '',
     purchaseOrder: '',
     exciseDuty: '',
-    status: 'Created',
+    status: 'Draft',
     termsAndConditions: '',
     description: '',
     billingAddress: {
@@ -72,14 +72,14 @@ export const useInvoiceForm = () => {
     const updatedItems = items.map((item, i) => {
       if (i === index) {
         const updatedItem = { ...item, [field]: value };
-        
+
         // Calculate amount if quantity or listPrice changes
         if (field === 'quantity' || field === 'listPrice') {
           const quantity = field === 'quantity' ? value : item.quantity;
           const listPrice = field === 'listPrice' ? value : item.listPrice;
           updatedItem.amount = quantity && listPrice ? (quantity * listPrice).toFixed(2) : '';
         }
-        
+
         // Calculate total if amount, discount, or tax changes
         if (field === 'amount' || field === 'discount' || field === 'tax') {
           const amount = parseFloat(updatedItem.amount) || 0;
@@ -87,7 +87,7 @@ export const useInvoiceForm = () => {
           const tax = parseFloat(updatedItem.tax) || 0;
           updatedItem.total = (amount - discount + tax).toFixed(2);
         }
-        
+
         return updatedItem;
       }
       return item;
@@ -146,7 +146,7 @@ export const useInvoiceForm = () => {
     const totalDiscount = items.reduce((sum, item) => sum + (parseFloat(item.discount) || 0), 0);
     const totalTax = items.reduce((sum, item) => sum + (parseFloat(item.tax) || 0), 0);
     const grandTotal = subTotal - totalDiscount + totalTax;
-    
+
     return {
       subTotal: subTotal.toFixed(2),
       totalDiscount: totalDiscount.toFixed(2),

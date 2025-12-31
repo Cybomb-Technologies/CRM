@@ -1,75 +1,67 @@
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Download, FileText, Eye, Edit, Trash2, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+// import { invoicesAPI } from './invoicesAPI';
 
 const InvoicesPageContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const navigate = useNavigate();
 
-  const invoices = [
-    {
-      id: 'INV-001',
-      customer: 'Acme Corporation',
-      email: 'billing@acme.com',
-      date: '2024-01-15',
-      dueDate: '2024-02-15',
-      amount: '$5,250.00',
-      status: 'Paid',
-      statusColor: 'bg-green-100 text-green-800'
-    },
-    {
-      id: 'INV-002',
-      customer: 'Tech Solutions Inc',
-      email: 'finance@techsolutions.com',
-      date: '2024-01-18',
-      dueDate: '2024-02-18',
-      amount: '$3,450.00',
-      status: 'Pending',
-      statusColor: 'bg-yellow-100 text-yellow-800'
-    },
-    {
-      id: 'INV-003',
-      customer: 'Global Retail',
-      email: 'accounts@globalretail.com',
-      date: '2024-01-20',
-      dueDate: '2024-02-20',
-      amount: '$8,750.00',
-      status: 'Overdue',
-      statusColor: 'bg-red-100 text-red-800'
-    },
-    {
-      id: 'INV-004',
-      customer: 'Startup Labs',
-      email: 'payable@startuplabs.com',
-      date: '2024-01-22',
-      dueDate: '2024-02-22',
-      amount: '$2,150.00',
-      status: 'Draft',
-      statusColor: 'bg-gray-100 text-gray-800'
-    },
-    {
-      id: 'INV-005',
-      customer: 'Enterprise Solutions',
-      email: 'billing@enterprise.com',
-      date: '2024-01-25',
-      dueDate: '2024-02-25',
-      amount: '$12,500.00',
-      status: 'Paid',
-      statusColor: 'bg-green-100 text-green-800'
-    },
-  ];
+  const [invoices, setInvoices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  React.useEffect(() => {
+    const fetchInvoices = async () => {
+      try {
+        console.log(`📡 Fetching Invoices...`);
+
+        const response = await invoicesAPI.getAllInvoices();
+
+        // Transform data to match UI expected format if needed
+        const transformedInvoices = response.data.map(invoice => ({
+          _id: invoice._id, // Real DB ID for actions
+          id: invoice.invoiceNumber, // Display ID
+          customer: invoice.accountName,
+          email: invoice.customerEmail || 'N/A',
+          date: new Date(invoice.invoiceDate).toLocaleDateString(),
+          dueDate: invoice.dueDate ? new Date(invoice.dueDate).toLocaleDateString() : 'N/A',
+          amount: new Intl.NumberFormat('en-US', { style: 'currency', currency: invoice.currency || 'USD' }).format(invoice.grandTotal),
+          status: invoice.status,
+          statusColor: getStatusColor(invoice.status)
+        }));
+
+        setInvoices(transformedInvoices);
+      } catch (error) {
+        console.error('Error fetching invoices:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchInvoices();
+  }, []);
+
+  const getStatusColor = (status) => {
+    switch (status.toLowerCase()) {
+      case 'paid': return 'bg-green-100 text-green-800';
+      case 'pending': return 'bg-yellow-100 text-yellow-800';
+      case 'overdue': return 'bg-red-100 text-red-800';
+      case 'draft': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
 
   const filteredInvoices = invoices.filter(invoice => {
-    const matchesSearch = 
+    const matchesSearch =
       invoice.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.customer.toLowerCase().includes(searchTerm.toLowerCase()) ||
       invoice.email.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = 
-      statusFilter === 'all' || 
+
+    const matchesFilter =
+      statusFilter === 'all' ||
       invoice.status.toLowerCase() === statusFilter.toLowerCase();
-    
+
     return matchesSearch && matchesFilter;
   });
 
@@ -85,6 +77,10 @@ const InvoicesPageContent = () => {
   };
 
   const handleViewInvoice = (id) => {
+    // Navigate using the DB ID if needed, or Invoice Number.
+    // Usually URLs use IDs, but here user might prefer Invoice Number.
+    // But backend routes usually use DB ID.
+    // Let's assume view/edit routes use DB ID for consistency.
     navigate(`/invoices/view/${id}`);
   };
 
@@ -92,29 +88,61 @@ const InvoicesPageContent = () => {
     navigate(`/invoices/edit/${id}`);
   };
 
-  const handleDeleteInvoice = (id) => {
-    if (window.confirm(`Are you sure you want to delete invoice ${id}?`)) {
-      console.log('Deleting invoice:', id);
-      // Add delete logic here
+  const handleDeleteInvoice = async (id) => {
+    if (window.confirm('Are you sure you want to delete this invoice?')) {
+      try {
+        await invoicesAPI.deleteInvoice(id);
+        setInvoices(prev => prev.filter(inv => inv._id !== id));
+        console.log('Deleted invoice:', id);
+      } catch (error) {
+        console.error('Error deleting invoice:', error);
+        alert('Failed to delete invoice');
+      }
     }
   };
 
   const exportToCSV = () => {
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + ["Invoice ID,Customer,Email,Date,Due Date,Amount,Status"]
-      .concat(invoices.map(inv => 
-        `${inv.id},${inv.customer},${inv.email},${inv.date},${inv.dueDate},${inv.amount},${inv.status}`
-      ))
-      .join("\n");
-    
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", "invoices.csv");
+    if (!invoices.length) return;
+
+    const headers = [
+      'Invoice ID',
+      'Customer',
+      'Email',
+      'Date',
+      'Due Date',
+      'Amount',
+      'Status'
+    ];
+
+    const rows = invoices.map(inv => [
+      inv.id,
+      inv.customer,
+      inv.email,
+      inv.date,
+      inv.dueDate,
+      inv.amount,
+      inv.status
+    ]);
+
+    const csvContent =
+      [headers, ...rows]
+        .map(row => row.map(value => `"${value}"`).join(','))
+        .join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `invoices_${new Date().toISOString().slice(0, 10)}.csv`);
+
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+
+    URL.revokeObjectURL(url);
   };
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
