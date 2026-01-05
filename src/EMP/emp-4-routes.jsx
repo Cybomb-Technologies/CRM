@@ -17,10 +17,14 @@ import Invoices from "@/pages/files/inventory/Invoices";
 import QuotesPage from "@/pages/files/inventory/QuotesPage";
 import CreatePurchaseOrderForm from "@/components/files/inventory/purchaseorders/CreatePurchaseOrderForm";
 import PurchaseOrdersPage from "@/pages/files/inventory/PurchaseOrdersPage";
+import ViewPurchaseOrder from "@/components/files/inventory/purchaseorders/ViewPurchaseOrder";
 import OrgOverviewPage from "@/components/analytics/OrgOverview";
 import SalesOrdersPage from "@/pages/files/inventory/SalesOrdersPage";
 import PriceBooksPage from "@/pages/files/inventory/PriceBooksPage";
 import CreateInvoiceContent from "@/components/files/inventory/invoices/CreateInvoiceContent";
+import CreateVendorContent from "@/components/files/inventory/vendors/CreateVendorContent";
+import EditVendorContent from "@/components/files/inventory/vendors/EditVendorContent";
+import ViewVendorContent from "@/components/files/inventory/vendors/ViewVendorContent";
 import MyReportsPage from "@/pages/reports/MyReportsPage";
 import Approvals from "@/pages/requests/Approvals";
 import PendingRequests from "@/pages/requests/PendingRequests";
@@ -49,9 +53,17 @@ const Emp4Routes = (
     <Route path="create-invoice" element={<CreateInvoiceContent />} />
     <Route path="quotes" element={<QuotesPage />} />
     <Route path="purchase-orders" element={<PurchaseOrdersPage />} />
+    <Route path="purchase-orders/create" element={<CreatePurchaseOrderForm />} />
+    <Route path="purchase-orders/edit/:id" element={<CreatePurchaseOrderForm />} />
+    <Route path="purchase-orders/view/:id" element={<ViewPurchaseOrder />} />
     <Route path="create-purchase-order" element={<CreatePurchaseOrderForm />} />
     <Route path="price-books" element={<PriceBooksPage />} />
     <Route path="vendors" element={<VendorReportsPage />} />
+    <Route path="vendors/create" element={<CreateVendorContent />} />
+    <Route path="vendors/edit/:id" element={<EditVendorContent />} />
+    <Route path="vendors/view/:id" element={<ViewVendorContent />} />
+    <Route path="vendors/:id" element={<ViewVendorContent />} />
+    <Route path="create-vendor" element={<CreateVendorContent />} />
     <Route path="sales-orders" element={<SalesOrdersPage />} />
 
     {/* Requests */}

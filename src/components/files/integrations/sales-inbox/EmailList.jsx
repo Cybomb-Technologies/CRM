@@ -7,7 +7,7 @@ import {
   User,
   Building2,
   Target,
-  Mail, // ADD THIS IMPORT
+  Mail,
 } from "lucide-react";
 
 export function EmailList({
@@ -17,16 +17,12 @@ export function EmailList({
   emails,
   onEmailAction,
 }) {
-  const filteredEmails = emails.filter((email) => {
-    if (activeFolder === "unread") return !email.read;
-    if (activeFolder === "important") return email.important;
-    if (activeFolder === "leads") return email.relatedTo?.type === "lead";
-    if (activeFolder === "deals") return email.relatedTo?.type === "deal";
-    if (activeFolder === "priority") return email.priority === "high";
-    if (activeFolder === "sent") return email.status === "sent";
-    return email.status !== "sent"; // inbox shows non-sent emails
-  });
-
+  // Filtering is mainly done by parent/backend, but we keep some client-side filtering support if needed
+  // especially for smart views if backend didn't filter them perfectly.
+  
+  // Note: emails passed here should already be largely filtered by the parent's API call.
+  // We'll rely on the parent props `emails`.
+  
   const formatTime = (dateString) => {
     return new Date(dateString).toLocaleTimeString([], {
       hour: "2-digit",
@@ -68,16 +64,16 @@ export function EmailList({
 
       {/* Email Items */}
       <div className="flex-1 overflow-y-auto">
-        {filteredEmails.map((email) => (
+        {emails.map((email) => (
           <div
-            key={email.id}
+            key={email._id || email.id}
             className={`border-b hover:bg-gray-50 cursor-pointer transition-colors ${
-              selectedEmail?.id === email.id ? "bg-blue-50 border-blue-200" : ""
+              (selectedEmail?._id === email._id || selectedEmail?.id === email.id) ? "bg-blue-50 border-blue-200" : ""
             } ${!email.read ? "bg-white font-semibold" : "bg-gray-50"}`}
             onClick={() => {
               onEmailSelect(email);
               if (!email.read) {
-                onEmailAction(email.id, "markRead");
+                onEmailAction(email._id || email.id, "markRead");
               }
             }}
           >
@@ -88,7 +84,7 @@ export function EmailList({
                   variant="ghost"
                   size="sm"
                   className="p-1 h-6 w-6"
-                  onClick={(e) => handleStarClick(email.id, e)}
+                  onClick={(e) => handleStarClick(email._id || email.id, e)}
                 >
                   <Star
                     className={`w-4 h-4 ${
@@ -106,7 +102,7 @@ export function EmailList({
                         !email.read ? "font-semibold" : ""
                       } truncate`}
                     >
-                      {email.fromName || email.from}
+                      {email.from?.name || email.from?.email || email.from || "Unknown"}
                     </span>
                     {email.relatedTo && getRelatedIcon(email.relatedTo.type)}
                   </div>
@@ -125,7 +121,7 @@ export function EmailList({
                   </div>
 
                   <p className="text-sm text-gray-500 truncate mt-1">
-                    {email.preview}
+                    {email.snippet || email.preview}
                   </p>
                 </div>
               </div>
@@ -139,7 +135,7 @@ export function EmailList({
           </div>
         ))}
 
-        {filteredEmails.length === 0 && (
+        {emails.length === 0 && (
           <div className="flex flex-col items-center justify-center h-64 text-gray-500">
             <Mail className="w-12 h-12 mb-4" />
             <p>No emails found</p>

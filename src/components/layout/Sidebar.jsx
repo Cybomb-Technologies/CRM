@@ -295,6 +295,147 @@ function ClockStub() {
 
 /* ---------- Sidebar Component ---------- */
 
+const GroupHeader = ({ header, keyName, expanded, setExpanded }) => {
+  if (!header) return null;
+  return (
+    <button
+      onClick={() =>
+        setExpanded((prev) => ({ ...prev, [keyName]: !prev[keyName] }))
+      }
+      className="flex items-center justify-between w-full text-xs text-gray-300 uppercase tracking-wide mb-2"
+    >
+      {header}
+      <ChevronDown
+        className={cn(
+          "w-4 h-4 transition-transform",
+          expanded[keyName] ? "rotate-0" : "-rotate-90"
+        )}
+      />
+    </button>
+  );
+};
+
+const RightPanel = ({ panelKey, panelData, setOpen, expanded, setExpanded, activeItem, setActiveItem, panelVariants }) => {
+  if (!panelData) return null;
+
+  return (
+    <motion.aside
+      key={panelKey}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      variants={panelVariants}
+      transition={{ duration: 0.18 }}
+      className="w-72 bg-[#11233f] text-white border-r border-white/10 flex flex-col"
+    >
+      {/* Header */}
+      <div className="p-4 border-b border-white/10">
+        <div className="flex items-start justify-between">
+          <h2 className="text-lg font-semibold">{panelData.title}</h2>
+          <div className="flex items-center gap-2">
+            {panelKey === "reports" && (
+              <button className="text-gray-300 text-sm px-2 py-1 rounded hover:bg-white/5">
+                New Report
+              </button>
+            )}
+            <button
+              onClick={() => setOpen(false)}
+              className="text-gray-300 hover:text-white"
+              title="Close"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+
+        {/* Search inside header */}
+        <div className="relative mt-3">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
+          <input
+            type="text"
+            placeholder={
+              panelKey === "search"
+                ? "Global search..."
+                : `Search ${panelData.title}`
+            }
+            className="w-full py-2 pl-10 pr-3 bg-white/10 rounded-lg text-sm placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+      </div>
+
+      {/* Scroll Content */}
+      <div className="flex-1 overflow-y-auto p-4">
+        {panelData.groups.map((group, gi) => (
+          <div key={gi} className="mb-5">
+            <GroupHeader
+              header={group.header}
+              keyName={group.key || `g${gi}`}
+              expanded={expanded}
+              setExpanded={setExpanded}
+            />
+
+            <AnimatePresence initial={false}>
+              {(group.header === null || expanded[group.key || `g${gi}`]) && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="space-y-1"
+                >
+                  {group.items.map((item, idx) => {
+                    const Icon = item.icon;
+                    const renderedIcon =
+                      typeof Icon === "function" ? (
+                        <Icon className="w-4 h-4 mr-3" />
+                      ) : (
+                        <Icon className="w-4 h-4 mr-3" />
+                      );
+
+                    return (
+                      <NavLink
+                        key={item.path + idx}
+                        to={item.path}
+                        onClick={() => setActiveItem(item.path)}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex items-center px-3 py-2 rounded-lg text-sm transition-all",
+                            isActive || activeItem === item.path
+                              ? "bg-blue-500 text-white"
+                              : "text-gray-300 hover:bg-white/10 hover:text-white"
+                          )
+                        }
+                      >
+                        {renderedIcon}
+                        {item.name}
+                      </NavLink>
+                    );
+                  })}
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        ))}
+      </div>
+
+      {/* Footer area - workspace selector */}
+      <div className="p-3 border-t border-white/5">
+        <div className="bg-[#0b2540] rounded-md p-2 text-sm flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-xs">
+              CT
+            </div>
+            <div>
+              <div className="text-xs font-semibold">CRM Teamspace</div>
+              <div className="text-[11px] text-gray-400">Workspace</div>
+            </div>
+          </div>
+          <div className="text-gray-300">▾</div>
+        </div>
+      </div>
+    </motion.aside>
+  );
+};
+
 export default function Sidebar({ open, setOpen }) {
   const [activeMini, setActiveMini] = useState("modules");
   const [activeItem, setActiveItem] = useState("/home");
@@ -339,145 +480,6 @@ export default function Sidebar({ open, setOpen }) {
     hidden: { opacity: 0, x: -12 },
     visible: { opacity: 1, x: 0 },
     exit: { opacity: 0, x: -12 },
-  };
-
-  const GroupHeader = ({ header, keyName }) => {
-    if (!header) return null;
-    return (
-      <button
-        onClick={() =>
-          setExpanded((prev) => ({ ...prev, [keyName]: !prev[keyName] }))
-        }
-        className="flex items-center justify-between w-full text-xs text-gray-300 uppercase tracking-wide mb-2"
-      >
-        {header}
-        <ChevronDown
-          className={cn(
-            "w-4 h-4 transition-transform",
-            expanded[keyName] ? "rotate-0" : "-rotate-90"
-          )}
-        />
-      </button>
-    );
-  };
-
-  const RightPanel = ({ panelKey, panelData }) => {
-    if (!panelData) return null;
-
-    return (
-      <motion.aside
-        key={panelKey}
-        initial="hidden"
-        animate="visible"
-        exit="exit"
-        variants={panelVariants}
-        transition={{ duration: 0.18 }}
-        className="w-72 bg-[#11233f] text-white border-r border-white/10 flex flex-col"
-      >
-        {/* Header */}
-        <div className="p-4 border-b border-white/10">
-          <div className="flex items-start justify-between">
-            <h2 className="text-lg font-semibold">{panelData.title}</h2>
-            <div className="flex items-center gap-2">
-              {panelKey === "reports" && (
-                <button className="text-gray-300 text-sm px-2 py-1 rounded hover:bg-white/5">
-                  New Report
-                </button>
-              )}
-              <button
-                onClick={() => setOpen(false)}
-                className="text-gray-300 hover:text-white"
-                title="Close"
-              >
-                ✕
-              </button>
-            </div>
-          </div>
-
-          {/* Search inside header */}
-          <div className="relative mt-3">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
-            <input
-              type="text"
-              placeholder={
-                panelKey === "search"
-                  ? "Global search..."
-                  : `Search ${panelData.title}`
-              }
-              className="w-full py-2 pl-10 pr-3 bg-white/10 rounded-lg text-sm placeholder-gray-400 outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-        </div>
-
-        {/* Scroll Content */}
-        <div className="flex-1 overflow-y-auto p-4">
-          {panelData.groups.map((group, gi) => (
-            <div key={gi} className="mb-5">
-              <GroupHeader
-                header={group.header}
-                keyName={group.key || `g${gi}`}
-              />
-
-              <AnimatePresence initial={false}>
-                {(group.header === null || expanded[group.key || `g${gi}`]) && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="space-y-1"
-                  >
-                    {group.items.map((item, idx) => {
-                      const Icon = item.icon;
-                      const renderedIcon =
-                        typeof Icon === "function" ? (
-                          <Icon className="w-4 h-4 mr-3" />
-                        ) : (
-                          <Icon className="w-4 h-4 mr-3" />
-                        );
-
-                      return (
-                        <NavLink
-                          key={item.path + idx}
-                          to={item.path}
-                          onClick={() => setActiveItem(item.path)}
-                          className={({ isActive }) =>
-                            cn(
-                              "flex items-center px-3 py-2 rounded-lg text-sm transition-all",
-                              isActive || activeItem === item.path
-                                ? "bg-blue-500 text-white"
-                                : "text-gray-300 hover:bg-white/10 hover:text-white"
-                            )
-                          }
-                        >
-                          {renderedIcon}
-                          {item.name}
-                        </NavLink>
-                      );
-                    })}
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-          ))}
-        </div>
-
-        {/* Footer area - workspace selector */}
-        <div className="p-3 border-t border-white/5">
-          <div className="bg-[#0b2540] rounded-md p-2 text-sm flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white/10 rounded flex items-center justify-center text-xs">
-                CT
-              </div>
-              <div>
-                <div className="text-xs font-semibold">CRM Teamspace</div>
-                <div className="text-[11px] text-gray-400">Workspace</div>
-              </div>
-            </div>
-            <div className="text-gray-300">▾</div>
-          </div>
-        </div>
-      </motion.aside>
-    );
   };
 
   return (
@@ -561,6 +563,12 @@ export default function Sidebar({ open, setOpen }) {
                     key={panelKey}
                     panelKey={panelKey}
                     panelData={panelData}
+                    setOpen={setOpen}
+                    expanded={expanded}
+                    setExpanded={setExpanded}
+                    activeItem={activeItem}
+                    setActiveItem={setActiveItem}
+                    panelVariants={panelVariants}
                   />
                 );
               })()}

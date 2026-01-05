@@ -97,7 +97,8 @@ app.get("/api/health", (req, res) => {
   });
 });
 
-app.use("/api/auth", require("./routes/auth"));
+// Duplicate auth route removed
+
 app.use("/api/tasks", require("./routes/file/activities/taskRoutes"));
 app.use("/api/meetings", require("./routes/file/activities/meetingRoutes"));
 app.use("/api/calls", require("./routes/file/activities/callRoutes"));
@@ -108,6 +109,7 @@ app.use("/api/deals", require("./routes/file/sales/dealRoutes"));
 app.use("/api/campaigns", require("./routes/file/sales/campaignRoutes"));
 app.use("/api/sales/forecasts", require("./routes/file/sales/forecastRoutes"));
 app.use("/api/file/sales/documents", require("./routes/file/sales/documentRoutes"));
+app.use("/api/sales-inbox", require("./routes/file/integrations/salesInboxRoutes"));
 app.use("/api/cases", require("./routes/file/support/casesRoutes"));
 
 // Test route

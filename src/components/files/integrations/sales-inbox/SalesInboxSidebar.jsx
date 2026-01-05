@@ -22,42 +22,43 @@ export function SalesInboxSidebar({
   onFolderChange,
   connectedAccounts,
   onConnectEmail,
+  stats = {}
 }) {
   const folders = [
     {
       id: "inbox",
       name: "Inbox",
       icon: Inbox,
-      count: 12,
+      count: stats.inbox || 0,
       color: "text-blue-600",
     },
     {
       id: "unread",
       name: "Unread",
       icon: AlertCircle,
-      count: 5,
+      count: stats.unread || 0,
       color: "text-red-600",
     },
     {
       id: "important",
       name: "Important",
       icon: Star,
-      count: 8,
+      count: stats.important || 0,
       color: "text-yellow-600",
     },
-    { id: "sent", name: "Sent", icon: Send, count: 0, color: "text-green-600" },
+    { id: "sent", name: "Sent", icon: Send, count: stats.sent || 0, color: "text-green-600" },
     {
       id: "drafts",
       name: "Drafts",
       icon: FileText,
-      count: 3,
+      count: stats.drafts || 0,
       color: "text-gray-600",
     },
     {
       id: "archive",
       name: "Archive",
       icon: Archive,
-      count: 0,
+      count: stats.archive || 0,
       color: "text-gray-600",
     },
   ];
@@ -67,21 +68,21 @@ export function SalesInboxSidebar({
       id: "leads",
       name: "Lead Emails",
       icon: Users,
-      count: 7,
+      count: stats.leads || 0,
       color: "text-purple-600",
     },
     {
       id: "deals",
       name: "Deal Related",
       icon: Target,
-      count: 4,
+      count: stats.deals || 0,
       color: "text-orange-600",
     },
     {
       id: "priority",
       name: "Priority Inbox",
       icon: Zap,
-      count: 6,
+      count: stats.priority || 0,
       color: "text-red-600",
     },
   ];
@@ -168,7 +169,7 @@ export function SalesInboxSidebar({
           ) : (
             connectedAccounts.map((account) => (
               <div
-                key={account.id}
+                key={account._id || account.id} // Updated key handling
                 className="flex items-center justify-between p-2 bg-green-50 rounded"
               >
                 <div className="flex items-center">

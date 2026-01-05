@@ -40,14 +40,14 @@ export function EmailView({ email, onBack, onEmailAction }) {
 
     return (
       <Badge variant="secondary" className={colors[relatedTo.type]}>
-        <Icon className="w-3 h-3 mr-1" />
+        {Icon && <Icon className="w-3 h-3 mr-1" />}
         {relatedTo.name}
       </Badge>
     );
   };
 
   const handleStarClick = () => {
-    onEmailAction(email.id, "markImportant");
+    onEmailAction(email._id || email.id, "markImportant");
   };
 
   return (
@@ -94,11 +94,11 @@ export function EmailView({ email, onBack, onEmailAction }) {
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-semibold">
-              {(email.fromName || email.from).charAt(0).toUpperCase()}
+              {(email.from?.name || email.from?.email || email.from || "?").charAt(0).toUpperCase()}
             </div>
             <div>
               <div className="font-semibold">
-                {email.fromName || email.from}
+                {email.from?.name || email.from?.email || email.from}
               </div>
               <div className="text-sm text-gray-500">to me</div>
             </div>

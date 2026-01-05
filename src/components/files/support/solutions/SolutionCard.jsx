@@ -11,11 +11,22 @@ import {
   Link,
   Edit,
   Trash2,
-  MoreVertical,
   Package,
+  Copy,
+  Share2,
+  ExternalLink,
+  MoreVertical,
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-export function SolutionCard({ solution, onEdit, onDelete, onPublish }) {
+export function SolutionCard({ solution, onEdit, onDelete, onPublish, onView, onClone, onShare }) {
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
@@ -148,9 +159,36 @@ export function SolutionCard({ solution, onEdit, onDelete, onPublish }) {
             >
               <Trash2 className="w-4 h-4" />
             </Button>
-            <Button variant="ghost" size="sm">
-              <MoreVertical className="w-4 h-4" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm">
+                  <MoreVertical className="w-4 h-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                <DropdownMenuItem onClick={() => onView && onView(solution)}>
+                  <ExternalLink className="w-4 h-4 mr-2" />
+                  View Details
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onClone && onClone(solution)}>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Clone Solution
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onShare && onShare(solution)}>
+                  <Share2 className="w-4 h-4 mr-2" />
+                  Share
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem 
+                  onClick={() => onDelete && onDelete(solution)}
+                  className="text-red-600 focus:text-red-600 focus:bg-red-50"
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </CardContent>

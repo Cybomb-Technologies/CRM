@@ -7,7 +7,8 @@ import { EmailIntegrationSetup } from "@/components/files/integrations/sales-inb
 import { ComposeEmail } from "@/components/files/integrations/sales-inbox/ComposeEmail";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Search, Filter, RefreshCw, Plus, Settings, Mail } from "lucide-react";
+import { Search, Filter, RefreshCw, Plus, Settings } from "lucide-react";
+import api from "@/lib/axios";
 
 export default function SalesInboxPage() {
   const [selectedEmail, setSelectedEmail] = useState(null);
@@ -17,137 +18,183 @@ export default function SalesInboxPage() {
   const [showCompose, setShowCompose] = useState(false);
   const [showIntegrationSetup, setShowIntegrationSetup] = useState(false);
   const [connectedAccounts, setConnectedAccounts] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Load emails from localStorage or API
+  const [stats, setStats] = useState({});
+
+  // Load emails and accounts on mount
   useEffect(() => {
-    loadEmails();
-    loadConnectedAccounts();
+    loadData();
   }, []);
 
-  const loadEmails = () => {
-    // In real app, this would be an API call
-    const savedEmails = localStorage.getItem("crm_emails");
-    if (savedEmails) {
-      setEmails(JSON.parse(savedEmails));
-    } else {
-      // Load mock data initially
-      const mockEmails = [
-        {
-          id: 1,
-          from: "john.ceo@techcorp.com",
-          fromName: "John Smith",
-          subject: "Enterprise Demo Request - Urgent",
-          preview:
-            "We're evaluating CRM solutions and would like to schedule a demo...",
-          body: "Hi Team,\n\nWe're currently evaluating CRM solutions for our 200-person sales team and were impressed by your platform. We'd like to schedule a comprehensive demo of your enterprise features.\n\nBest regards,\nJohn Smith\nCEO, TechCorp Inc",
-          date: new Date().toISOString(),
-          read: false,
-          important: true,
-          hasAttachment: true,
-          priority: "high",
-          relatedTo: {
-            type: "lead",
-            id: "lead-1",
-            name: "TechCorp Enterprise",
-          },
-          labels: ["demo", "urgent"],
-        },
-      ];
-      setEmails(mockEmails);
-      localStorage.setItem("crm_emails", JSON.stringify(mockEmails));
-    }
+  // Reload emails when folder changes
+  useEffect(() => {
+    loadEmails();
+  }, [activeFolder]);
+
+  // Reload stats periodically or on action
+  useEffect(() => {
+      loadStats();
+  }, [emails]); // Refresh stats whenever emails change
+
+  const loadData = async () => {
+    setLoading(true);
+    await Promise.all([loadEmails(), loadConnectedAccounts(), loadStats()]);
+    setLoading(false);
   };
 
-  const loadConnectedAccounts = () => {
-    const accounts = localStorage.getItem("crm_connected_accounts");
-    if (accounts) {
-      setConnectedAccounts(JSON.parse(accounts));
-    }
-  };
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    // Simulate API call to refresh emails
-    setTimeout(() => {
-      loadEmails();
-      setRefreshing(false);
-    }, 1000);
-  };
-
-  const handleEmailAction = (emailId, action, data = {}) => {
-    const updatedEmails = emails.map((email) => {
-      if (email.id === emailId) {
-        switch (action) {
-          case "markRead":
-            return { ...email, read: true };
-          case "markImportant":
-            return { ...email, important: !email.important };
-          case "addLabel":
-            return {
-              ...email,
-              labels: [...(email.labels || []), data.label],
-            };
-          case "moveToFolder":
-            return { ...email, folder: data.folder };
-          default:
-            return email;
+  const loadStats = async () => {
+    try {
+        const res = await api.get('/sales-inbox/emails/stats');
+        if (res.data.success) {
+            setStats(res.data.data);
         }
+    } catch (error) {
+        console.error("Failed to load stats", error);
+    }
+  };
+
+  const loadEmails = async () => {
+    try {
+      let params = {};
+      
+      const standardFolders = ['inbox', 'sent', 'drafts', 'archive', 'trash', 'spam'];
+      if (standardFolders.includes(activeFolder)) {
+        params.folder = activeFolder;
+      } else if (activeFolder === 'unread') {
+        params.read = false;
+        // Search globally for unread if the user clicks "Unread" folder, 
+        // or just filter current view? Often "Unread" is a pseudo-folder spanning all.
+        // Backend 'read=false' query does exactly that.
+      } else if (activeFolder === 'important') {
+        params.important = true;
       }
-      return email;
-    });
+       // Smart Views
+      else if (activeFolder === 'leads') {
+        // Backend doesn't support direct 'type' filtering yet via query params in the generic sense 
+        // but 'folder' param is used. 
+        // We need to support filtering by relatedTo type in the backend getEmails or do it here.
+        // Let's rely on client side filtering for now as fallback, OR update backend.
+        // BETTER: Update backend to handle these queries? 
+        // For now, let's just fetch all and filter client side IF backend returns everything, 
+        // BUT fetching all is bad.
+        // Let's assume for now we just show inbox and filter? No, user wants to see them.
+        // Let's just pass no folder param (returns all) and filter here? 
+        // Or adding a temporary param.
+      }
 
-    setEmails(updatedEmails);
-    localStorage.setItem("crm_emails", JSON.stringify(updatedEmails));
+      const res = await api.get('/sales-inbox/emails', { params });
+      
+      if (res.data.success) {
+        let fetchedEmails = res.data.data;
+        
+        // Client-side filtering for Smart Views
+        if (activeFolder === 'leads') {
+          fetchedEmails = fetchedEmails.filter(e => e.relatedTo?.type === 'lead');
+        } else if (activeFolder === 'deals') {
+          fetchedEmails = fetchedEmails.filter(e => e.relatedTo?.type === 'deal');
+        } else if (activeFolder === 'priority') {
+             fetchedEmails = fetchedEmails.filter(e => e.important);
+        }
+        
+        setEmails(fetchedEmails);
+      }
+    } catch (error) {
+      console.error("Failed to load emails", error);
+    }
   };
 
-  const handleSendEmail = (emailData) => {
-    const newEmail = {
-      id: Date.now(),
-      from: connectedAccounts[0]?.email || "user@company.com",
-      fromName: "You",
-      subject: emailData.subject,
-      preview: emailData.body.substring(0, 100) + "...",
-      body: emailData.body,
-      date: new Date().toISOString(),
-      read: true,
-      important: false,
-      hasAttachment: emailData.attachments?.length > 0,
-      priority: "medium",
-      relatedTo: emailData.relatedTo,
-      status: "sent",
-      labels: ["sent"],
-    };
-
-    const updatedEmails = [newEmail, ...emails];
-    setEmails(updatedEmails);
-    localStorage.setItem("crm_emails", JSON.stringify(updatedEmails));
-    setShowCompose(false);
+  const loadConnectedAccounts = async () => {
+    try {
+      const res = await api.get('/sales-inbox/accounts');
+      if (res.data.success) {
+        setConnectedAccounts(res.data.data);
+      }
+    } catch (error) {
+      console.error("Failed to load accounts", error);
+    }
   };
 
-  const handleConnectEmail = (accountData) => {
-    const newAccount = {
-      id: Date.now(),
-      ...accountData,
-      connectedAt: new Date().toISOString(),
-      status: "connected",
-    };
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([loadEmails(), loadStats()]);
+    setRefreshing(false);
+  };
+  
+ // ... (handleEmailAction and handleSendEmail remain mostly same but good to refresh stats)
 
-    const updatedAccounts = [...connectedAccounts, newAccount];
-    setConnectedAccounts(updatedAccounts);
-    localStorage.setItem(
-      "crm_connected_accounts",
-      JSON.stringify(updatedAccounts)
-    );
-    setShowIntegrationSetup(false);
+  const handleEmailAction = async (emailId, action, data = {}) => {
+    try {
+      let updates = {};
+      if (action === "markRead") updates.read = true;
+      if (action === "markImportant") {
+        const email = emails.find((e) => e._id === emailId);
+        if (email) updates.important = !email.important;
+      }
+      if (action === "moveToFolder") updates.folder = data.folder;
+      if (action === "addLabel") updates.labels = data.label;
 
-    // After connecting, load emails from this account
-    loadEmailsFromProvider(accountData.provider, accountData.email);
+      // Optimistic update
+      const updatedEmails = emails.map((email) => {
+        if (email._id === emailId) {
+           if (action === 'markRead') return { ...email, read: true };
+           if (action === 'markImportant') return { ...email, important: !email.important };
+           if (action === 'moveToFolder') return { ...email, folder: data.folder };
+           return email;
+        }
+        return email;
+      });
+      setEmails(updatedEmails);
+      
+      if (selectedEmail?._id === emailId) {
+         if (action === 'markRead') setSelectedEmail(prev => ({ ...prev, read: true }));
+         if (action === 'markImportant') setSelectedEmail(prev => ({ ...prev, important: !prev.important }));
+      }
+
+      await api.put(`/sales-inbox/emails/${emailId}`, updates);
+      loadStats(); // Reload stats after action
+      
+    } catch (error) {
+      console.error("Failed to update email", error);
+      loadEmails(); // Revert on error
+    }
   };
 
-  const loadEmailsFromProvider = async (provider, email) => {
-    // This would integrate with actual email provider APIs
-    console.log(`Loading emails from ${provider} for ${email}`);
-    // Simulate API call
+  const handleSendEmail = async (emailData) => {
+    if (connectedAccounts.length === 0) {
+        alert("Please connect an email account first.");
+        return;
+    }
+    try {
+      const res = await api.post('/sales-inbox/emails', {
+        ...emailData,
+        connectedAccountId: connectedAccounts[0]?._id
+      });
+      
+      if (res.data.success) {
+        setShowCompose(false);
+        if (activeFolder === 'sent') {
+            loadEmails();
+        }
+        loadStats();
+      }
+    } catch (error) {
+      console.error("Failed to send email", error);
+    }
+  };
+
+  const handleConnectEmail = async (accountData) => {
+    try {
+      const res = await api.post('/sales-inbox/accounts', accountData);
+      if (res.data.success) {
+        setShowIntegrationSetup(false);
+        loadConnectedAccounts();
+        loadEmails(); 
+        loadStats();
+      }
+    } catch (error) {
+      console.error("Failed to connect account", error);
+    }
   };
 
   return (
@@ -163,6 +210,7 @@ export default function SalesInboxPage() {
           onFolderChange={setActiveFolder}
           connectedAccounts={connectedAccounts}
           onConnectEmail={() => setShowIntegrationSetup(true)}
+          stats={stats}
         />
 
         {/* Main Content Area */}

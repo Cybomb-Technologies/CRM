@@ -1,7 +1,7 @@
 // src/components/files/inventory/purchaseorders/CreatePurchaseOrderForm.jsx
 import React, { useState, useEffect } from 'react';
 import { Helmet } from 'react-helmet';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Save, Plus, X, Trash2, ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,8 +13,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { useToast } from '@/hooks';
 import { usePOStorage } from '@/hooks/usePOStorage';
 
-const CreatePurchaseOrderForm = ({ isEditing = false, poId = null }) => {
+const CreatePurchaseOrderForm = ({ isEditing: isEditingProp = false, poId: poIdProp = null }) => {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const poId = poIdProp || id;
+  const isEditing = isEditingProp || !!poId;
   const { toast } = useToast();
   const { savePurchaseOrder, getPurchaseOrder } = usePOStorage();
   

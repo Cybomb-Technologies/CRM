@@ -100,7 +100,7 @@ const Vendors = () => {
   };
 
   const handleEditVendor = (vendorId) => {
-    navigate(`/edit-vendor/${vendorId}`);
+    navigate(`/vendors/edit/${vendorId}`);
   };
 
   return (
