@@ -9,7 +9,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { SolutionForm } from "./SolutionForm";
 
-export function CreateSolutionDialog({ open, onOpenChange }) {
+export function CreateSolutionDialog({ open, onOpenChange, solutionToEdit = null }) {
   const [formData, setFormData] = useState({
     solutionTitle: "",
     status: "Draft",
@@ -19,9 +19,37 @@ export function CreateSolutionDialog({ open, onOpenChange }) {
     relatedCases: "",
   });
 
+  React.useEffect(() => {
+    if (solutionToEdit) {
+      setFormData({
+        solutionTitle: solutionToEdit.solutionTitle || "",
+        status: solutionToEdit.status || "Draft",
+        productName: solutionToEdit.productName || "",
+        question: solutionToEdit.question || "",
+        answer: solutionToEdit.answer || "",
+        relatedCases: solutionToEdit.relatedCases ? solutionToEdit.relatedCases.join(", ") : "",
+      });
+    } else {
+        setFormData({
+            solutionTitle: "",
+            status: "Draft",
+            productName: "",
+            question: "",
+            answer: "",
+            relatedCases: "",
+          });
+    }
+  }, [solutionToEdit, open]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Creating solution:", formData);
+    if (solutionToEdit) {
+        console.log("Updating solution:", { ...solutionToEdit, ...formData });
+        // Call update API here
+    } else {
+        console.log("Creating solution:", formData);
+        // Call create API here
+    }
     onOpenChange(false);
     // Reset form
     setFormData({
@@ -42,7 +70,7 @@ export function CreateSolutionDialog({ open, onOpenChange }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Create New Solution</DialogTitle>
+          <DialogTitle>{solutionToEdit ? "Edit Solution" : "Create New Solution"}</DialogTitle>
           <DialogDescription>
             Provide solutions to help solve recurrent problems encountered by
             customers.

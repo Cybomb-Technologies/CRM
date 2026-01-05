@@ -1,6 +1,6 @@
 // src/components/files/inventory/purchaseorders/ViewPurchaseOrder.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import { ArrowLeft, Edit, Printer, Download, Mail, Share2, MoreVertical, FileText, Truck, Package, DollarSign, Calendar, User, Building, MapPin, CheckCircle, XCircle, Copy, Globe, Phone, Mail as MailIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -11,7 +11,9 @@ import { Separator } from '@/components/ui/separator';
 import { usePOStorage } from '@/hooks/usePOStorage';
 import { useToast } from '@/hooks';
 
-const ViewPurchaseOrder = ({ poId }) => {
+const ViewPurchaseOrder = ({ poId: poIdProp }) => {
+  const { id } = useParams();
+  const poId = poIdProp || id;
   const navigate = useNavigate();
   const { toast } = useToast();
   const { getPurchaseOrder } = usePOStorage();

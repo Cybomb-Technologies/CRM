@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, Search, Filter, Download, FileText, Eye, Edit, Trash2, ChevronRight } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// import { invoicesAPI } from './invoicesAPI';
+import { invoicesAPI } from './invoicesAPI';
 
 const InvoicesPageContent = () => {
   const [searchTerm, setSearchTerm] = useState('');
