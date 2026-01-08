@@ -45,6 +45,12 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// PREVENT CRASH: Handle uncaught parser errors from node-imap
+process.on('uncaughtException', (err) => {
+    console.error('❌ UNCAUGHT EXCEPTION (Likely IMAP Parser):', err);
+    // Do not exit! Keep server running.
+});
+
 // DEBUG: Log all requests
 app.use((req, res, next) => {
   console.log(`➡️  [${new Date().toISOString()}] ${req.method} ${req.url}`);

@@ -1,4 +1,5 @@
 import React from "react";
+import DOMPurify from 'dompurify';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -116,8 +117,11 @@ export function EmailView({ email, onBack, onEmailAction }) {
       </div>
 
       {/* Email Body */}
-      <div className="flex-1 p-6 overflow-y-auto">
-        <div className="prose max-w-none whitespace-pre-wrap">{email.body}</div>
+      <div className="flex-1 p-6 overflow-y-auto overflow-x-auto bg-white">
+        <div 
+            className="prose max-w-none"
+            dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(email.body) }}
+        />
       </div>
 
       {/* Action Footer */}

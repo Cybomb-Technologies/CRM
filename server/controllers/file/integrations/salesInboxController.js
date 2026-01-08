@@ -2,6 +2,7 @@ const Email = require("../../../models/file/integrations/Email");
 const ConnectedAccount = require("../../../models/file/integrations/ConnectedAccount");
 const nodemailer = require("nodemailer");
 const imaps = require("imap-simple");
+const dns = require('dns'); // Added for debugging
 const { simpleParser } = require("mailparser");
 const Lead = require("../../../models/file/sales/Lead");
 const Contact = require("../../../models/file/sales/Contact");
@@ -44,6 +45,34 @@ const createTransporter = (account) => {
   });
 };
 
+// --- Helper: Verify Connection Only ---
+const verifyAccountConnection = async (account) => {
+    if (!account.credentials || !account.credentials.user) return;
+
+    const config = {
+        imap: {
+            user: account.credentials.user,
+            password: account.credentials.pass,
+            host: account.credentials.imapHost || "imap.gmail.com",
+            port: account.credentials.imapPort || 993,
+            tls: (account.credentials.imapPort === 993) || (account.credentials.imapTls !== undefined ? account.credentials.imapTls : true),
+            tlsOptions: { rejectUnauthorized: false }, 
+            authTimeout: 10000,
+        },
+    };
+
+    try {
+        const connection = await imaps.connect(config);
+        await connection.openBox("INBOX");
+        console.log(`✅ Connection Verified for ${account.email}`);
+        connection.end();
+        return true;
+    } catch (err) {
+        console.error("Connection Verification Failed:", err);
+        throw err;
+    }
+};
+
 // --- Helper: Sync Emails via IMAP ---
 const syncAccountEmails = async (account) => {
   if (!account.credentials || !account.credentials.user) return;
@@ -54,10 +83,7 @@ const syncAccountEmails = async (account) => {
       password: account.credentials.pass,
       host: account.credentials.imapHost || "imap.gmail.com",
       port: account.credentials.imapPort || 993,
-      tls:
-        account.credentials.imapTls !== undefined
-          ? account.credentials.imapTls
-          : true,
+      tls: (account.credentials.imapPort === 993) || (account.credentials.imapTls !== undefined ? account.credentials.imapTls : true),
       tlsOptions: { rejectUnauthorized: false }, // Allow self-signed certs
       authTimeout: 15000,
       debug: (msg) => {
@@ -69,102 +95,165 @@ const syncAccountEmails = async (account) => {
 
   try {
     const connection = await imaps.connect(config);
+
+    // Prevent crash on protocol errors
+    connection.imap.on('error', function(err) {
+        console.error("IMAP Protocol Error (caught):", err);
+    });
+
     await connection.openBox("INBOX");
 
     // Fetch unseen messages or last 20 messages
-    const searchCriteria = ["UNSEEN"];
-    const fetchOptions = {
-      bodies: ["HEADER", "TEXT", ""],
-      markSeen: false,
-      struct: true,
-    };
+    // 1. RAW SEARCH: Get UIDs only (safest operation)
+    // We use the underlying node-imap object directly to avoid imap-simple's auto-fetch
+    const uids = await new Promise((resolve, reject) => {
+        connection.imap.search(['UNSEEN'], (err, results) => {
+            if (err) reject(err);
+            else resolve(results);
+        });
+    });
 
-    const messages = await connection.search(searchCriteria, fetchOptions);
+    console.log(`Found ${uids.length} unseen emails locally.`);
 
-    // If no unseen, fetch last 10 just to populate initial data if empty
-    let messagesToProcess = messages;
-    if (messages.length === 0) {
-      const allMessages = await connection.search(["ALL"], { ...fetchOptions });
-      // Get last 10
-      messagesToProcess = allMessages.slice(-10);
+    let messagesToProcessIDs = uids;
+    if (uids.length === 0) {
+        // Fallback to last 10 if empty
+         const allUids = await new Promise((resolve, reject) => {
+            connection.imap.search(['ALL'], (err, results) => {
+                if (err) reject(err);
+                else resolve(results);
+            });
+        });
+        messagesToProcessIDs = allUids.slice(-10);
     }
 
-    for (const message of messagesToProcess) {
-      // Check if email already exists
-      const existing = await Email.findOne({
-        messageId: message.attributes.uid + "@" + account._id,
-      }); // Simple unique ID construction
-      // Better: use header message-id if available
+    // 2. Process each UID individually
+    for (const uid of messagesToProcessIDs) {
+       try {
+          // Check locally first
+          const existing = await Email.findOne({
+            messageId: uid + "@" + account._id,
+          }); 
+          
+          if (existing) continue;
 
-      const all = _.find(message.parts, { which: "" });
-      const id = message.attributes.uid;
-      const idHeader = "Imap-Id:" + id;
+          // 3. Helper to fetch single message Body safely
+          const fetchMessage = () => new Promise((resolve, reject) => {
+              try {
+                  const f = connection.imap.fetch(uid, {
+                      bodies: ['HEADER', 'TEXT', ''],
+                      struct: false, // DISABLE struct again - caused parser crash
+                      markSeen: false
+                  });
+                  
+                  let fullBody = "";
+                  let attributes = {};
+                  
+                  f.on('message', function(msg, seqno) {
+                      msg.on('body', function(stream, info) {
+                          let buffer = '';
+                          stream.on('data', function(chunk) {
+                              buffer += chunk.toString('utf8');
+                          });
+                          stream.once('end', function() {
+                              fullBody += buffer;
+                          });
+                      });
+                      msg.once('attributes', function(attrs) {
+                          attributes = attrs;
+                      });
+                  });
+                  
+                  f.once('error', function(err) {
+                      reject(err);
+                  });
+                  
+                  f.once('end', function() {
+                      resolve({ fullBody, attributes });
+                  });
+              } catch (ex) { reject(ex); }
+          });
 
-      const part = _.find(message.parts, { which: "" });
+          // Fetch with timeout/protection
+          const { fullBody, attributes } = await fetchMessage();
 
-      // Use simpleParser on the full message source
-      const fullBody = await connection.getPartData(message, part);
-      const parsed = await simpleParser(fullBody);
+          if (!fullBody) continue;
 
-      // Duplicate check using standard Message-ID header
-      const messageId = parsed.messageId || id + "@" + account._id;
-      const exists = await Email.findOne({ messageId: messageId });
-      if (exists) continue;
+          const parsed = await simpleParser(fullBody);
 
-      // Smart View Matching logic
-      let relatedTo = { type: "none" };
-      const fromEmail = parsed.from.value[0].address;
+          // Duplicate check using standard Message-ID header (double check)
+          const messageId = parsed.messageId || uid + "@" + account._id;
+          const existsDouble = await Email.findOne({ messageId: messageId });
+          if (existsDouble) continue;
 
-      // Check Leads
-      const lead = await Lead.findOne({ email: fromEmail });
-      if (lead) {
-        relatedTo = {
-          type: "lead",
-          id: lead._id,
-          name: lead.firstName + " " + lead.lastName,
-        };
-      } else {
-        // Check Contacts
-        const contact = await Contact.findOne({ email: fromEmail });
-        if (contact) {
-          relatedTo = {
-            type: "contact",
-            id: contact._id,
-            name: contact.firstName + " " + contact.lastName,
-          };
-        }
-      }
+          // Smart View Matching logic
+          let relatedTo = { type: "none" };
+          const fromEmail = parsed.from && parsed.from.value && parsed.from.value[0] ? parsed.from.value[0].address : "";
 
-      const newEmail = new Email({
-        userId: account.userId, // Needs to be passed or derived
-        connectedAccountId: account._id,
-        messageId: messageId,
-        from: {
-          name: parsed.from.value[0].name || fromEmail,
-          email: fromEmail,
-        },
-        to: parsed.to.value.map((t) => ({ name: t.name, email: t.address })),
-        subject: parsed.subject,
-        snippet: parsed.text ? parsed.text.substring(0, 100) : "",
-        body: parsed.html || parsed.textAsHtml || parsed.text,
-        date: parsed.date || new Date(),
-        folder: "inbox",
-        read: false, // It was unseen
-        relatedTo,
-        hasAttachment: parsed.attachments && parsed.attachments.length > 0,
-        attachments: parsed.attachments.map((att) => ({
-          filename: att.filename,
-          contentType: att.contentType,
-          size: att.size,
-        })),
-      });
+          if (fromEmail) {
+              // Check Leads
+              const lead = await Lead.findOne({ email: fromEmail });
+              if (lead) {
+                relatedTo = {
+                  type: "lead",
+                  id: lead._id,
+                  name: lead.firstName + " " + lead.lastName,
+                };
+              } else {
+                // Check Contacts
+                const contact = await Contact.findOne({ email: fromEmail });
+                if (contact) {
+                  relatedTo = {
+                    type: "contact",
+                    id: contact._id,
+                    name: contact.firstName + " " + contact.lastName,
+                  };
+                }
+              }
+          }
 
-      await newEmail.save();
+          const newEmail = new Email({
+            userId: account.userId, 
+            connectedAccountId: account._id,
+            messageId: messageId,
+            from: {
+              name: parsed.from && parsed.from.value && parsed.from.value[0] ? parsed.from.value[0].name : fromEmail,
+              email: fromEmail,
+            },
+            to: parsed.to && parsed.to.value ? parsed.to.value.map((t) => ({ name: t.name, email: t.address })) : [],
+            subject: parsed.subject || "(No Subject)",
+            snippet: parsed.text ? parsed.text.substring(0, 100) : "",
+            body: parsed.html || parsed.textAsHtml || parsed.text || "",
+            date: parsed.date || new Date(),
+            folder: "inbox",
+            read: false, 
+            relatedTo,
+            hasAttachment: parsed.attachments && parsed.attachments.length > 0,
+            attachments: parsed.attachments ? parsed.attachments.map((att) => ({
+              filename: att.filename,
+              contentType: att.contentType,
+              size: att.size,
+            })) : [],
+          });
+
+          try {
+               await newEmail.save();
+          } catch (saveErr) {
+               if (saveErr.code === 11000) {
+                   // Duplicate key error, ignore
+               } else {
+                   console.error("Error saving email:", saveErr);
+               }
+          }
+       } catch (msgErr) {
+           console.error(`Skipping malformed message UID ${uid}:`, msgErr.message);
+           // Continue to next message
+       }
     }
 
     connection.end();
     console.log(
-      `Synced ${messagesToProcess.length} emails for ${account.email}`
+      `Synced ${messagesToProcessIDs.length} emails for ${account.email}`
     );
   } catch (err) {
     console.error("IMAP Sync Error:", err);
@@ -397,11 +486,14 @@ exports.addConnectedAccount = async (req, res) => {
     if (provider === "gmail") {
       processedCredentials.imapHost = "imap.gmail.com";
       processedCredentials.imapPort = 993;
+      processedCredentials.imapTls = true; // FORCE TLS
       processedCredentials.smtpHost = "smtp.gmail.com";
       processedCredentials.smtpPort = 465;
+      processedCredentials.smtpSecure = true;
     } else if (provider === "outlook") {
       processedCredentials.imapHost = "outlook.office365.com";
       processedCredentials.imapPort = 993;
+      processedCredentials.imapTls = true; // FORCE TLS
       processedCredentials.smtpHost = "smtp.office365.com";
       processedCredentials.smtpPort = 587; // or 25, 587 is STARTTLS
       processedCredentials.smtpSecure = false; // STARTTLS
@@ -414,8 +506,36 @@ exports.addConnectedAccount = async (req, res) => {
 
     // Verify Connection via IMAP
     console.log(`Verifying connection for ${email}...`);
+
+    // Explicit DNS Check to debug ENOTFOUND
+    const hostToCheck = processedCredentials.imapHost;
+    if (hostToCheck) {
+        console.log(`Performing DNS lookup for: ${hostToCheck}`);
+        try {
+            await new Promise((resolve, reject) => {
+                dns.lookup(hostToCheck, (err, address, family) => {
+                    if (err) reject(err);
+                    else {
+                        console.log(`✅ DNS Resolved: ${hostToCheck} -> ${address} (Family: ${family})`);
+                        resolve(address);
+                    }
+                });
+            });
+        } catch (dnsErr) {
+            console.error("❌ DNS Lookup Failed inside Controller:", dnsErr);
+            return res.status(400).json({
+                success: false,
+                message: `DNS Resolution failed for ${hostToCheck}.`,
+                details: `System could not resolve address: ${dnsErr.message}`
+            });
+        }
+    }
+
+    // Verify Connection via IMAP (Lightweight)
+    console.log(`Verifying connection for ${email} (Lightweight)...`);
+
     try {
-      await syncAccountEmails({ _id: "temp", ...tempAccount }); // Dry run of sync effectively tests connection
+      await verifyAccountConnection({ _id: "temp", ...tempAccount }); 
     } catch (connectionError) {
       console.error("Connection Failed:", connectionError);
       return res.status(400).json({
