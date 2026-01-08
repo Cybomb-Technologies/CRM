@@ -54,9 +54,10 @@ export default function SalesInboxPage() {
     }
   };
 
-  const loadEmails = async () => {
+  const loadEmails = async (forceRefresh = false) => {
     try {
       let params = {};
+      if (forceRefresh) params.refresh = true;
       
       const standardFolders = ['inbox', 'sent', 'drafts', 'archive', 'trash', 'spam'];
       if (standardFolders.includes(activeFolder)) {
@@ -117,7 +118,7 @@ export default function SalesInboxPage() {
 
   const handleRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([loadEmails(), loadStats()]);
+    await Promise.all([loadEmails(true), loadStats()]);
     setRefreshing(false);
   };
   
@@ -197,6 +198,18 @@ export default function SalesInboxPage() {
     }
   };
 
+  const handleDisconnectEmail = async (accountId) => {
+    if (!window.confirm("Are you sure you want to disconnect this account?")) return;
+    try {
+        await api.delete(`/sales-inbox/accounts/${accountId}`);
+        loadConnectedAccounts();
+        setEmails([]); 
+        loadStats();
+    } catch (error) {
+        console.error("Failed to disconnect account", error);
+    }
+  };
+
   return (
     <>
       <Helmet>
@@ -210,6 +223,7 @@ export default function SalesInboxPage() {
           onFolderChange={setActiveFolder}
           connectedAccounts={connectedAccounts}
           onConnectEmail={() => setShowIntegrationSetup(true)}
+          onDisconnectEmail={handleDisconnectEmail}
           stats={stats}
         />
 

@@ -74,8 +74,24 @@ export function EmailIntegrationSetup({
   };
 
   const handleConnect = () => {
-    if (formData.provider && formData.email) {
-      onConnect(formData);
+    if (formData.provider && formData.email && formData.password) {
+      // Format payload for backend
+      const payload = {
+        email: formData.email,
+        provider: formData.provider,
+        credentials: {
+            user: formData.email,
+            pass: formData.password,
+            // For custom IMAP, include server details
+            ...(formData.provider === 'imap' && {
+                imapHost: formData.server,
+                imapPort: formData.port,
+                smtpHost: formData.server, // Assuming same server or need separate inputs for SMTP? For now assume same.
+                smtpPort: 587 // Default/Guess for custom
+            })
+        }
+      };
+      onConnect(payload);
     }
   };
 
@@ -111,20 +127,29 @@ export function EmailIntegrationSetup({
           return (
             <div className="space-y-6">
               <DialogDescription>
-                Connect your {formData.provider} account using OAuth
+                Connect your {formData.provider} account using an App Password.
               </DialogDescription>
 
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <Shield className="w-8 h-8 text-blue-600" />
+              <div className="bg-yellow-50 p-4 rounded-lg border border-yellow-100">
+                <div className="flex items-start space-x-3">
+                  <Shield className="w-5 h-5 text-yellow-600 mt-0.5" />
                   <div>
-                    <h4 className="font-semibold text-blue-900">
-                      Secure Connection
+                    <h4 className="font-semibold text-yellow-900 text-sm">
+                      App Password Required
                     </h4>
-                    <p className="text-sm text-blue-700">
-                      We'll redirect you to {formData.provider} for secure
-                      authentication. Your credentials are never stored.
+                    <p className="text-sm text-yellow-800 mt-1">
+                      For security, please generate an <strong>App Password</strong> in your {formData.provider} account settings and use it here. Do not use your regular login password.
                     </p>
+                    {formData.provider === 'gmail' && (
+                        <a href="https://myaccount.google.com/apppasswords" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-2 block">
+                            Generate Gmail App Password &rarr;
+                        </a>
+                    )}
+                     {formData.provider === 'outlook' && (
+                        <a href="https://account.live.com/proofs/manage/additional" target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 hover:underline mt-2 block">
+                            Generate Outlook App Password &rarr;
+                        </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -145,6 +170,21 @@ export function EmailIntegrationSetup({
                     }
                   />
                 </div>
+                 <div>
+                  <Label htmlFor="password">App Password</Label>
+                  <Input
+                    id="password"
+                    type="password"
+                    placeholder="xxxx xxxx xxxx xxxx"
+                    value={formData.password}
+                    onChange={(e) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        password: e.target.value,
+                      }))
+                    }
+                  />
+                </div>
               </div>
 
               <div className="bg-gray-50 p-4 rounded-lg">
@@ -152,15 +192,11 @@ export function EmailIntegrationSetup({
                 <ul className="text-sm text-gray-600 space-y-1">
                   <li className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    Read and send emails
+                    Read emails (IMAP)
                   </li>
                   <li className="flex items-center">
                     <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    Manage contacts and labels
-                  </li>
-                  <li className="flex items-center">
-                    <CheckCircle className="w-4 h-4 text-green-500 mr-2" />
-                    Sync email metadata
+                    Send emails (SMTP)
                   </li>
                 </ul>
               </div>
@@ -298,7 +334,7 @@ export function EmailIntegrationSetup({
           >
             {step === 1 ? "Cancel" : "Back"}
           </Button>
-          <Button onClick={handleConnect} disabled={!formData.email}>
+          <Button onClick={handleConnect} disabled={!formData.email || !formData.password}>
             {formData.provider === "imap"
               ? "Test Connection"
               : "Connect Account"}
