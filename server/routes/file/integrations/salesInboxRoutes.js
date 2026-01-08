@@ -15,6 +15,7 @@ const {
 router.get('/emails', getEmails);
 router.post('/emails', sendEmail);
 router.get('/emails/stats', getEmailStats);
+router.get('/debug-sync', require('../../../controllers/file/integrations/salesInboxController').debugSync); // New Debug Route
 router.get('/emails/:id', getEmail);
 router.put('/emails/:id', updateEmail);
 

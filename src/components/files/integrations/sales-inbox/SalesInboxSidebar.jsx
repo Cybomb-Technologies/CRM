@@ -11,19 +11,27 @@ import {
   Target,
   Zap,
   Plus,
-  MoreVertical,
   Mail,
   Link,
   Settings,
+  LogOut
 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export function SalesInboxSidebar({
   activeFolder,
   onFolderChange,
   connectedAccounts,
   onConnectEmail,
+  onDisconnectEmail,
   stats = {}
 }) {
+  // ... folders and smartViews definitions (keep existing) ...
   const folders = [
     {
       id: "inbox",
@@ -169,21 +177,32 @@ export function SalesInboxSidebar({
           ) : (
             connectedAccounts.map((account) => (
               <div
-                key={account._id || account.id} // Updated key handling
+                key={account._id || account.id} 
                 className="flex items-center justify-between p-2 bg-green-50 rounded"
               >
                 <div className="flex items-center">
                   <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
                   <div>
-                    <div className="text-sm font-medium">{account.email}</div>
+                    <div className="text-sm font-medium truncate w-32" title={account.email}>{account.email}</div>
                     <div className="text-xs text-gray-500 capitalize">
                       {account.provider}
                     </div>
                   </div>
                 </div>
-                <Button variant="ghost" size="sm">
-                  <Settings className="w-4 h-4" />
-                </Button>
+                
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                             <Settings className="w-4 h-4 text-gray-500" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="text-red-600 focus:text-red-600" onClick={() => onDisconnectEmail(account._id)}>
+                            <LogOut className="w-4 h-4 mr-2" />
+                            Disconnect Account
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
               </div>
             ))
           )}
