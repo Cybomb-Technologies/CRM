@@ -27,42 +27,12 @@ const ProgressBar = ({ value, className = "" }) => {
   );
 };
 
-export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
-  const [todaysVisits] = useState([
-    {
-      id: 1,
-      account: "TechCorp Inc",
-      contact: "John Smith",
-      purpose: "Product Demo",
-      scheduledTime: "2024-01-15T10:00:00",
-      location: "123 Business Ave, City",
-      status: "scheduled",
-      duration: "60 mins",
-      priority: "high",
-    },
-    {
-      id: 2,
-      account: "Startup Solutions",
-      contact: "Sarah Johnson",
-      purpose: "Contract Review",
-      scheduledTime: "2024-01-15T14:30:00",
-      location: "456 Innovation St, City",
-      status: "in_progress",
-      duration: "45 mins",
-      priority: "medium",
-    },
-    {
-      id: 3,
-      account: "Global Enterprises",
-      contact: "Mike Rodriguez",
-      purpose: "Quarterly Review",
-      scheduledTime: "2024-01-15T16:00:00",
-      location: "789 Corporate Blvd, City",
-      status: "scheduled",
-      duration: "90 mins",
-      priority: "high",
-    },
-  ]);
+export function VisitsDashboard({ stats, visits = [], onCheckIn, onUpdateStatus }) {
+  const todaysVisits = visits.filter(visit => {
+    const visitDate = new Date(visit.date).toDateString();
+    const today = new Date().toDateString();
+    return visitDate === today;
+  });
 
   const getStatusColor = (status) => {
     switch (status) {
@@ -127,28 +97,34 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {todaysVisits.map((visit) => (
+              {todaysVisits.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                    <p>No visits scheduled for today.</p>
+                </div>
+              ) : (
+                todaysVisits.map((visit) => (
                 <div
-                  key={visit.id}
+                  key={visit._id}
                   className="p-4 border rounded-lg hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <Building2 className="w-4 h-4 text-gray-400" />
-                        <span className="font-semibold">{visit.account}</span>
+                        <span className="font-semibold">{visit.title}</span>
+                        {/* Priority is not in model yet, default to medium or use type */}
                         <Badge
                           variant="outline"
-                          className={getPriorityColor(visit.priority)}
+                          className="bg-blue-50 text-blue-700"
                         >
-                          {visit.priority}
+                          {visit.type}
                         </Badge>
                       </div>
                       <div className="flex items-center gap-2 text-sm text-gray-600 mb-2">
                         <User className="w-4 h-4" />
-                        <span>{visit.contact}</span>
+                        <span>{visit.description || "No description"}</span>
                       </div>
-                      <p className="text-sm text-gray-700">{visit.purpose}</p>
+                      <p className="text-sm text-gray-700">{visit.location}</p>
                     </div>
                     <div className="flex items-center gap-2">
                       <Badge
@@ -157,7 +133,7 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
                         )}`}
                       >
                         {getStatusIcon(visit.status)}
-                        {visit.status.replace("_", " ")}
+                        {visit.status.replace(/-/g, " ")}
                       </Badge>
                     </div>
                   </div>
@@ -166,11 +142,7 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
                     <div className="flex items-center gap-4 text-gray-600">
                       <div className="flex items-center gap-1">
                         <Clock className="w-4 h-4" />
-                        {formatTime(visit.scheduledTime)}
-                      </div>
-                      <div className="flex items-center gap-1">
-                        <MapPin className="w-4 h-4" />
-                        <span>{visit.duration}</span>
+                        {visit.startTime} - {visit.endTime}
                       </div>
                     </div>
 
@@ -178,16 +150,16 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
                       {visit.status === "scheduled" && (
                         <Button
                           size="sm"
-                          onClick={() => onCheckIn(visit.id, visit.location)}
+                          onClick={() => onCheckIn(visit._id, visit.location)}
                         >
                           <Navigation className="w-4 h-4 mr-1" />
                           Check In
                         </Button>
                       )}
-                      {visit.status === "in_progress" && (
+                      {visit.status === "in-progress" && (
                         <Button
                           size="sm"
-                          onClick={() => onUpdateStatus(visit.id, "completed")}
+                          onClick={() => onUpdateStatus(visit._id, "completed")}
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Complete
@@ -199,7 +171,7 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
                     </div>
                   </div>
                 </div>
-              ))}
+              )))}
             </div>
           </CardContent>
         </Card>
@@ -267,20 +239,30 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              {[1, 2, 3].map((item) => (
+              {visits
+                .filter(v => {
+                    const d = new Date(v.date);
+                    const now = new Date();
+                    const nextWeek = new Date();
+                    nextWeek.setDate(now.getDate() + 7);
+                    return d > now && d <= nextWeek && v.status === 'scheduled';
+                })
+                .slice(0, 3)
+                .map((visit) => (
                 <div
-                  key={item}
+                  key={visit._id}
                   className="flex items-center justify-between p-2 border rounded"
                 >
                   <div>
-                    <div className="font-medium">Client Meeting {item}</div>
+                    <div className="font-medium">{visit.title}</div>
                     <div className="text-sm text-gray-500">
-                      Tomorrow, 2:00 PM
+                      {new Date(visit.date).toLocaleDateString()} {visit.startTime}
                     </div>
                   </div>
                   <Badge variant="outline">Scheduled</Badge>
                 </div>
               ))}
+              {visits.filter(v => v.status === 'scheduled').length === 0 && <p className="text-sm text-gray-500">No upcoming visits</p>}
             </div>
           </CardContent>
         </Card>
@@ -293,19 +275,19 @@ export function VisitsDashboard({ stats, onCheckIn, onUpdateStatus }) {
           <CardContent className="space-y-3">
             <div className="flex justify-between">
               <span className="text-sm">Visits Completed</span>
-              <span className="font-semibold">18</span>
+              <span className="font-semibold">{visits.filter(v => v.status === 'completed').length}</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Distance Traveled</span>
-              <span className="font-semibold">245 km</span>
+              <span className="font-semibold">-- km</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Avg. Visit Duration</span>
-              <span className="font-semibold">48 min</span>
+              <span className="font-semibold">-- min</span>
             </div>
             <div className="flex justify-between">
               <span className="text-sm">Deals Influenced</span>
-              <span className="font-semibold">6</span>
+              <span className="font-semibold">--</span>
             </div>
           </CardContent>
         </Card>

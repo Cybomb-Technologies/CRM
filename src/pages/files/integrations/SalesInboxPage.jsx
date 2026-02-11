@@ -1,16 +1,57 @@
+import { useState } from 'react';
+import { Helmet } from 'react-helmet';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
-// ... existing imports
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { 
+  RefreshCw, 
+  Filter, 
+  Settings, 
+  Search, 
+  Plus 
+} from "lucide-react";
+import { SalesInboxSidebar } from "@/components/files/integrations/sales-inbox/SalesInboxSidebar";
+import { EmailList } from "@/components/files/integrations/sales-inbox/EmailList";
+import { EmailView } from "@/components/files/integrations/sales-inbox/EmailView";
+import { EmailIntegrationSetup } from "@/components/files/integrations/sales-inbox/EmailIntegrationSetup";
 
 export default function SalesInboxPage() {
-  // ... existing state
+  // State management
+  const [activeFolder, setActiveFolder] = useState('inbox');
+  const [selectedEmail, setSelectedEmail] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
+  const [showIntegrationSetup, setShowIntegrationSetup] = useState(false);
+  const [showCompose, setShowCompose] = useState(false);
+  
+  // Create dummy data/state for missing props
+  const [connectedAccounts, setConnectedAccounts] = useState([]); 
+  const [stats, setStats] = useState({
+    inbox: 0,
+    sent: 0,
+    drafts: 0,
+    trash: 0
+  });
+  const [emails, setEmails] = useState([]);
 
-  // ... existing functions
+  // Handlers
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    // Simulate refresh
+    setTimeout(() => setRefreshing(false), 1000);
+  };
+
+  const handleDisconnectEmail = (account) => {
+    console.log('Disconnecting:', account);
+  };
+
+  const handleEmailAction = (action, email) => {
+    console.log('Email action:', action, email);
+  };
 
   return (
     <>
@@ -47,7 +88,6 @@ export default function SalesInboxPage() {
                       className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
                     />
                   </Button>
-                  {/* ... other header buttons */}
                    <Button variant="outline" size="sm">
                     <Filter className="w-4 h-4" />
                   </Button>
@@ -65,7 +105,6 @@ export default function SalesInboxPage() {
               </div>
 
               <div className="flex items-center space-x-3">
-                 {/* ... search and compose */}
                  <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                   <Input
@@ -99,12 +138,29 @@ export default function SalesInboxPage() {
       {/* Email View Modal */}
       <Dialog open={!!selectedEmail} onOpenChange={(open) => !open && setSelectedEmail(null)}>
         <DialogContent className="max-w-4xl h-[90vh] flex flex-col p-0">
-            <EmailView
-                email={selectedEmail}
-                onBack={() => setSelectedEmail(null)}
-                onEmailAction={handleEmailAction}
-                isModal={true} 
-            />
+            {selectedEmail && (
+              <EmailView
+                  email={selectedEmail}
+                  onBack={() => setSelectedEmail(null)}
+                  onEmailAction={handleEmailAction}
+                  isModal={true} 
+              />
+            )}
         </DialogContent>
       </Dialog>
 
+      {/* Integration Setup Modal */}
+      {showIntegrationSetup && (
+        <EmailIntegrationSetup
+          onClose={() => setShowIntegrationSetup(false)}
+          onConnect={(data) => {
+            console.log("Connecting account:", data);
+            setConnectedAccounts((prev) => [...prev, { ...data, id: Date.now() }]);
+            setShowIntegrationSetup(false);
+          }}
+          connectedAccounts={connectedAccounts}
+        />
+      )}
+    </>
+  );
+}
