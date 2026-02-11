@@ -116,6 +116,7 @@ app.use("/api/campaigns", require("./routes/file/sales/campaignRoutes"));
 app.use("/api/sales/forecasts", require("./routes/file/sales/forecastRoutes"));
 app.use("/api/file/sales/documents", require("./routes/file/sales/documentRoutes"));
 app.use("/api/sales-inbox", require("./routes/file/integrations/salesInboxRoutes"));
+app.use("/api/visits", require("./routes/file/integrations/visitRoutes"));
 app.use("/api/cases", require("./routes/file/support/casesRoutes"));
 
 // Test route

@@ -20,6 +20,8 @@ import {
   CheckCircle,
 } from "lucide-react";
 
+import { getVisitsStats, getVisits, createVisit, updateVisitStatus } from "@/services/visitsService";
+
 export default function VisitsPage() {
   const [activeTab, setActiveTab] = useState("dashboard");
   const [refreshing, setRefreshing] = useState(false);
@@ -29,43 +31,50 @@ export default function VisitsPage() {
     inProgress: 0,
     overdue: 0,
   });
+  const [visits, setVisits] = useState([]);
 
   useEffect(() => {
-    loadVisitsStats();
+    loadData();
   }, []);
 
-  const loadVisitsStats = () => {
-    // In real app, this would be API call
-    const stats = {
-      scheduled: 12,
-      completed: 8,
-      inProgress: 3,
-      overdue: 1,
-    };
-    setVisitsStats(stats);
+  const loadData = async () => {
+    try {
+      const [stats, visitsData] = await Promise.all([
+        getVisitsStats(),
+        getVisits()
+      ]);
+      setVisitsStats(stats);
+      setVisits(visitsData);
+    } catch (error) {
+      console.error("Failed to load data:", error);
+    }
   };
 
   const handleRefresh = () => {
     setRefreshing(true);
-    setTimeout(() => {
-      loadVisitsStats();
-      setRefreshing(false);
-    }, 1000);
+    loadData().finally(() => setRefreshing(false));
   };
 
-  const handleCreateVisit = (visitData) => {
-    console.log("Creating visit:", visitData);
-    // Implementation for creating new visit
+  const handleCreateVisit = async (visitData) => {
+    try {
+      await createVisit(visitData);
+      loadData();
+    } catch (error) {
+        console.error("Failed to create visit:", error);
+    }
   };
 
-  const handleUpdateVisitStatus = (visitId, status) => {
-    console.log("Updating visit status:", visitId, status);
-    // Implementation for updating visit status
+  const handleUpdateVisitStatus = async (visitId, status) => {
+    try {
+        await updateVisitStatus(visitId, status);
+        loadData();
+    } catch (error) {
+        console.error("Failed to update visit status:", error);
+    }
   };
 
-  const handleCheckIn = (visitId, location) => {
-    console.log("Checking in visit:", visitId, location);
-    // Implementation for check-in
+  const handleCheckIn = async (visitId, location) => {
+    handleUpdateVisitStatus(visitId, 'in-progress');
   };
 
   return (
@@ -110,7 +119,7 @@ export default function VisitsPage() {
                 <p className="text-2xl font-bold text-blue-600">
                   {visitsStats.scheduled}
                 </p>
-                <p className="text-xs text-gray-500">Today: 3 visits</p>
+                <p className="text-xs text-gray-500">Today: {visits.filter(v => new Date(v.date).toDateString() === new Date().toDateString() && v.status === 'scheduled').length} visits</p>
               </div>
               <Calendar className="w-8 h-8 text-blue-500" />
             </div>
@@ -122,7 +131,7 @@ export default function VisitsPage() {
                 <p className="text-2xl font-bold text-green-600">
                   {visitsStats.completed}
                 </p>
-                <p className="text-xs text-green-600">+2 this week</p>
+                <p className="text-xs text-green-600">Total completed</p>
               </div>
               <CheckCircle className="w-8 h-8 text-green-500" />
             </div>
@@ -185,6 +194,7 @@ export default function VisitsPage() {
           <TabsContent value="dashboard" className="space-y-4">
             <VisitsDashboard
               stats={visitsStats}
+              visits={visits}
               onCheckIn={handleCheckIn}
               onUpdateStatus={handleUpdateVisitStatus}
             />
@@ -192,6 +202,7 @@ export default function VisitsPage() {
 
           <TabsContent value="calendar" className="space-y-4">
             <VisitsCalendar
+              visits={visits}
               onCreateVisit={handleCreateVisit}
               onUpdateStatus={handleUpdateVisitStatus}
             />
@@ -199,13 +210,17 @@ export default function VisitsPage() {
 
           <TabsContent value="list" className="space-y-4">
             <VisitsList
+              visits={visits}
               onCheckIn={handleCheckIn}
               onUpdateStatus={handleUpdateVisitStatus}
             />
           </TabsContent>
 
           <TabsContent value="map" className="space-y-4">
-            <VisitsMap onCheckIn={handleCheckIn} />
+            <VisitsMap 
+                visits={visits}
+                onCheckIn={handleCheckIn} 
+            />
           </TabsContent>
 
           <TabsContent value="reports" className="space-y-4">

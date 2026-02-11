@@ -24,71 +24,16 @@ import {
   Calendar,
 } from "lucide-react";
 
-export function VisitsList({ onCheckIn, onUpdateStatus }) {
+export function VisitsList({ visits = [], onCheckIn, onUpdateStatus }) {
   const [filterStatus, setFilterStatus] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
-
-  const visits = [
-    {
-      id: 1,
-      account: "TechCorp Inc",
-      contact: "John Smith",
-      purpose: "Product Demo",
-      scheduledDate: "2024-01-15",
-      scheduledTime: "10:00 AM",
-      location: "123 Business Ave, City",
-      status: "scheduled",
-      duration: "60 mins",
-      priority: "high",
-      type: "demo",
-    },
-    {
-      id: 2,
-      account: "Startup Solutions",
-      contact: "Sarah Johnson",
-      purpose: "Contract Review",
-      scheduledDate: "2024-01-15",
-      scheduledTime: "2:30 PM",
-      location: "456 Innovation St, City",
-      status: "in_progress",
-      duration: "45 mins",
-      priority: "medium",
-      type: "meeting",
-    },
-    {
-      id: 3,
-      account: "Global Enterprises",
-      contact: "Mike Rodriguez",
-      purpose: "Quarterly Review",
-      scheduledDate: "2024-01-16",
-      scheduledTime: "11:00 AM",
-      location: "789 Corporate Blvd, City",
-      status: "scheduled",
-      duration: "90 mins",
-      priority: "high",
-      type: "review",
-    },
-    {
-      id: 4,
-      account: "Local Business Co",
-      contact: "Emily Davis",
-      purpose: "Follow-up Meeting",
-      scheduledDate: "2024-01-14",
-      scheduledTime: "3:00 PM",
-      location: "321 Main Street, City",
-      status: "completed",
-      duration: "30 mins",
-      priority: "low",
-      type: "followup",
-    },
-  ];
 
   const filteredVisits = visits.filter((visit) => {
     if (filterStatus !== "all" && visit.status !== filterStatus) return false;
     if (
       searchQuery &&
-      !visit.account.toLowerCase().includes(searchQuery.toLowerCase()) &&
-      !visit.contact.toLowerCase().includes(searchQuery.toLowerCase())
+      !visit.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+      !(visit.description || "").toLowerCase().includes(searchQuery.toLowerCase())
     )
       return false;
     return true;
@@ -98,7 +43,7 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
     switch (status) {
       case "completed":
         return "bg-green-100 text-green-800";
-      case "in_progress":
+      case "in-progress":
         return "bg-blue-100 text-blue-800";
       case "scheduled":
         return "bg-yellow-100 text-yellow-800";
@@ -113,7 +58,7 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
     switch (status) {
       case "completed":
         return <CheckCircle className="w-4 h-4" />;
-      case "in_progress":
+      case "in-progress":
         return <PlayCircle className="w-4 h-4" />;
       case "scheduled":
         return <Clock className="w-4 h-4" />;
@@ -123,16 +68,8 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
   };
 
   const getPriorityColor = (priority) => {
-    switch (priority) {
-      case "high":
-        return "bg-red-100 text-red-800";
-      case "medium":
-        return "bg-yellow-100 text-yellow-800";
-      case "low":
-        return "bg-green-100 text-green-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
+    // We don't have priority yet, mapped to type for now color-wise
+    return "bg-blue-50 text-blue-700";
   };
 
   return (
@@ -145,7 +82,7 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
-                  placeholder="Search visits by account or contact..."
+                  placeholder="Search visits by title or description..."
                   className="pl-10"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -160,7 +97,7 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
                 <SelectContent>
                   <SelectItem value="all">All Statuses</SelectItem>
                   <SelectItem value="scheduled">Scheduled</SelectItem>
-                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="in-progress">In Progress</SelectItem>
                   <SelectItem value="completed">Completed</SelectItem>
                   <SelectItem value="overdue">Overdue</SelectItem>
                 </SelectContent>
@@ -181,8 +118,8 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
           <div className="flex items-center p-4 border-b bg-gray-50">
             <Checkbox />
             <div className="grid grid-cols-12 gap-4 flex-1">
-              <div className="col-span-3 font-semibold">Account & Contact</div>
-              <div className="col-span-2 font-semibold">Purpose</div>
+              <div className="col-span-3 font-semibold">Title</div>
+              <div className="col-span-2 font-semibold">Description</div>
               <div className="col-span-2 font-semibold">Date & Time</div>
               <div className="col-span-2 font-semibold">Location</div>
               <div className="col-span-1 font-semibold">Status</div>
@@ -194,31 +131,27 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
           <div className="divide-y">
             {filteredVisits.map((visit) => (
               <div
-                key={visit.id}
+                key={visit._id}
                 className="flex items-center p-4 hover:bg-gray-50 transition-colors"
               >
                 <Checkbox className="mr-4" />
                 <div className="grid grid-cols-12 gap-4 flex-1 items-center">
-                  {/* Account & Contact */}
+                  {/* Account & Contact -> Title */}
                   <div className="col-span-3">
                     <div className="flex items-center gap-2 mb-1">
                       <Building2 className="w-4 h-4 text-gray-400" />
-                      <span className="font-semibold">{visit.account}</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm text-gray-600">
-                      <User className="w-4 h-4" />
-                      <span>{visit.contact}</span>
+                      <span className="font-semibold">{visit.title}</span>
                     </div>
                   </div>
 
-                  {/* Purpose */}
+                  {/* Purpose -> Description */}
                   <div className="col-span-2">
-                    <span className="text-sm">{visit.purpose}</span>
+                    <span className="text-sm truncate block">{visit.description}</span>
                     <Badge
                       variant="outline"
-                      className={getPriorityColor(visit.priority)}
+                      className="bg-gray-100"
                     >
-                      {visit.priority}
+                      {visit.type}
                     </Badge>
                   </div>
 
@@ -226,11 +159,11 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
                   <div className="col-span-2">
                     <div className="flex items-center gap-1 text-sm">
                       <Calendar className="w-4 h-4" />
-                      {new Date(visit.scheduledDate).toLocaleDateString()}
+                      {new Date(visit.date).toLocaleDateString()}
                     </div>
                     <div className="flex items-center gap-1 text-sm text-gray-600">
                       <Clock className="w-4 h-4" />
-                      {visit.scheduledTime}
+                      {visit.startTime} - {visit.endTime}
                     </div>
                   </div>
 
@@ -250,7 +183,7 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
                       )}`}
                     >
                       {getStatusIcon(visit.status)}
-                      {visit.status.replace("_", " ")}
+                      {visit.status.replace(/-/g, " ")}
                     </Badge>
                   </div>
 
@@ -260,16 +193,16 @@ export function VisitsList({ onCheckIn, onUpdateStatus }) {
                       {visit.status === "scheduled" && (
                         <Button
                           size="sm"
-                          onClick={() => onCheckIn(visit.id, visit.location)}
+                          onClick={() => onCheckIn(visit._id, visit.location)}
                         >
                           <Navigation className="w-4 h-4 mr-1" />
                           Check In
                         </Button>
                       )}
-                      {visit.status === "in_progress" && (
+                      {visit.status === "in-progress" && (
                         <Button
                           size="sm"
-                          onClick={() => onUpdateStatus(visit.id, "completed")}
+                          onClick={() => onUpdateStatus(visit._id, "completed")}
                         >
                           <CheckCircle className="w-4 h-4 mr-1" />
                           Complete
