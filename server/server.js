@@ -47,8 +47,8 @@ app.use(express.urlencoded({ extended: true }));
 
 // PREVENT CRASH: Handle uncaught parser errors from node-imap
 process.on('uncaughtException', (err) => {
-    console.error('❌ UNCAUGHT EXCEPTION (Likely IMAP Parser):', err);
-    // Do not exit! Keep server running.
+  console.error('❌ UNCAUGHT EXCEPTION (Likely IMAP Parser):', err);
+  // Do not exit! Keep server running.
 });
 
 // DEBUG: Log all requests
@@ -142,6 +142,9 @@ app.get('/api/test-po', (req, res) => {
     ]
   });
 });
+
+// Analytics Routes
+app.use('/api/analytics', require('./routes/file/analytics/analyticsRoutes'));
 
 // Test purchase order connection
 app.get('/api/test-po', (req, res) => {
